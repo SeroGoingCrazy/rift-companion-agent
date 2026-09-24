@@ -580,7 +580,7 @@ session:
 | 阶段 | 任务 | 状态 |
 |---|---|---|
 | A | A1 A2 A3 A4 | ✅✅✅✅ |
-| B | B1 B2 B3 B4 B5 B6 | ⬜⬜⬜⬜⬜⬜ |
+| B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ⬜⬜⬜⬜⬜⬜⬜ |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`4 / 77`
+`10 / 77`
 
 ---
 
@@ -628,44 +628,45 @@ session:
 
 ---
 
-## 阶段 B：公共库（目标：Provider 工厂可用，Trace 双写可用）
+## 阶段 B：公共库（目标：Provider 工厂可用，Trace 双写可用） ✅
 
-### B1：LLM 抽象接口与注册式工厂
+### B1：LLM 抽象接口与注册式工厂 ✅
 - **目标**：迁移 RAG 项目 `libs/llm` 的 `BaseLLM` + `LLMFactory` 思路：`register_provider()` 注册时 `issubclass` 校验，未知 provider fail-fast。接口：`chat(messages, *, response_format=None, temperature, max_tokens, timeout) -> LLMResult`，`astream(...)`。
 - **修改文件**：`packages/common/src/rift_common/llm/{base.py, factory.py, types.py}`、`tests/unit/test_llm_factory.py`。
 - **实现类/函数**：`BaseLLM`、`LLMResult(text, usage, latency_ms, model)`、`LLMFactory.create(cfg)`、`register_provider(name, cls)`。
 - **验收标准**：注册非子类抛 `TypeError`；未知 provider 抛可读错误。
 - **测试方法**：`uv run pytest -q tests/unit/test_llm_factory.py`。
 
-### B2：OpenAI 兼容 Provider（DeepSeek 默认）+ Mock Provider
+### B2：OpenAI 兼容 Provider（DeepSeek 默认）+ Mock Provider ✅
 - **目标**：实现 `openai_compatible`（支持 `response_format={"type":"json_object"}`、流式、超时）；实现 `mock`（按 fixture 文件 / 回调返回，用于单测与 CI）。
 - **修改文件**：`llm/openai_compatible.py`、`llm/mock.py`、`tests/unit/test_llm_mock.py`、`tests/integration/test_deepseek_live.py`（marker `llm`）。
 - **验收标准**：mock 可按输入匹配返回；真实 DeepSeek 调用（手动）能返回合法 JSON。
 - **测试方法**：`uv run pytest -q tests/unit/test_llm_mock.py`；`uv run pytest -q -m llm tests/integration/test_deepseek_live.py`（需 key）。
 
-### B3：llama_server Provider
+### B3：llama_server Provider ✅
 - **目标**：对接 llama.cpp OpenAI 兼容接口，temperature 0、`max_tokens` 默认 160、超时可配；健康检查 `ping()`。
 - **修改文件**：`llm/llama_server.py`、`tests/unit/test_llama_server_provider.py`（用 `httpx.MockTransport`）。
 - **验收标准**：超时抛 `LLMTimeout`；不可达抛 `LLMUnavailable`（供降级逻辑区分）。
 - **测试方法**：`uv run pytest -q tests/unit/test_llama_server_provider.py`。
 
-### B4：Embedding 抽象与本地实现
+### B4：Embedding 抽象与本地实现 ✅
 - **目标**：`BaseEmbedding.embed(texts) -> list[vector]`；实现 `local`（sentence-transformers 中文小模型，懒加载）、`openai_compatible`、`mock`（确定性哈希向量）。
 - **修改文件**：`packages/common/src/rift_common/embedding/*`、`tests/unit/test_embedding.py`。
 - **验收标准**：mock 相同文本向量相同、不同文本余弦 < 1；本地模型首次加载后缓存。
 - **测试方法**：`uv run pytest -q tests/unit/test_embedding.py`。
 
-### B5：Span Trace 核心与 SQLite Sink
+### B5：Span Trace 核心与 SQLite Sink ✅
 - **目标**：`TraceContext`（`trace_id`、`session_id`、层级 span 栈，基于 `contextvars`）、`Span(name, attrs, start, end, status, error)`、`@traced(name)` 装饰器（同步/异步皆可）；`SqliteSink` 在 turn 结束时批量写入 `turns`、`spans` 两表。
 - **修改文件**：`trace/{context.py, span.py, decorators.py, sinks/base.py, sinks/sqlite.py}`、`tests/unit/test_trace.py`。
 - **验收标准**：嵌套 span 父子关系正确；异常时 span 记录 error 并继续抛出；写入后可按 `session_id` 查询。
 - **测试方法**：`uv run pytest -q tests/unit/test_trace.py`。
 
-### B6：Langfuse Sink（可选、静默降级）
+### B6：Langfuse Sink（可选、静默降级） ✅
 - **目标**：将 turn 映射为 Langfuse trace（`session_id`、`user_id`），span 映射为 span/generation（LLM 调用带 input/output/usage）。`enabled=false` 或网络失败时仅 warning。
 - **修改文件**：`trace/sinks/langfuse.py`、`tests/unit/test_langfuse_sink.py`（mock client）。
 - **验收标准**：Langfuse 客户端抛异常时对话主流程不受影响；手动在 Langfuse Cloud 上可见一条测试 trace。
 - **测试方法**：`uv run pytest -q tests/unit/test_langfuse_sink.py`；手动运行 `scripts/smoke_langfuse.py`。
+- **实现备注**：Langfuse SDK v4 基于 OpenTelemetry，不支持回填 span 起止时间；旧的 `/api/public/ingestion` 批量接口将于 2026-11-16 在 Cloud 下线。因此 Sink 采用 span 处理器模式（`on_span_start / on_span_end / on_turn_end`）**实时镜像**，SQLite Sink 仍在 turn 结束时批量写入。`trace_id` 统一为 32 位 hex（OTel 兼容），跨服务可直接复用。
 
 ---
 
