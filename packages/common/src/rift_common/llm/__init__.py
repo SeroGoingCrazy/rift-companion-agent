@@ -2,6 +2,7 @@
 
 from rift_common.llm.base import BaseLLM
 from rift_common.llm.factory import LLMFactory, available_providers, register_provider
+from rift_common.llm.llama_server import LlamaServerLLM
 from rift_common.llm.mock import MockLLM, MockNoMatchError, MockRule
 from rift_common.llm.openai_compatible import OpenAICompatibleLLM
 from rift_common.llm.types import (
@@ -17,6 +18,7 @@ from rift_common.llm.types import (
 from rift_common.registry import UnknownProviderError
 
 register_provider(OpenAICompatibleLLM.provider_name, OpenAICompatibleLLM)
+register_provider(LlamaServerLLM.provider_name, LlamaServerLLM)
 register_provider(MockLLM.provider_name, MockLLM)
 
 __all__ = [
@@ -28,6 +30,7 @@ __all__ = [
     "LLMResult",
     "LLMTimeout",
     "LLMUnavailable",
+    "LlamaServerLLM",
     "Message",
     "MockLLM",
     "MockNoMatchError",
