@@ -1,0 +1,17 @@
+[project]
+name = "rift-web"
+version = "0.1.0"
+description = "FastAPI web front-end for the Rift Companion agent."
+requires-python = ">=3.12"
+dependencies = [
+    "rift-agent",
+    "rift-common",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+rift-agent = { workspace = true }
+rift-common = { workspace = true }

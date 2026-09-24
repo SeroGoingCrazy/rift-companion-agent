@@ -1,0 +1,35 @@
+[project]
+name = "rift-companion-agent"
+version = "0.1.0"
+description = "Rift Companion Agent: conversational booking agent for a fictional LoL companion platform."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "rift-common",
+    "rift-domain",
+    "booking-mcp",
+    "rift-agent",
+    "rift-web",
+    "rift-training",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "packages/common",
+    "packages/domain",
+    "services/booking_mcp",
+    "apps/agent",
+    "apps/web",
+    "training",
+]
+
+[tool.uv.sources]
+rift-common = { workspace = true }
+rift-domain = { workspace = true }
+booking-mcp = { workspace = true }
+rift-agent = { workspace = true }
+rift-web = { workspace = true }
+rift-training = { workspace = true }
