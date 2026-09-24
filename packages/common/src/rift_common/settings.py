@@ -51,6 +51,9 @@ class EmbeddingConfig(_Frozen):
     model: str | None = None
     base_url: str | None = None
     api_key: str | None = None
+    timeout_s: float = Field(default=30.0, gt=0)
+    #: Mock provider only: vector size (default 64).
+    dimension: int | None = Field(default=None, gt=0)
 
 
 ExtractorKind = Literal["llm", "local"]
