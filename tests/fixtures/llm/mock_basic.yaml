@@ -1,0 +1,15 @@
+default: "抱歉，我没听懂"
+rules:
+  - contains: "明晚"
+    response:
+      turn_intent: booking
+      delta:
+        game_mode: ranked_solo_duo
+        start_time_expr: 明晚八点
+      confirmation: none
+  - regex: "^取消"
+    response: manage
+  - contains: "超时"
+    error: timeout
+  - contains: "挂了"
+    error: unavailable
