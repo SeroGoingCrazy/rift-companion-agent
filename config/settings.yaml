@@ -1,0 +1,49 @@
+# Runtime settings. Secrets are only referenced as ${ENV_VAR}; see .env.example.
+# ${VAR} is required; ${VAR:-default} falls back to default (empty -> unset).
+
+llm:
+  default:
+    provider: openai_compatible
+    base_url: https://api.deepseek.com/v1
+    model: deepseek-chat
+    api_key: ${DEEPSEEK_API_KEY}
+    timeout_s: 30
+  local_slot:
+    provider: llama_server
+    base_url: ${LLAMA_SERVER_URL:-http://llama-server:8080/v1}
+    model: rift-slot-0.6b-q4km
+    timeout_s: 5
+    temperature: 0
+    max_tokens: 160
+
+embedding:
+  provider: local            # sentence-transformers Chinese small model; shared by style matching and L2 fuzzy scoring
+  model: BAAI/bge-small-zh-v1.5
+
+slot_extractor:
+  primary: llm               # llm | local
+  fallback: null             # llm | local | null
+  shadow: null
+  max_retries: 1
+
+reply:
+  polish: false
+
+mcp:
+  booking:
+    url: ${BOOKING_MCP_URL:-http://booking-mcp:8101/mcp}
+  knowledge:
+    url: ${KNOWLEDGE_MCP_URL:-http://knowledge-mcp:8102/mcp}
+    collection_default: platform_rules
+
+trace:
+  sqlite_path: data/traces.db
+  langfuse:
+    enabled: true
+    host: https://cloud.langfuse.com
+    public_key: ${LANGFUSE_PUBLIC_KEY:-}
+    secret_key: ${LANGFUSE_SECRET_KEY:-}
+
+session:
+  checkpoint_path: data/checkpoints.db
+  history_turns: 6
