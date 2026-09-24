@@ -8,6 +8,7 @@ from typing import Any, ClassVar
 
 from rift_common.llm.types import ChatOptions, LLMResult, Message
 from rift_common.settings import LLMConfig
+from rift_common.trace.context import span
 
 
 def _first_set[T](*values: T | None) -> T | None:
@@ -65,7 +66,17 @@ class BaseLLM(ABC):
             max_tokens=max_tokens,
             timeout=timeout,
         )
-        return self._chat(list(messages), opts)
+        msgs = list(messages)
+        with span(
+            f"llm:{self.provider_name or type(self).__name__}",
+            kind="generation",
+            model=self.model,
+            input=msgs,
+            model_parameters={"temperature": opts.temperature, "max_tokens": opts.max_tokens},
+        ) as s:
+            result = self._chat(msgs, opts)
+            s.set_attrs(output=result.text, usage=result.usage.as_dict())
+            return result
 
     def astream(
         self,
