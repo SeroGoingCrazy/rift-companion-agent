@@ -42,6 +42,8 @@ class LLMConfig(_Frozen):
     timeout_s: float = Field(default=30.0, gt=0)
     temperature: float | None = Field(default=None, ge=0, le=2)
     max_tokens: int | None = Field(default=None, gt=0)
+    #: Mock provider only: YAML/JSON fixture with canned responses.
+    fixture: str | None = None
 
 
 class EmbeddingConfig(_Frozen):
