@@ -579,7 +579,7 @@ session:
 
 | 阶段 | 任务 | 状态 |
 |---|---|---|
-| A | A1 A2 A3 A4 | ⬜⬜⬜⬜ |
+| A | A1 A2 A3 A4 | ✅✅✅✅ |
 | B | B1 B2 B3 B4 B5 B6 | ⬜⬜⬜⬜⬜⬜ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ⬜⬜⬜⬜⬜⬜⬜ |
@@ -594,33 +594,33 @@ session:
 
 ### 📈 总体进度
 
-`0 / 77`
+`4 / 77`
 
 ---
 
-## 阶段 A：工程骨架与测试基座（目标：先可导入，再可测试）
+## 阶段 A：工程骨架与测试基座（目标：先可导入，再可测试） ✅
 
-### A1：uv workspace 与目录骨架
+### A1：uv workspace 与目录骨架 ✅
 - **目标**：按 5.2 创建目录与各 workspace 成员（`packages/common`、`packages/domain`、`services/booking_mcp`、`apps/agent`、`apps/web`、`training`），`services/knowledge_mcp` 暂留空目录。
 - **修改文件**：`pyproject.toml`（workspace members）、各成员 `pyproject.toml`、`src/**/__init__.py`、`.gitignore`（含 `.env`、`data/*.db`、`training/data/raw`、`*.gguf`）、`.env.example`、`README.md`。
 - **实现类/函数**：无。
 - **验收标准**：`uv sync` 成功；`uv run python -c "import rift_common, rift_domain, booking_mcp, rift_agent, rift_web, rift_training"` 通过。
 - **测试方法**：`uv run python -m compileall packages services apps training`。
 
-### A2：pytest / ruff / mypy 基座
+### A2：pytest / ruff / mypy 基座 ✅
 - **目标**：建立 `tests/unit|integration|e2e|fixtures` 与 markers（unit、integration、e2e、llm、slow）。
 - **修改文件**：根 `pyproject.toml`（pytest、ruff、mypy 配置）、`tests/unit/test_smoke_imports.py`。
 - **验收标准**：`uv run pytest -q` 通过；`uv run ruff check .` 无错误。
 - **测试方法**：`uv run pytest -q tests/unit/test_smoke_imports.py`。
 
-### A3：Settings 加载与环境变量展开
+### A3：Settings 加载与环境变量展开 ✅
 - **目标**：读取 `config/settings.yaml`，支持 `${ENV}` 展开，frozen dataclass/Pydantic 结构，缺字段 fail-fast 并报出字段路径。**密钥只允许来自环境变量**（YAML 中出现以 `sk-` 开头的字面量直接报错）。
 - **修改文件**：`packages/common/src/rift_common/settings.py`、`config/settings.yaml`、`tests/unit/test_settings.py`。
 - **实现类/函数**：`Settings`、`load_settings(path) -> Settings`、`expand_env(obj)`、`validate_settings(s)`。
 - **验收标准**：缺 `llm.default.provider` 时报 `llm.default.provider is required`；YAML 写入明文 key 时报错；环境变量缺失时报出变量名。
 - **测试方法**：`uv run pytest -q tests/unit/test_settings.py`。
 
-### A4：GitHub Actions CI
+### A4：GitHub Actions CI ✅
 - **目标**：CI 运行 ruff、mypy（`packages/`）、`pytest -m "unit or integration"`，不注入任何密钥。
 - **修改文件**：`.github/workflows/ci.yml`。
 - **验收标准**：推送后 CI 绿（本地可用 `act` 或直接推送验证）。
