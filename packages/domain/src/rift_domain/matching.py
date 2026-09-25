@@ -8,12 +8,12 @@ covers every static attribute so the in-memory and SQL paths agree.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from rift_domain.config import DomainConfig
-from rift_domain.enums import GameMode, Gender, Rank, Role, ServiceType
+from rift_domain.enums import GameMode, Gender, Rank, RelaxStepName, Role, ServiceType
 from rift_domain.slots import ANY, BookingState, Candidate
 
 
@@ -195,3 +195,54 @@ def rank_candidates(
 
     scored.sort(key=lambda s: (-s.score, -s.companion.rating, s.companion.id))
     return scored[:top_k] if top_k is not None else scored
+
+
+# --- relaxation ----------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class RelaxStep:
+    """One step of the plan; ``filter`` already includes every earlier step."""
+
+    name: RelaxStepName
+    filter: CompanionFilter
+    #: All steps applied so far, in order (this one last).
+    relaxed: tuple[RelaxStepName, ...]
+
+
+def relaxation_plan(f: CompanionFilter, domain: DomainConfig) -> list[RelaxStep]:
+    """Cumulative relaxations in ``domain.relaxation.order`` for a zero-result search.
+
+    Steps whose constraint the user never set are skipped (no gender preference -> no
+    gender step). Budget and rank are never relaxed: they are not steps at all, and
+    config validation rejects them in the order.
+    """
+    plan: list[RelaxStep] = []
+    current = f
+    applied: list[RelaxStepName] = []
+    window = domain.relaxation.time_window_hours
+    for step in domain.relaxation.order:
+        if step is RelaxStepName.TIME_WINDOW:
+            if current.time_shift_hours >= window:
+                continue
+            current = replace(current, time_shift_hours=window)
+        elif step is RelaxStepName.COMPANION_GENDER:
+            if current.gender is None:
+                continue
+            current = replace(current, gender=None)
+        elif step is RelaxStepName.ROLE_PREFERENCE:
+            if current.roles is None:
+                continue
+            current = replace(current, roles=None)
+        applied.append(step)
+        plan.append(RelaxStep(name=step, filter=current, relaxed=tuple(applied)))
+    return plan
+
+
+def describe_relaxation(step: RelaxStepName, domain: DomainConfig) -> str:
+    """User-facing sentence fragment explaining a relaxation."""
+    if step is RelaxStepName.TIME_WINDOW:
+        return f"开始时间放宽到前后 {domain.relaxation.time_window_hours:g} 小时"
+    if step is RelaxStepName.COMPANION_GENDER:
+        return "不再限定陪玩师性别"
+    return "不再限定位置"
