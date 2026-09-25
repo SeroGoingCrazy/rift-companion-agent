@@ -283,12 +283,15 @@ def make_agent(
         checkpointer: Any = None,
         session_id: str = "s1",
         user_id: int = 1,
+        server: Server[Any, Any] | None = None,
     ) -> AgentHarness:
         deps = AgentDeps(
             domain=domain,
             llm=llm or classifier_llm(),
             extractor=TableExtractor(table),
-            booking=BookingClient(McpToolClient("booking", inprocess_connector(booking_server))),
+            booking=BookingClient(
+                McpToolClient("booking", inprocess_connector(server or booking_server))
+            ),
             knowledge=KnowledgeClient(
                 McpToolClient("knowledge", inprocess_connector(knowledge_server)),
                 collections=("platform_rules", "modes_and_ranks", "companion_profiles"),
