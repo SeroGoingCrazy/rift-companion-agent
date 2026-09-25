@@ -33,6 +33,7 @@ from rift_agent.graph.nodes.consult import abandon, consult, consult_interject, 
 from rift_agent.graph.nodes.decide import decide, route_decision
 from rift_agent.graph.nodes.extract import extract_slots, route_extraction
 from rift_agent.graph.nodes.find import find_companions, route_found
+from rift_agent.graph.nodes.manage import manage, manage_confirm, route_manage
 from rift_agent.graph.nodes.merge import merge_state
 from rift_agent.graph.nodes.quote import quote
 from rift_agent.graph.state import AgentState
@@ -53,6 +54,8 @@ NODES: dict[str, NodeFn] = {
     "consult_interject": consult_interject,
     "unrelated": unrelated,
     "abandon": abandon,
+    "manage": manage,
+    "manage_confirm": manage_confirm,
     "render": render,
 }
 
@@ -68,6 +71,7 @@ ROUTES: dict[str, tuple[Callable[[AgentState], str], tuple[str, ...]]] = {
     "find_companions": (route_found, ("quote", "render")),
     "book": (route_booked, ("find_companions", "render")),
     "confirm": (route_confirmed, ("extract_slots", "manage_confirm", "render")),
+    "manage": (route_manage, ("classify", "render")),
     "render": (after_render, ("confirm", END)),
 }
 
@@ -80,6 +84,7 @@ EDGES: dict[str, str] = {
     "consult_interject": "render",
     "unrelated": "render",
     "abandon": "render",
+    "manage_confirm": "render",
 }
 
 

@@ -39,6 +39,14 @@ FIELD_LABELS: dict[str, str] = {
 }
 
 
+STATUS_LABELS = {
+    "pending_payment": "待支付",
+    "confirmed": "已支付",
+    "completed": "已完成",
+    "cancelled": "已取消",
+}
+
+
 class TemplateError(KeyError):
     """Unknown reply type."""
 
@@ -81,6 +89,7 @@ class ReplyRenderer:
             dt=fmt_dt,
             money=fmt_money,
             hours=fmt_hours,
+            status=lambda s: STATUS_LABELS.get(str(s), str(s)),
         )
         self.templates = {k: self.env.from_string(str(v)) for k, v in raw.items()}
 

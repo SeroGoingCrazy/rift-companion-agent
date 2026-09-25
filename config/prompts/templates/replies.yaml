@@ -111,3 +111,40 @@ unrelated: |
 
 abandon: |
   好的，这次先不约了{% if dropped %}（已取消：{{ dropped }}）{% endif %}。想约的时候随时叫我～
+
+manage_list: |
+  {% if bookings %}你的订单：
+  {% for b in bookings %}
+  {{ loop.index }}. #{{ b.booking_id }} {{ b.companion_name }}｜{{ b.game_mode | mode }}｜{{ b.start_time | dt }} 起 {{ b.hours | hours }} 小时｜{{ b.total | money }} 元｜{{ b.status | status }}
+  {% endfor %}
+  {% if active %}需要取消的话，说「取消第一个」就行；支付请到「我的订单」页面。{% endif %}
+  {% else %}你还没有订单哦，要现在约一个吗？
+  {% endif %}
+
+manage_which: |
+  你有 {{ bookings | length }} 个进行中的订单，要取消哪一个？
+  {% for b in bookings %}
+  {{ loop.index }}. #{{ b.booking_id }} {{ b.companion_name }}｜{{ b.game_mode | mode }}｜{{ b.start_time | dt }}｜{{ b.status | status }}
+  {% endfor %}
+
+manage_empty: |
+  你目前没有可以取消的订单。
+
+manage_error: |
+  操作没有成功：{{ message }}。
+
+cancel_confirm: |
+  确认取消订单 #{{ order.booking_id }}（{{ order.companion_name }}｜{{ order.game_mode | mode }}｜{{ order.start_time | dt }}）吗？
+  {% if paid %}距开局还有 {{ hours_before }} 小时，按规则{{ refund_label }}，可退 {{ refund_amount | money }} 元。
+  {% else %}这单还没支付，取消不产生任何费用。
+  {% endif %}
+  回复「确认」取消，或「算了」保留订单。
+
+cancel_unclear: |
+  没太听明白～确认取消订单 #{{ order.booking_id }} 吗？回复「确认」或「算了」。
+
+cancelled: |
+  已取消订单 #{{ order.booking_id }}。{% if paid %}退款 {{ refund_amount | money }} 元将原路退回（{{ refund_label }}）。{% else %}订单未支付，无需退款。{% endif %}
+
+cancel_aborted: |
+  好的，订单 #{{ order.booking_id }} 保留，不取消了。
