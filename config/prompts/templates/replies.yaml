@@ -1,0 +1,61 @@
+# Reply templates by reply_type (Jinja2). Always available: summary (one line of the
+# collected slots), booking (BookingState as JSON), domain; plus the turn's facts.
+# Filters: mode rank role service gender field dt money hours.
+
+help: |
+  你好，我是峡谷陪练的预约助手～可以帮你：
+  · 约陪玩：比如「帮我约个明晚八点的单双排，钻石以上」
+  · 问规则：比如「开局前三小时取消退多少？」
+  · 管订单：比如「我有哪些订单」「取消明天那单」
+
+extraction_failed: |
+  抱歉，我没太理解这句话，能换个说法再说一次吗？
+  {% if summary %}（目前已记下：{{ summary }}）{% endif %}
+
+error: |
+  抱歉，刚才处理出了点问题，能再说一遍吗？之前的信息我都还记着。
+
+service_unavailable: |
+  预约服务暂时连不上，请稍后再试一次～已记下的信息不会丢：{{ summary }}
+
+ask_missing: |
+  {% if summary %}好的，已记下：{{ summary }}。
+  {% endif %}
+  {% if cleared %}（{% for f in cleared %}{{ f | field }}{% if not loop.last %}、{% endif %}{% endfor %}对{{ booking.game_mode | mode }}不适用，已忽略）
+  {% endif %}
+  {% if invalid %}{% for f, reason in invalid.items() %}{{ reason }}。{% endfor %}
+  {% endif %}
+  {% if field == "game_mode" %}想约哪种模式呢？单双排、灵活组排、匹配、大乱斗、海克斯大乱斗、斗魂竞技场都可以。
+  {% elif field == "start_time" %}想约什么时候开始？比如「明晚八点」「周六下午三点」。
+  {% elif field == "duration_hours" %}打几个小时呢？（1–8 小时，可以按半小时算）
+  {% elif field == "rank_requirement" %}对陪玩师段位有要求吗？比如「钻石以上」，没要求也可以说「无所谓」。
+  {% else %}还需要确认一下{{ field | field }}。
+  {% endif %}
+
+ask_time: |
+  {% if reason == "past" %}「{{ expr }}」这个时间已经过了，换个时间吧？
+  {% elif reason in ("vague", "ambiguous_hour", "ambiguous_ampm") %}「{{ expr }}」具体是几点开始呢？比如「晚上八点」。
+  {% elif reason == "ambiguous_date" %}「{{ expr }}」里好像有两个日期，是哪一天呢？
+  {% else %}没太听懂「{{ expr }}」是什么时候，可以说「明晚八点」「周六下午三点」这样的时间。
+  {% endif %}
+
+candidates: |
+  {% if conflict %}刚才那个时段被别人抢先约走了，帮你重新找了一下：
+  {% endif %}
+  {% if companion_unavailable %}{{ companion_unavailable }} 在新的条件下约不到了，看看这些：
+  {% endif %}
+  {% if relaxation_notes %}按原条件没找到合适的陪玩师，已帮你{{ relaxation_notes | join("，") }}：
+  {% else %}按「{{ summary }}」为你找到这些陪玩师：
+  {% endif %}
+  {% for c in cards %}
+  {{ loop.index }}. {{ c.name }}｜{{ c.rank | rank }}｜{% for r in c.roles %}{{ r | role }}{% if not loop.last %}/{% endif %}{% endfor %}｜{{ c.effective_hourly_price | money }} 元/小时{% if c.start_time != booking.start_time %}｜可约 {{ c.start_time | dt }}{% endif %}
+
+     {{ c.reasons | join("，") }}
+  {% endfor %}
+  想约哪位？说「第一个」或直接说名字就行。
+
+no_candidates: |
+  抱歉，按「{{ summary }}」没找到能约的陪玩师{% if tried %}（已尝试放宽时间、性别、位置）{% endif %}。
+  {% if has_budget %}预算和段位要求不会自动放宽，可以提高一点预算，或者换个时间试试？
+  {% else %}换个时间或调整一下要求试试？
+  {% endif %}
