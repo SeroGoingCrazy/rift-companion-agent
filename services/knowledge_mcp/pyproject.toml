@@ -1,0 +1,30 @@
+[project]
+name = "knowledge-mcp"
+version = "0.1.0"
+description = "Knowledge MCP server (migrated from MODULAR-RAG-MCP-SERVER): hybrid search over the KB."
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0",
+    "langchain-text-splitters>=0.3.0",
+    "chromadb>=0.4.0",
+    "mcp>=1.9,<2",
+    "jieba>=0.42",
+    "markitdown[pdf]>=0.1.0",
+    "streamlit>=1.30.0",
+    "ragas>=0.4.3,<0.5.0",
+    "datasets>=2.0.0",
+    "openai>=1.0",
+    # Used by the original code but never declared there:
+    "pymupdf>=1.24",
+    "pillow>=10.0",
+    # ragas 0.4.x imports langchain_community.chat_models.vertexai (removed in 0.4).
+    "langchain-community>=0.3,<0.4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# The migrated code keeps its original top-level package name ``src``.
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

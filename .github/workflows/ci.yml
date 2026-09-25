@@ -38,3 +38,6 @@ jobs:
 
       - name: Pytest (unit + integration, domain coverage >= 90%)
         run: uv run pytest -m "unit or integration" --cov=rift_domain --cov-fail-under=90
+
+      - name: Pytest (knowledge-mcp unit, migrated RAG suite)
+        run: uv run pytest -q services/knowledge_mcp/tests/unit

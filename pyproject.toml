@@ -8,6 +8,7 @@ dependencies = [
     "rift-common[langfuse]",
     "rift-domain",
     "booking-mcp",
+    "knowledge-mcp",
     "rift-agent",
     "rift-web",
     "rift-training",
@@ -22,6 +23,7 @@ members = [
     "packages/common",
     "packages/domain",
     "services/booking_mcp",
+    "services/knowledge_mcp",
     "apps/agent",
     "apps/web",
     "training",
@@ -31,6 +33,7 @@ members = [
 rift-common = { workspace = true }
 rift-domain = { workspace = true }
 booking-mcp = { workspace = true }
+knowledge-mcp = { workspace = true }
 rift-agent = { workspace = true }
 rift-web = { workspace = true }
 rift-training = { workspace = true }
@@ -43,6 +46,7 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "types-pyyaml>=6.0",
+    "pytest-mock>=3.14",
 ]
 
 [tool.pytest.ini_options]

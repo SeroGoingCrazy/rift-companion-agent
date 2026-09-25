@@ -38,3 +38,9 @@ Thumbs.db
 
 # Generated knowledge base (scripts/gen_kb_docs.py)
 kb/
+
+# knowledge-mcp runtime data (Chroma, BM25, caches, traces)
+services/knowledge_mcp/data/
+services/knowledge_mcp/cache/
+data/db/
+data/images/
