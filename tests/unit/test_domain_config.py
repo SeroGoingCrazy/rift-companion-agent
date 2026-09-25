@@ -231,3 +231,56 @@ def test_missing_file_and_bad_yaml(tmp_path: Path) -> None:
     bad.write_text("game_modes: [unclosed", encoding="utf-8")
     with pytest.raises(DomainConfigError, match="invalid YAML"):
         load_domain_config(bad)
+
+
+# --- policies ----------------------------------------------------------------------------
+
+
+def test_repo_policies_load(domain: DomainConfig) -> None:
+    p = domain.policies
+    assert p.late_arrival.grace_minutes < p.late_arrival.full_refund_after_minutes
+    assert {v.name for v in p.violations} >= {"消极比赛", "代打"}
+    assert p.companion_levels[-1].min_rating == 0
+
+
+@pytest.mark.parametrize(
+    ("rating", "level"),
+    [
+        (5.0, "王牌陪玩"),
+        (4.8, "王牌陪玩"),
+        (4.79, "金牌陪玩"),
+        (4.5, "金牌陪玩"),
+        (4.49, "新星陪玩"),
+        (0.0, "新星陪玩"),
+    ],
+)
+def test_level_for_rating_boundaries(domain: DomainConfig, rating: float, level: str) -> None:
+    assert domain.policies.level_for(rating).name == level
+
+
+def test_levels_must_decrease_and_end_at_zero() -> None:
+    raw = _raw()
+    raw["policies"]["companion_levels"] = [
+        {"name": "a", "min_rating": 4.0},
+        {"name": "b", "min_rating": 4.5},
+        {"name": "c", "min_rating": 0},
+    ]
+    with pytest.raises(DomainConfigError, match="strictly decreasing"):
+        parse_domain_config(raw)
+    raw["policies"]["companion_levels"] = [{"name": "a", "min_rating": 4.0}]
+    with pytest.raises(DomainConfigError, match="min_rating: 0"):
+        parse_domain_config(raw)
+
+
+def test_late_refund_threshold_must_exceed_grace() -> None:
+    raw = _raw()
+    raw["policies"]["late_arrival"]["full_refund_after_minutes"] = 5
+    with pytest.raises(DomainConfigError, match="must exceed grace_minutes"):
+        parse_domain_config(raw)
+
+
+def test_policies_required() -> None:
+    raw = _raw()
+    del raw["policies"]
+    with pytest.raises(DomainConfigError, match="policies"):
+        parse_domain_config(raw)
