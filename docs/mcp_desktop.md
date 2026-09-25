@@ -74,7 +74,7 @@ macOS：`~/Library/Application Support/Claude/claude_desktop_config.json`），�
 > 我现在有哪些订单？如果现在取消能退多少？
 
 Claude 会依次调用 `find_companions` → `quote_price` → `create_booking` → `list_my_bookings`
-→ `cancel_booking(dry_run=true)`。截图存放在 `docs/img/`。
+→ `cancel_booking(dry_run=true)`。截图见 `docs/img/mcp-desktop-01-running.png` ～ `mcp-desktop-04-booking.png`。
 
 ## 4. 不开 Claude Desktop 的自检
 

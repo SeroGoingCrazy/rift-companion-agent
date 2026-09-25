@@ -582,7 +582,7 @@ session:
 | A | A1 A2 A3 A4 | ✅✅✅✅ |
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
-| D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅🟨 |
+| D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜✅⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅🟨 |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`40 / 77`（🟨 = 部分完成：D7 Claude Desktop 实机截图、G5 截图待手动；E1/E2/E4–E6 待迁入 RAG 源码）
+`41 / 77`（🟨 = 部分完成：G5 截图待手动；E1/E2/E4–E6 待迁入 RAG 源码）
 
 ---
 
@@ -733,7 +733,7 @@ session:
 
 ---
 
-## 阶段 D：booking-mcp（目标：预约工具以 MCP 对外，Claude Desktop 可用） ✅（D7 实机截图待手动）
+## 阶段 D：booking-mcp（目标：预约工具以 MCP 对外，Claude Desktop 可用） ✅
 
 ### D1：数据库模型与会话 ✅
 - **目标**：SQLAlchemy 2.x 模型：`users(id, nickname)`、`companions(...)`、`schedules(companion_id, start, end, status, booking_id)`、`bookings(id, user_id, companion_id, start, end, game_mode, service_type, hours, unit_price, multiplier, total, status, created_at)`；状态机 `pending_payment → confirmed → completed | cancelled`。
@@ -777,12 +777,12 @@ session:
 - **测试方法**：`uv run pytest -q tests/integration/test_booking_mcp_protocol.py`。
 - **实现备注**：MCP SDK 固定为 `mcp>=1.9,<2`（RAG 项目基于 1.x，同一 venv 需统一；2.x 已重命名/重构 API）。SDK 1.x 会把工具内的任何异常转成 `isError` 结果，因此业务错误以工具错误返回，结构化内容为 `{"error": {code, jsonrpc_code, message, details}}`（`SLOT_CONFLICT -32001 / NOT_FOUND -32002 / FORBIDDEN -32003 / INVALID_ARGUMENT -32602 / INTERNAL -32603`），LLM 客户端可读、Agent 可映射回异常。HTTP 模式为无状态 + JSON 响应，端点 `/mcp`。`_meta.trace_id`（及可选 `parent_span_id`、`session_id`）存在时在服务端延续该 trace，生成 `tool:<name>` span。
 
-### D7：Claude Desktop 联调 🟨
+### D7：Claude Desktop 联调 ✅
 - **目标**：提供 `claude_desktop_config` 示例片段，在 Claude Desktop 中通过 stdio 完成"找陪玩 → 报价 → 下单"。
 - **修改文件**：`README.md`（MCP 配置小节）、`docs/mcp_desktop.md`。
 - **验收标准**：手动演示成功并截图存入 `docs/img/`。
 - **测试方法**：手动。
-- **实现备注**：配置片段与错误码见 `docs/mcp_desktop.md`；`scripts/mcp_smoke.py` 以 stdio 子进程方式自动跑通 找人 → 报价 → 下单 → 查订单 → 退款试算（CI 覆盖）。**Claude Desktop 实机演示截图（`docs/img/`）需手动完成。**
+- **实现备注**：配置片段与错误码见 `docs/mcp_desktop.md`；`scripts/mcp_smoke.py` 以 stdio 子进程方式自动跑通 找人 → 报价 → 下单 → 查订单 → 退款试算（CI 覆盖）。已在 Claude Desktop 实机完成 找陪玩（`style_preference=温柔` 排序）→ 报价 → 下单（待支付），截图见 `docs/img/mcp-desktop-0{1..4}-*.png`。联调中发现输出 Schema 把本地时间标为 `date-time`（要求时区偏移），严格校验的客户端会拒收，已改为本地时间字符串模式。
 
 ---
 
