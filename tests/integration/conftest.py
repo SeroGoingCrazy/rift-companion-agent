@@ -243,6 +243,11 @@ DEFAULT_INTENTS = [
 ]
 
 
+@pytest.fixture
+def make_classifier() -> Callable[[], MockLLM]:
+    return classifier_llm
+
+
 @dataclass
 class AgentHarness:
     graph: Any
