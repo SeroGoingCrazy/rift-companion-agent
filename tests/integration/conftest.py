@@ -13,6 +13,8 @@ from typing import Any
 
 import mcp.types as mcp_types
 import pytest
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import Command
 from mcp.server.lowlevel import Server
 from sqlalchemy import Engine
 
@@ -30,8 +32,22 @@ from booking_mcp.db import (
 from booking_mcp.seed import seed_database
 from booking_mcp.server import build_server
 from booking_mcp.service import BookingService
+from rift_agent.deps import AgentDeps
+from rift_agent.extractors.base import ExtractionContext, ExtractionResult, SlotExtractor
+from rift_agent.graph.builder import build_graph
+from rift_agent.graph.state import initial_state
+from rift_agent.mcp_clients import (
+    BookingClient,
+    KnowledgeClient,
+    McpToolClient,
+    inprocess_connector,
+)
+from rift_agent.replies.templates import ReplyRenderer
+from rift_common.llm.mock import MockLLM
+from rift_common.settings import LLMConfig
 from rift_domain.config import DomainConfig
 from rift_domain.enums import GameMode, Gender, Rank, Role, ServiceType
+from rift_domain.slots import parse_extraction
 
 
 @dataclass
@@ -169,3 +185,118 @@ def fake_knowledge_server(
 @pytest.fixture
 def knowledge_server() -> Server[Any, Any]:
     return fake_knowledge_server()
+
+
+# --- agent graph harness -------------------------------------------------------------------
+
+
+class TableExtractor(SlotExtractor):
+    """Returns the extraction scripted for each exact user input (unknown -> failure)."""
+
+    name = "table"
+
+    def __init__(self, table: dict[str, dict[str, Any]]) -> None:
+        self.table = table
+        self.contexts: list[ExtractionContext] = []
+
+    async def extract(
+        self, ctx: ExtractionContext, *, feedback: ExtractionResult | None = None
+    ) -> ExtractionResult:
+        self.contexts.append(ctx)
+        raw = self.table.get(ctx.user_input)
+        if raw is None:
+            return ExtractionResult.failed(("no script",), source=self.name)
+        return ExtractionResult(
+            extraction=parse_extraction(raw), raw=json.dumps(raw), valid=True, source=self.name
+        )
+
+
+def booking_turn(**delta: Any) -> dict[str, Any]:
+    return {"turn_intent": "booking", "delta": delta, "confirmation": "none"}
+
+
+def classifier_llm(rules: list[tuple[str, str]] | None = None) -> MockLLM:
+    """Mock remote LLM: classify by keyword, answer consults with a fixed sentence."""
+    llm = MockLLM(LLMConfig(provider="mock", model="mock-llm"))
+
+    def handler(messages: list[Any]) -> Any:
+        system = messages[0]["content"]
+        user = messages[-1]["content"]
+        if "意图分类器" in system:
+            for kw, intent in rules or DEFAULT_INTENTS:
+                if kw in user:
+                    return {"intent": intent}
+            return {"intent": "other"}
+        return llm.default if llm.default is not None else "好的。"
+
+    llm.handler = handler
+    return llm
+
+
+DEFAULT_INTENTS = [
+    ("约", "booking"),
+    ("订单", "manage"),
+    ("取消", "manage"),
+    ("扣钱", "consult"),
+    ("退多少", "consult"),
+    ("几个人", "consult"),
+]
+
+
+@dataclass
+class AgentHarness:
+    graph: Any
+    deps: AgentDeps
+    session_id: str = "s1"
+    user_id: int = 1
+
+    @property
+    def config(self) -> dict[str, Any]:
+        return {"configurable": {"thread_id": self.session_id, "deps": self.deps}}
+
+    async def say(self, text: str) -> dict[str, Any]:
+        snapshot = await self.graph.aget_state(self.config)
+        if snapshot.next:
+            payload: Any = Command(resume=text)
+        elif not snapshot.values:
+            payload = {**initial_state(self.session_id, self.user_id), "user_input": text}
+        else:
+            payload = {"user_input": text}
+        await self.graph.ainvoke(payload, self.config)
+        return dict((await self.graph.aget_state(self.config)).values)
+
+    async def state(self) -> dict[str, Any]:
+        return dict((await self.graph.aget_state(self.config)).values)
+
+    async def paused(self) -> bool:
+        return bool((await self.graph.aget_state(self.config)).next)
+
+
+@pytest.fixture
+def make_agent(
+    booking_server: Server[Any, Any], knowledge_server: Server[Any, Any], domain: DomainConfig
+) -> Callable[..., AgentHarness]:
+    def make(
+        table: dict[str, dict[str, Any]],
+        *,
+        llm: MockLLM | None = None,
+        checkpointer: Any = None,
+        session_id: str = "s1",
+        user_id: int = 1,
+    ) -> AgentHarness:
+        deps = AgentDeps(
+            domain=domain,
+            llm=llm or classifier_llm(),
+            extractor=TableExtractor(table),
+            booking=BookingClient(McpToolClient("booking", inprocess_connector(booking_server))),
+            knowledge=KnowledgeClient(
+                McpToolClient("knowledge", inprocess_connector(knowledge_server)),
+                collections=("platform_rules", "modes_and_ranks", "companion_profiles"),
+            ),
+            replies=ReplyRenderer(domain),
+            clock=lambda: AGENT_NOW,
+        )
+        graph = build_graph(checkpointer or MemorySaver())
+        return AgentHarness(graph, deps, session_id=session_id, user_id=user_id)
+
+    return make
