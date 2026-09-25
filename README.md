@@ -28,3 +28,14 @@ uv run pytest -q
 ## 配置与密钥
 
 复制 `.env.example` 为 `.env` 并填写。密钥只从环境变量读取，`config/*.yaml` 中以 `${VAR}` 引用。
+
+## booking-mcp（预约工具 MCP Server）
+
+```bash
+uv run python scripts/seed_all.py --reset          # 30 名陪玩师 + 14 天档期 + 演示用户 demo(id=1)
+uv run booking-mcp --transport http --port 8101    # Agent 使用：http://127.0.0.1:8101/mcp
+uv run booking-mcp --transport stdio               # 桌面客户端使用
+uv run python scripts/mcp_smoke.py                 # stdio 冒烟：找人 → 报价 → 下单
+```
+
+在 Claude Desktop 中挂载的配置片段与错误码说明见 [docs/mcp_desktop.md](docs/mcp_desktop.md)。
