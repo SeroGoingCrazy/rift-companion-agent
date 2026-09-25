@@ -9,7 +9,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from booking_mcp.db.models import Booking, BookingStatus
 from rift_domain.enums import GameMode, Gender, Rank, Role, ServiceType
@@ -191,3 +191,18 @@ class CancelOut(_Out):
     refund_amount: Money
     hours_before_start: float
     booking: BookingOut
+
+
+# --- web support: users ----------------------------------------------------------------------
+
+Nickname = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=16)]
+
+
+class EnsureUserInput(_In):
+    nickname: Nickname
+
+
+class UserOut(_Out):
+    user_id: int
+    nickname: str
+    created: bool

@@ -1,4 +1,4 @@
-"""booking-mcp server: the five booking tools over MCP (stdio or Streamable HTTP).
+"""booking-mcp server: the booking tools over MCP (stdio or Streamable HTTP).
 
 - Input is validated with the tools' Pydantic models (JSON Schema published via
   ``tools/list``); output is returned as structured content plus a JSON text block.
@@ -49,6 +49,7 @@ from booking_mcp.tools import (
     find_companions,
     list_my_bookings,
     quote_price,
+    users,
 )
 from booking_mcp.tools.schemas import (
     BookingListOut,
@@ -56,11 +57,13 @@ from booking_mcp.tools.schemas import (
     CancelBookingInput,
     CancelOut,
     CreateBookingInput,
+    EnsureUserInput,
     FindCompanionsInput,
     FindCompanionsOutput,
     ListMyBookingsInput,
     QuoteOut,
     QuotePriceInput,
+    UserOut,
 )
 from rift_common.trace import detached, span, start_turn
 from rift_common.trace.sinks.base import TraceSink
@@ -125,6 +128,8 @@ TOOLS: tuple[ToolSpec, ...] = (
         CancelOut,
         cancel_booking.cancel_booking,
     ),
+    # Web support (login, order page, companion list); the agent uses only the five above.
+    ToolSpec(users.NAME, users.DESCRIPTION, EnsureUserInput, UserOut, users.ensure_user),
 )
 
 

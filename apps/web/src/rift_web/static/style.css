@@ -1,0 +1,21 @@
+:root { --bg: #0f1419; --panel: #17202a; --text: #e6e6e6; --muted: #8a96a3; --accent: #c8aa6e; --danger: #e05d5d; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+.topbar { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: var(--panel); flex-wrap: wrap; }
+.brand { font-weight: 700; text-decoration: none; }
+.nav { display: flex; gap: 12px; flex: 1; }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a.on { color: var(--text); }
+.who { display: flex; gap: 8px; align-items: center; margin: 0; }
+.page { max-width: 960px; margin: 0 auto; padding: 16px; }
+.narrow { max-width: 420px; }
+.card { background: var(--panel); border-radius: 12px; padding: 20px; }
+.muted { color: var(--muted); }
+.error { color: var(--danger); }
+input, select, button { font: inherit; }
+input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2c3a47; background: #0b1016; color: var(--text); }
+button { cursor: pointer; border: 0; border-radius: 8px; padding: 10px 16px; }
+button.primary { background: var(--accent); color: #111; }
+button.link { background: none; color: var(--muted); padding: 0; }
+.login form { display: grid; gap: 12px; }

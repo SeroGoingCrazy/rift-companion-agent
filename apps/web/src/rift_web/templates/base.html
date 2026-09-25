@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}峡谷陪练{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/chat">峡谷陪练</a>
+    {% if user %}
+    <nav class="nav">
+      <a href="/chat" class="{{ 'on' if active == 'chat' }}">聊天预约</a>
+      <a href="/bookings" class="{{ 'on' if active == 'bookings' }}">我的订单</a>
+      <a href="/companions" class="{{ 'on' if active == 'companions' }}">陪玩师</a>
+    </nav>
+    <form class="who" method="post" action="/logout">
+      <span>{{ user.nickname }}</span>
+      <button type="submit" class="link">退出</button>
+    </form>
+    {% endif %}
+  </header>
+  <main class="{% block main_class %}page{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

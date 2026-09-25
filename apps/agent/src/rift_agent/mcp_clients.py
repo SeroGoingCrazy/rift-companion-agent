@@ -234,6 +234,11 @@ class BookingClient:
             "cancel_booking", {"user_id": user_id, "booking_id": booking_id, "dry_run": dry_run}
         )
 
+    # --- web support ---------------------------------------------------------------------
+
+    async def ensure_user(self, nickname: str) -> dict[str, Any]:
+        return await self.client.call("ensure_user", {"nickname": nickname})
+
 
 # --- knowledge -----------------------------------------------------------------------------
 

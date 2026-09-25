@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}登录 · 峡谷陪练{% endblock %}
+{% block main_class %}page narrow{% endblock %}
+{% block content %}
+<section class="card login">
+  <h1>欢迎来到峡谷陪练</h1>
+  <p class="muted">输入一个昵称即可开始（无需密码）。</p>
+  <form method="post" action="/login">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="nickname">昵称</label>
+    <input id="nickname" name="nickname" maxlength="16" required autofocus value="{{ nickname }}">
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <button type="submit" class="primary">进入</button>
+  </form>
+</section>
+{% endblock %}
