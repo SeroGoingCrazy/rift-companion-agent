@@ -266,3 +266,16 @@ def test_sqlite_list_spans_requires_one_filter(tmp_path: Path) -> None:
     sink = SqliteSink(tmp_path / "traces.db")
     with pytest.raises(ValueError, match="exactly one"):
         sink.list_spans()
+
+
+def test_detached_hides_the_callers_turn() -> None:
+    from rift_common.trace import current_span, current_trace, detached
+
+    with start_turn(session_id="outer") as root:
+        with detached():
+            assert current_trace() is None and current_span() is None
+            with start_turn(session_id="inner") as inner:
+                assert inner.parent_id is None
+                assert current_trace() is not None
+                assert current_trace().session_id == "inner"  # type: ignore[union-attr]
+        assert current_span() is root
