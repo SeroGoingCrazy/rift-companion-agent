@@ -4,8 +4,15 @@ version = "0.1.0"
 description = "FastAPI web front-end for the Rift Companion agent."
 requires-python = ">=3.12"
 dependencies = [
+    "booking-mcp",
+    "fastapi>=0.115",
+    "itsdangerous>=2.2",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.9",
     "rift-agent",
     "rift-common",
+    "rift-domain",
+    "uvicorn>=0.30",
 ]
 
 [build-system]
@@ -15,3 +22,5 @@ build-backend = "uv_build"
 [tool.uv.sources]
 rift-agent = { workspace = true }
 rift-common = { workspace = true }
+rift-domain = { workspace = true }
+booking-mcp = { workspace = true }
