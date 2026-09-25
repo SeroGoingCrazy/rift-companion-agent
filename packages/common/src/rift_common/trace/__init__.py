@@ -4,6 +4,7 @@ from rift_common.trace.context import (
     TraceContext,
     current_span,
     current_trace,
+    detached,
     span,
     start_turn,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "TraceContext",
     "current_span",
     "current_trace",
+    "detached",
     "new_span_id",
     "new_trace_id",
     "span",

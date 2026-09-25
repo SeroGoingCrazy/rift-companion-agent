@@ -62,7 +62,7 @@ from booking_mcp.tools.schemas import (
     QuoteOut,
     QuotePriceInput,
 )
-from rift_common.trace import span, start_turn
+from rift_common.trace import detached, span, start_turn
 from rift_common.trace.sinks.base import TraceSink
 from rift_domain.config import load_domain_config
 
@@ -178,6 +178,7 @@ def build_server(service: BookingService, sinks: Sequence[TraceSink] = ()) -> Se
         meta = server.request_context.meta
         trace_id = _meta_value(meta, "trace_id")
         with contextlib.ExitStack() as stack:
+            stack.enter_context(detached())  # never nest into an in-process caller's trace
             if trace_id:
                 stack.enter_context(
                     start_turn(

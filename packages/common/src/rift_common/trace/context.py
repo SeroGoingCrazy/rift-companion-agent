@@ -109,6 +109,19 @@ def span(name: str, *, kind: SpanKind = "span", **attrs: Any) -> Iterator[Span]:
 
 
 @contextmanager
+def detached() -> Iterator[None]:
+    """Run without the caller's trace: a server handling a request in the caller's process
+    (in-process MCP transport) starts its own turn instead of nesting into the caller's."""
+    trace_token = _current_trace.set(None)
+    span_token = _current_span.set(None)
+    try:
+        yield
+    finally:
+        _current_span.reset(span_token)
+        _current_trace.reset(trace_token)
+
+
+@contextmanager
 def start_turn(
     *,
     session_id: str | None = None,
