@@ -581,7 +581,7 @@ session:
 |---|---|---|
 | A | A1 A2 A3 A4 | ✅✅✅✅ |
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
-| C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
+| C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ⬜⬜⬜⬜⬜⬜⬜ |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜⬜⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`10 / 77`
+`19 / 77`
 
 ---
 
@@ -670,58 +670,62 @@ session:
 
 ---
 
-## 阶段 C：领域核心（目标：纯代码业务规则，L1 全绿，零 LLM）
+## 阶段 C：领域核心（目标：纯代码业务规则，L1 全绿，零 LLM） ✅
 
-### C1：DomainConfig 与 domain.yaml
+### C1：DomainConfig 与 domain.yaml ✅
 - **目标**：编写 `config/domain.yaml`（模式、段位序、角色、服务类型、系数、退款档、时长范围、放宽顺序、必填规则、不适用字段、`max_tier_gap`、模式中文别名表）；加载为不可变对象并做一致性校验（如别名不重复、放宽顺序中不含 budget/rank）。
 - **修改文件**：`config/domain.yaml`、`packages/domain/src/rift_domain/{config.py, enums.py}`、`tests/unit/test_domain_config.py`。
 - **验收标准**：非法配置（系数为负、放宽含 budget）加载时报错。
 - **测试方法**：`uv run pytest -q tests/unit/test_domain_config.py`。
 
-### C2：槽位协议模型（SlotDelta / SlotExtraction / BookingState）
+### C2：槽位协议模型（SlotDelta / SlotExtraction / BookingState） ✅
 - **目标**：Pydantic v2 严格模型，`extra="forbid"`；实现三态语义的类型表达（未出现 / `"any"` / `null` / 值），导出 JSON Schema 供 LLM 约束与训练使用。
 - **修改文件**：`rift_domain/slots.py`、`tests/unit/test_slots_schema.py`。
 - **实现类/函数**：`SlotDelta`、`SlotExtraction(turn_intent, delta, confirmation)`、`BookingState`、`ANY` 哨兵、`extraction_json_schema()`。
 - **验收标准**：多余字段、非法枚举、`duration_hours=0.3` 均校验失败；"键缺失"与"值为 null"可区分（`model_fields_set`）。
 - **测试方法**：`uv run pytest -q tests/unit/test_slots_schema.py`。
 
-### C3：中文时间表达解析器
+### C3：中文时间表达解析器 ✅
 - **目标**：`parse_time_expr(expr, now, current=None) -> TimeParseResult(value|None, ambiguous: bool, reason)`。覆盖：今天/明天/后天/周X/下周X、上午/下午/晚上/凌晨、点/点半/X点Y分、"晚一小时/提前半小时"（相对 `current`）、"今晚""明晚"。**模糊表达（"晚上""找时间"）返回 ambiguous，不猜小时。**
 - **修改文件**：`rift_domain/timeparse.py`、`tests/unit/test_timeparse.py`（≥ 40 条表驱动用例）。
 - **验收标准**：用例全过；过去时间返回 `reason=past`。
 - **测试方法**：`uv run pytest -q tests/unit/test_timeparse.py`。
+- **实现备注**：无时段词的 1–11 点仅在 `h` 与 `h+12` 恰有一个在未来时才确定，否则返回 `ambiguous_ampm`；修改已有时间（传入 `current`）且未给日期时沿用原日期并取最接近 `current` 的上/下午；不带前缀的“周X”恰为今天且已过时顺延一周；同一表达式出现两个不同日期返回 `ambiguous_date`。
 
-### C4：Delta 合并器
+### C4：Delta 合并器 ✅
 - **目标**：`merge(state, delta) -> (new_state, diff)`，实现三态语义与 list 整体替换；`start_time_expr` 触发时间解析；`companion_name` 变化时清空旧报价。
 - **修改文件**：`rift_domain/merge.py`、`tests/unit/test_merge.py`。
 - **验收标准**：未出现键不变、`any` 置 ANY、`null` 清空、list 替换；diff 准确列出变更字段。
 - **测试方法**：`uv run pytest -q tests/unit/test_merge.py`。
+- **实现备注**：签名为 `merge(state, delta, now)`（时间解析需要 `now`）。上一轮未解析的时间表达式会与本轮拼接再试（“明晚”+“八点”）；未解析/过去时间使 `start_time` 置空并在 `diff.time_result` 给出原因。除 `companion_name` 外，影响价格的槽位变化也会清空报价，过滤条件变化会清空候选、放宽记录与待确认动作。
 
-### C5：业务规则（必填 / 不适用 / 服务类型推断）
+### C5：业务规则（必填 / 不适用 / 服务类型推断） ✅
 - **目标**：`compute_rules(state, domain) -> RulesResult(missing_fields, cleared_fields, service_type_effective)`；缺失字段按固定顺序输出。
 - **修改文件**：`rift_domain/rules.py`、`tests/unit/test_rules.py`。
 - **验收标准**：排位缺段位 → missing 含 `rank_requirement`；大乱斗带段位 → 被清空并记录；用户明说"教学"覆盖推断。
 - **测试方法**：`uv run pytest -q tests/unit/test_rules.py`。
+- **实现备注**：`RulesResult` 额外包含 `invalid_fields`（如时长超出 1–8h），这类字段被清空并计入 `missing_fields`；`apply_rules` 将结果写回状态。
 
-### C6：匹配——硬过滤条件与软排序
+### C6：匹配——硬过滤条件与软排序 ✅
 - **目标**：`build_filters(state, domain) -> CompanionFilter`（纯数据，供 D 阶段转 SQL）；`rank_candidates(companions, state, style_scores) -> list[ScoredCandidate]`（位置命中、风格相似度、评分加权，权重在 `domain.yaml`）。
 - **修改文件**：`rift_domain/matching.py`、`tests/unit/test_matching.py`。
 - **验收标准**：单双排段位区间规则正确；`ANY` 字段不参与过滤；排序稳定且可解释（返回命中原因）。
 - **测试方法**：`uv run pytest -q tests/unit/test_matching.py`。
+- **实现备注**：预算按用户实付单价（`hourly_price × service_multiplier`）比较，SQL 侧使用 `CompanionFilter.max_base_price`；`rank_candidates` 额外接收 `domain` 与 `top_k`，只对适用的得分项归一化权重。
 
-### C7：放宽策略
+### C7：放宽策略 ✅
 - **目标**：`relaxation_plan(filter, domain) -> list[(step_name, relaxed_filter)]`，按 `time±1h → gender → role` 逐级生成；budget 与 rank 永不出现在计划中。
 - **修改文件**：`rift_domain/matching.py`（追加）、`tests/unit/test_relaxation.py`。
 - **验收标准**：用户未指定的字段跳过对应步骤；计划累积放宽（第 2 步同时放宽时间与性别）。
 - **测试方法**：`uv run pytest -q tests/unit/test_relaxation.py`。
 
-### C8：计价与退款
+### C8：计价与退款 ✅
 - **目标**：`quote(hourly_price, service_type, hours, domain) -> Quote`；`refund(booking, now, domain) -> Refund(ratio, amount, tier)`；金额使用 `Decimal`，保留两位。
 - **修改文件**：`rift_domain/{pricing.py, refund.py}`、`tests/unit/test_pricing_refund.py`。
 - **验收标准**：三档退款边界（恰好 24h、恰好 2h）行为与 `domain.yaml` 描述一致。
 - **测试方法**：`uv run pytest -q tests/unit/test_pricing_refund.py`。
 
-### C9：领域核心覆盖率收口
+### C9：领域核心覆盖率收口 ✅
 - **目标**：`packages/domain` 行覆盖率 ≥ 90%，补齐边界用例；mypy strict 通过。
 - **修改文件**：`tests/unit/*`、`pyproject.toml`（coverage 配置）。
 - **验收标准**：`pytest --cov=rift_domain` ≥ 90%；`mypy --strict packages/domain` 无错误。
