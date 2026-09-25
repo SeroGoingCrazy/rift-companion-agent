@@ -8,8 +8,12 @@ from pathlib import Path
 
 import pytest
 
+from rift_domain.config import DomainConfig, load_domain_config
+
 _TESTS_ROOT = Path(__file__).parent
 _DIR_MARKERS = {"unit", "integration", "e2e"}
+
+REPO_ROOT = _TESTS_ROOT.parent
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
@@ -20,3 +24,9 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             continue
         if layer in _DIR_MARKERS:
             item.add_marker(layer)
+
+
+@pytest.fixture(scope="session")
+def domain() -> DomainConfig:
+    """The repo's real ``config/domain.yaml``."""
+    return load_domain_config(REPO_ROOT / "config" / "domain.yaml")
