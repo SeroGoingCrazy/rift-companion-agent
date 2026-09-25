@@ -43,7 +43,7 @@ AGENT_TOOLS = {
     "cancel_booking",
 }
 #: ... plus web-support tools (login, order page, companion list).
-WEB_TOOLS = {"ensure_user", "pay_booking"}
+WEB_TOOLS = {"ensure_user", "pay_booking", "browse_companions"}
 EXPECTED_TOOLS = AGENT_TOOLS | WEB_TOOLS
 
 
