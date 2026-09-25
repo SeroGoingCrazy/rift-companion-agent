@@ -1,0 +1,118 @@
+# Single source of truth for the Rift Companion domain.
+# Code (rift_domain), DB seeds and knowledge-base docs are all derived from this file.
+# Enum-like keys must match rift_domain.enums exactly; labels/aliases are Chinese surface forms.
+
+version: 1
+
+game_modes:
+  ranked_solo_duo:
+    label: 单双排
+    ranked: true
+    players: "5v5，最多 2 人组队"
+    default_service_type: climb
+    aliases: [单双排, 双排, 单排, 单双]
+    description: 召唤师峡谷排位赛，最多两人组队，影响单双排段位。
+  ranked_flex:
+    label: 灵活组排
+    ranked: true
+    players: "5v5，可 1/2/3/5 人组队"
+    default_service_type: climb
+    aliases: [灵活组排, 灵活排位, 灵活, 组排, 五排]
+    description: 召唤师峡谷灵活排位，可多人组队，段位独立于单双排。
+  normal_draft:
+    label: 匹配
+    ranked: false
+    players: "5v5"
+    default_service_type: casual
+    aliases: [匹配, 匹配模式, 普通匹配, 征召]
+    description: 召唤师峡谷普通匹配，不计段位，适合练英雄和娱乐。
+  aram:
+    label: 大乱斗
+    ranked: false
+    players: "5v5 单线"
+    default_service_type: casual
+    aliases: [大乱斗, 极地大乱斗, 乱斗]
+    description: 嚎哭深渊随机英雄单线对战，节奏快。
+  aram_mayhem:
+    label: 海克斯大乱斗
+    ranked: false
+    players: "5v5 单线"
+    default_service_type: casual
+    aliases: [海克斯大乱斗, 海克斯乱斗, 海克斯]
+    description: 带海克斯强化的大乱斗变体，每局可选增益。
+  arena:
+    label: 斗魂竞技场
+    ranked: false
+    players: "8 队 × 2 人"
+    default_service_type: casual
+    aliases: [斗魂竞技场, 斗魂, 竞技场]
+    description: 2 人一队的多队淘汰赛，回合制对决。
+
+# Ordered low -> high.
+ranks:
+  - {key: iron, label: 黑铁, aliases: [黑铁]}
+  - {key: bronze, label: 青铜, aliases: [青铜]}
+  - {key: silver, label: 白银, aliases: [白银]}
+  - {key: gold, label: 黄金, aliases: [黄金]}
+  - {key: platinum, label: 铂金, aliases: [铂金, 白金]}
+  - {key: emerald, label: 翡翠, aliases: [翡翠]}
+  - {key: diamond, label: 钻石, aliases: [钻石, 钻]}
+  - {key: master, label: 大师, aliases: [大师]}
+  - {key: grandmaster, label: 宗师, aliases: [宗师]}
+  - {key: challenger, label: 王者, aliases: [王者, 最强王者]}
+
+roles:
+  top: {label: 上单, aliases: [上单, 上路]}
+  jungle: {label: 打野, aliases: [打野]}
+  mid: {label: 中单, aliases: [中单, 中路]}
+  adc: {label: ADC, aliases: [ADC, 射手, 下路, AD]}
+  support: {label: 辅助, aliases: [辅助, 软辅, 硬辅]}
+
+service_types:
+  climb: {label: 上分, multiplier: 1.2, aliases: [上分, 冲分, 带飞]}
+  casual: {label: 娱乐, multiplier: 1.0, aliases: [娱乐, 休闲, 陪玩]}
+  coaching: {label: 教学, multiplier: 1.5, aliases: [教学, 教练, 复盘, 带教]}
+
+genders:
+  female: {label: 女, aliases: [女, 小姐姐, 妹子]}
+  male: {label: 男, aliases: [男, 小哥哥]}
+
+rules:
+  # Always required, in the order they are asked for.
+  required_fields: [game_mode, start_time, duration_hours]
+  conditional_required:
+    - when_modes: [ranked_solo_duo, ranked_flex]
+      fields: [rank_requirement]
+  not_applicable:
+    - when_modes: [aram, aram_mayhem, arena]
+      fields: [rank_requirement, role_preference]
+  # Platform rule (fictional): for solo/duo the companion's rank must lie in
+  # [rank_requirement, rank_requirement + max_tier_gap].
+  rank_band:
+    modes: [ranked_solo_duo]
+    max_tier_gap: 2
+
+duration:
+  min_hours: 1
+  max_hours: 8
+  step_hours: 0.5
+
+# Checked in order; the first tier whose min_hours_before <= hours before start applies.
+refund:
+  tiers:
+    - {name: full, min_hours_before: 24, ratio: 1.0, label: 全额退款}
+    - {name: half, min_hours_before: 2, ratio: 0.5, label: 退一半}
+    - {name: none, min_hours_before: 0, ratio: 0.0, label: 不退款}
+
+relaxation:
+  order: [time_window, companion_gender, role_preference]
+  time_window_hours: 1
+  never_relax: [budget_per_hour, rank_requirement]
+
+matching:
+  top_k: 3
+  rating_max: 5
+  weights:
+    role: 0.4
+    style: 0.4
+    rating: 0.2
