@@ -27,7 +27,7 @@ from src.observability.logger import get_logger
 
 # Libs layer imports
 from src.libs.loader.file_integrity import SQLiteIntegrityChecker
-from src.libs.loader.pdf_loader import PdfLoader
+from src.libs.loader.loader_factory import ExtensionRoutingLoader
 from src.libs.embedding.embedding_factory import EmbeddingFactory
 from src.libs.vector_store.vector_store_factory import VectorStoreFactory
 
@@ -142,11 +142,16 @@ class IngestionPipeline:
         logger.info("  ✓ FileIntegrityChecker initialized")
         
         # Stage 2: Loader
-        self.loader = PdfLoader(
-            extract_images=True,
-            image_storage_dir=str(resolve_path(f"data/images/{collection}"))
-        )
-        logger.info("  ✓ PdfLoader initialized")
+        # Loader is chosen per file by extension (.pdf -> PdfLoader, .md -> MarkdownLoader)
+        self.loader = ExtensionRoutingLoader({
+            ".pdf": {
+                "extract_images": True,
+                "image_storage_dir": str(resolve_path(f"data/images/{collection}")),
+            },
+            ".md": {"collection": collection},
+            ".markdown": {"collection": collection},
+        })
+        logger.info("  ✓ ExtensionRoutingLoader initialized")
         
         # Stage 3: Chunker
         self.chunker = DocumentChunker(settings)
@@ -273,7 +278,7 @@ class IngestionPipeline:
             }
             if trace is not None:
                 trace.record_stage("load", {
-                    "method": "markitdown",
+                    "method": document.metadata.get("doc_type", "pdf"),
                     "doc_id": document.id,
                     "text_length": len(document.text),
                     "image_count": image_count,

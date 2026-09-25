@@ -8,7 +8,7 @@ Usage:
     # Process a single PDF file
     python scripts/ingest.py --path documents/report.pdf --collection contracts
     
-    # Process all PDFs in a directory
+    # Process all PDF / Markdown files in a directory
     python scripts/ingest.py --path documents/ --collection technical_docs
     
     # Force re-processing (ignore previous ingestion)
@@ -46,6 +46,7 @@ sys.path.insert(0, str(project_root))
 
 from src.core.settings import load_settings, Settings
 from src.core.trace import TraceContext, TraceCollector
+from src.libs.loader.loader_factory import LoaderFactory
 from src.ingestion.pipeline import IngestionPipeline, PipelineResult
 from src.observability.logger import get_logger
 
@@ -68,7 +69,7 @@ def parse_args() -> argparse.Namespace:
         "--path", "-p",
         required=True,
         help="Path to file or directory to ingest. "
-             "If directory, processes all PDF files recursively."
+             "If directory, processes all PDF / Markdown files recursively."
     )
     
     parser.add_argument(
@@ -109,13 +110,14 @@ def discover_files(path: str, extensions: List[str] = None) -> List[Path]:
     
     Args:
         path: File or directory path
-        extensions: List of file extensions to include (default: ['.pdf'])
+        extensions: List of file extensions to include (default: every
+            extension registered in LoaderFactory)
     
     Returns:
         List of file paths to process
     """
     if extensions is None:
-        extensions = ['.pdf']
+        extensions = LoaderFactory.supported_extensions()
     
     path = Path(path)
     

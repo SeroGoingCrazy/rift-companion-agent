@@ -113,6 +113,10 @@ class DocumentChunker:
         if not document.text or not document.text.strip():
             raise ValueError(f"Document {document.id} has no text content to split")
         
+        sections = document.metadata.get("sections")
+        if sections:
+            return self._split_sections(document, sections)
+
         # Step 1: Use underlying splitter to get text fragments
         text_fragments = self._splitter.split_text(document.text)
         
@@ -137,6 +141,32 @@ class DocumentChunker:
         
         return chunks
     
+    def _split_sections(self, document: Document, sections: List[dict]) -> List[Chunk]:
+        """Split each loader-provided section on its own (e.g. Markdown headings).
+
+        Chunks never span two sections and carry the section's ``title_path``.
+        When a long section is split further, continuation fragments are
+        prefixed with the section's heading lines so they keep their context.
+        """
+        chunks: List[Chunk] = []
+        for section_index, section in enumerate(sections):
+            section_text = section["text"]
+            fragments = self._splitter.split_text(section_text) or [section_text]
+            heading_prefix = _heading_prefix(section_text)
+            for fragment_index, text in enumerate(fragments):
+                if fragment_index > 0 and heading_prefix and not text.startswith(heading_prefix):
+                    text = f"{heading_prefix}\n\n{text}"
+                index = len(chunks)
+                metadata = self._inherit_metadata(document, index, text)
+                metadata["title_path"] = section["title_path"]
+                metadata["section_index"] = section_index
+                chunks.append(Chunk(
+                    id=self._generate_chunk_id(document.id, index, text),
+                    text=text,
+                    metadata=metadata,
+                ))
+        return chunks
+
     def _generate_chunk_id(self, doc_id: str, index: int, text: str) -> str:
         """Generate unique and deterministic chunk ID.
         
@@ -215,6 +245,8 @@ class DocumentChunker:
         
         # Remove document-level 'images' field - we'll add chunk-specific images below
         chunk_metadata.pop("images", None)
+        # Section lists are document structure, not per-chunk metadata
+        chunk_metadata.pop("sections", None)
         
         # Add chunk-specific fields
         chunk_metadata["chunk_index"] = chunk_index
@@ -247,3 +279,13 @@ class DocumentChunker:
             chunk_metadata["page_num"] = chunk_images[0].get("page")
         
         return chunk_metadata
+
+
+def _heading_prefix(section_text: str) -> str:
+    """Return the leading Markdown heading lines of a section's text."""
+    lines = []
+    for line in section_text.split("\n"):
+        if not line.startswith("#"):
+            break
+        lines.append(line)
+    return "\n".join(lines)
