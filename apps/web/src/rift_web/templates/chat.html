@@ -3,10 +3,12 @@
 {% block main_class %}chat{% endblock %}
 {% block content %}
 <section id="messages" class="messages" aria-live="polite">
-  <div class="msg bot">你好 {{ user.nickname }}，我是峡谷陪练的预约助手。想约陪玩、问规则或管订单都可以直接说～</div>
+  <div class="msg bot welcome">你好 {{ user.nickname }}，我是峡谷陪练的预约助手。想约陪玩、问规则或管订单都可以直接说～</div>
 </section>
 <form id="composer" class="composer">
+  <button type="button" id="new-session" class="ghost" title="开始新会话">新会话</button>
   <input id="input" autocomplete="off" placeholder="比如：帮我约个明晚八点的单双排，钻石以上" maxlength="500">
   <button type="submit" class="primary">发送</button>
 </form>
 {% endblock %}
+{% block scripts %}<script src="/static/chat.js" defer></script>{% endblock %}
