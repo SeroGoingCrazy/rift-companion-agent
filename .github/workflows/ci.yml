@@ -33,8 +33,8 @@ jobs:
       - name: Ruff format
         run: uv run ruff format --check .
 
-      - name: Mypy (packages)
-        run: uv run mypy packages
+      - name: Mypy (packages, services)
+        run: uv run mypy packages services/booking_mcp/src
 
       - name: Pytest (unit + integration, domain coverage >= 90%)
         run: uv run pytest -m "unit or integration" --cov=rift_domain --cov-fail-under=90

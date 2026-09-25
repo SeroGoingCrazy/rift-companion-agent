@@ -4,8 +4,10 @@ version = "0.1.0"
 description = "Booking MCP server: companions, schedules and orders."
 requires-python = ">=3.12"
 dependencies = [
+    "mcp>=1.9,<2",
     "rift-common",
     "rift-domain",
+    "sqlalchemy>=2.0",
 ]
 
 [build-system]
