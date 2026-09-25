@@ -74,7 +74,7 @@ known-first-party = ["rift_common", "rift_domain", "booking_mcp", "rift_agent", 
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-mypy_path = ["packages/common/src", "packages/domain/src", "services/booking_mcp/src"]
+mypy_path = ["packages/common/src", "packages/domain/src", "services/booking_mcp/src", "apps/agent/src"]
 explicit_package_bases = true
 
 [tool.coverage.run]
