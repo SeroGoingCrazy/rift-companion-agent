@@ -36,5 +36,5 @@ jobs:
       - name: Mypy (packages)
         run: uv run mypy packages
 
-      - name: Pytest (unit + integration)
-        run: uv run pytest -m "unit or integration"
+      - name: Pytest (unit + integration, domain coverage >= 90%)
+        run: uv run pytest -m "unit or integration" --cov=rift_domain --cov-fail-under=90

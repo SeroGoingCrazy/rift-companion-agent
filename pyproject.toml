@@ -38,6 +38,7 @@ rift-training = { workspace = true }
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
     "ruff>=0.8",
     "mypy>=1.13",
     "types-pyyaml>=6.0",
@@ -74,3 +75,11 @@ strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = ["packages/common/src", "packages/domain/src"]
 explicit_package_bases = true
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ['if TYPE_CHECKING:', '^\s*\.\.\.$']
