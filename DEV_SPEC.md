@@ -583,8 +583,8 @@ session:
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅🟨 |
-| E | E1 E2 E3 E4 E5 E6 | ⬜⬜⬜⬜⬜⬜ |
-| F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
+| E | E1 E2 E3 E4 E5 E6 | ⬜⬜✅⬜⬜⬜ |
+| F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ⬜⬜⬜⬜⬜ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
 | I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`25 / 77`（D7 代码与文档完成，Claude Desktop 实机截图待手动；🟨 = 部分完成）
+`36 / 77`（D7 代码与文档完成，Claude Desktop 实机截图待手动；🟨 = 部分完成）
 
 ---
 
@@ -800,11 +800,12 @@ session:
 - **验收标准**：多级标题文档切分正确；重复导入未变更文件被跳过。
 - **测试方法**：`uv run pytest -q services/knowledge_mcp/tests/unit/test_markdown_loader.py`。
 
-### E3：知识库文档生成（唯一数据源）
+### E3：知识库文档生成（唯一数据源） ✅
 - **目标**：`gen_kb_docs.py` 从 `domain.yaml` 生成 `kb/platform_rules/*.md`（计费、退款、迟到补偿、违规、陪玩师等级）、`kb/modes_and_ranks/*.md`，从 `companions` 种子生成 `kb/companion_profiles/*.md`；使用 Jinja2 模板，数值全部插值。
 - **修改文件**：`scripts/gen_kb_docs.py`、`scripts/kb_templates/*.md.j2`、`tests/unit/test_gen_kb_docs.py`。
 - **验收标准**：修改 `domain.yaml` 中系数后重新生成，文档数值同步变化（测试断言）。
 - **测试方法**：`uv run pytest -q tests/unit/test_gen_kb_docs.py`。
+- **实现备注**：迟到补偿、违规处理、陪玩师等级原本不在 `domain.yaml`，为保持唯一数据源新增 `policies` 节（`DomainConfig.policies`，含 `level_for(rating)`）。计价与退款示例直接调用 `rift_domain.pricing.quote` / `refund.refund` 计算；共生成 39 篇（平台规则 6、模式与段位 3、陪玩师 30）。`kb/` 为生成物，已加入 `.gitignore`。
 
 ### E4：知识库导入与配置调整
 - **目标**：`ingest_kb.py` 按三个 collection 导入；`vision_llm` 与图片 transform 关闭；Embedding 与 LLM 使用 DeepSeek / 本地 embedding 配置。
@@ -826,67 +827,76 @@ session:
 
 ---
 
-## 阶段 F：Agent 编排（目标：M1 —— 大模型版端到端可演示）
+## 阶段 F：Agent 编排（目标：M1 —— 大模型版端到端可演示） ✅
 
-### F1：Graph State 与节点装饰器
+### F1：Graph State 与节点装饰器 ✅
 - **目标**：定义 LangGraph `AgentState`（phase、booking_state、pending_action、messages 窗口、last_reply、turn meta）；`@traced_node` 装饰器把节点接入 B5 Trace。
 - **修改文件**：`apps/agent/src/rift_agent/graph/{state.py, tracing.py}`、`tests/unit/test_agent_state.py`。
 - **验收标准**：State 可序列化进 SqliteSaver；节点异常被 span 记录。
 - **测试方法**：`uv run pytest -q tests/unit/test_agent_state.py`。
+- **实现备注**：State 全部为 JSON 原生类型（槽位以 `BookingState.model_dump(mode="json")` 存于 `booking`），测试逐值断言无枚举/Decimal/datetime 对象，避免 checkpointer 自定义序列化。运行时依赖（LLM、抽取器、MCP 客户端、模板）经 `config["configurable"]["deps"]` 注入，不进 checkpoint。`traced_node` 把 `interrupt()` 记为正常 span（`interrupted=true`），其余异常转为 `error` 回复且状态不变。
 
-### F2：MCP 客户端封装
+### F2：MCP 客户端封装 ✅
 - **目标**：`McpClients`（booking、knowledge），Streamable HTTP，自动注入 `_meta.trace_id`，错误码转为 Python 异常；测试模式支持进程内 server。
 - **修改文件**：`rift_agent/mcp_clients.py`、`tests/integration/test_mcp_clients.py`。
 - **验收标准**：对真实 booking-mcp 调用 `find_companions` 成功；`SLOT_CONFLICT` 转为 `SlotConflictError`。
 - **测试方法**：`uv run pytest -q tests/integration/test_mcp_clients.py`。
+- **实现备注**：每次调用新建短连接（服务端无状态），天然适配 LangGraph 任务；`_meta` 注入 `trace_id` / `parent_span_id` / `session_id`。进程内连接器用于测试与单进程演示；为此 booking-mcp 处理请求时先 `detached()` 脱离调用方 trace 上下文（修复同进程嵌套 turn 报错）。知识库客户端 `query_all` 依次检索 `settings.mcp.knowledge.collections` 中的全部集合。
 
-### F3：意图分类节点
+### F3：意图分类节点 ✅
 - **目标**：`classify` 使用 `config/prompts/classify.txt`，DeepSeek JSON 输出 `booking|consult|manage|other`；解析失败回退 `other`。
 - **修改文件**：`graph/nodes/classify.py`、`config/prompts/classify.txt`、`tests/unit/test_classify_node.py`（mock LLM）。
 - **验收标准**：mock 下四类路由正确；解析失败不抛异常。
 - **测试方法**：`uv run pytest -q tests/unit/test_classify_node.py`。
 
-### F4：SlotExtractor 接口与 LLMSlotExtractor
+### F4：SlotExtractor 接口与 LLMSlotExtractor ✅
 - **目标**：`SlotExtractor.extract(ctx) -> ExtractionResult(extraction|None, raw, valid, errors, model, latency)`；`build_prompt(ctx)` 读取 `slot_extract.txt`（线上/训练共用）并注入 `current_state`、`candidates`、历史、当前时间；`LLMSlotExtractor` 用 DeepSeek JSON 模式 + C2 校验。
 - **修改文件**：`rift_agent/extractors/{base.py, prompt.py, llm.py}`、`config/prompts/slot_extract.txt`、`tests/unit/test_llm_extractor.py`。
 - **验收标准**：非法 JSON / schema 错误时 `valid=False` 且 errors 可读；prompt 渲染确定（同输入同输出，便于前缀缓存）。
 - **测试方法**：`uv run pytest -q tests/unit/test_llm_extractor.py`。
+- **实现备注**：system 为静态 `slot_extract.txt`（前缀可缓存），user 为 `sort_keys` 的上下文 JSON；抽取器从不抛异常，返回 `error_kind ∈ {invalid, timeout, unavailable}` 供路由区分重试与降级。
 
-### F5：RoutedSlotExtractor（重试 / 降级 / 影子）
+### F5：RoutedSlotExtractor（重试 / 降级 / 影子） ✅
 - **目标**：实现 3.4.2 路由；shadow 调用在后台任务中执行并写入 span 属性 `shadow_output`、`shadow_agree`（逐字段比对结果）。
 - **修改文件**：`extractors/routed.py`、`tests/unit/test_routed_extractor.py`。
 - **验收标准**：primary 校验失败 → 重试 1 次 → fallback；primary 超时直接 fallback；shadow 失败不影响主结果。
 - **测试方法**：`uv run pytest -q tests/unit/test_routed_extractor.py`。
+- **实现备注**：shadow 与 primary 并发，主结果返回后最多再等 `shadow_wait_s`（默认 2s），超时即取消并记 `shadow_error=timeout`；`shadow_agree` 为逐字段比对（`turn_intent`、`confirmation`、`delta.<key>`）。`local` 抽取器在 J1 接入，当前配置为 local 时 fail-fast。
 
-### F6：预约主链路节点
+### F6：预约主链路节点 ✅
 - **目标**：`extract_slots → merge_state → resolve_time → compute_rules → decide → ask_missing | find_companions → present_candidates`；`decide` 输出 `reply_type` 与动作。
 - **修改文件**：`graph/nodes/{extract.py, merge.py, decide.py, find.py}`、`tests/integration/test_graph_booking.py`（mock LLM + 进程内 booking-mcp）。
 - **验收标准**：3 轮对话从零收集到展示候选；模糊时间触发追问具体几点。
 - **测试方法**：`uv run pytest -q tests/integration/test_graph_booking.py`。
+- **实现备注**：`resolve_time` 由 C4 `merge` 完成，`merge_state` 同时执行 `apply_rules`。未解析的时间表达在后续轮次仍会被追问（"「明晚」具体是几点"）。回复模板用宽松 undefined（可选 facts 缺省为空），由集成测试覆盖输出。builder 中目标节点未注册的路由统一落到 `render`，便于逐任务扩展。
 
-### F7：选择、报价与确认断点
+### F7：选择、报价与确认断点 ✅
 - **目标**：候选选择 → `quote_price` → `confirm` 节点 `interrupt()`；resume 时根据 `confirmation` 与 delta：yes → `create_booking`；no → 回到候选；带 delta → 重新合并与报价；冲突 → 提示并重新 `find_companions`。
 - **修改文件**：`graph/nodes/{select.py, confirm.py, book.py}`、`tests/integration/test_graph_confirm.py`。
 - **验收标准**：确认前数据库无订单；"改成三小时再下单"重新报价；冲突场景给出替代候选。
 - **测试方法**：`uv run pytest -q tests/integration/test_graph_confirm.py`。
+- **实现备注**：先 `render` 确认卡再进入 `confirm` 节点 `interrupt()`，因此确认问题属于本轮回复；下一句经 `Command(resume=...)` 进入抽取。修改槽位会使 C4 清空候选与选择，`merge_state` 记录 `keep_companion_id`，重新检索时若原陪玩师仍可约则自动重选并重新报价（"改成三小时再下单"）。
 
-### F8：咨询与插话
+### F8：咨询与插话 ✅
 - **目标**：`consult`（IDLE 下独立咨询）与 `consult_interject`（BOOKING 下插话）：`query_knowledge_hub` → DeepSeek 基于检索结果带引用作答（`consult_answer.txt`）；插话后按 `missing_fields` 追加续约提示，phase 保持。`unrelated` → 礼貌拉回；"不约了" → 归档并回 IDLE。
 - **修改文件**：`graph/nodes/{consult.py, unrelated.py, abandon.py}`、`config/prompts/consult_answer.txt`、`tests/integration/test_graph_interject.py`。
 - **验收标准**：插话后下一句"那就两小时吧"被正确并入原预约。
 - **测试方法**：`uv run pytest -q tests/integration/test_graph_interject.py`。
+- **实现备注**：检索不可用 / 无结果 / LLM 失败分别降级为提示语、"暂未查到"、直接给出最相关片段；插话回复末尾按缺失字段、待选候选或待确认订单生成续约提示。
 
-### F9：订单管理流程
+### F9：订单管理流程 ✅
 - **目标**：`manage_bookings`：列出订单 → 用户选择 → `cancel_booking(dry_run)` 报退款 → `interrupt` 确认 → 执行；支持"我有哪些订单"。
 - **修改文件**：`graph/nodes/manage.py`、`tests/integration/test_graph_manage.py`。
 - **验收标准**：退款金额与 C8 计算一致；取消后档期释放。
 - **测试方法**：`uv run pytest -q tests/integration/test_graph_manage.py`。
+- **实现备注**：订单指代与是/否判断为确定性规则（序号、订单号、陪玩师名、今天/明天）；取消属破坏性操作，"否"类词优先，带问号的回答只有含"确认/确定"才视为同意，其余一律再次确认。未支付订单取消时如实说明"不产生费用"。
 
-### F10：回复渲染、Graph 组装与持久化
+### F10：回复渲染、Graph 组装与持久化 ✅
 - **目标**：模板渲染（`replies.yaml`，按 `reply_type`）+ 可选润色（`reply_polish.txt`，失败回退模板）；开局提醒模板；`builder.py` 组装全图，接入 `SqliteSaver`；提供 `run_turn(session_id, user_id, text) -> AsyncIterator[str]` 流式接口；CLI `scripts/chat_cli.py`。
 - **修改文件**：`rift_agent/replies/*`、`graph/builder.py`、`rift_agent/api.py`、`scripts/chat_cli.py`、`tests/integration/test_graph_persistence.py`。
 - **验收标准**：重建 graph 实例后同一 `session_id` 续聊状态不丢；`polish=true` 时润色失败自动回退模板。**M1：CLI 中用 DeepSeek 完成一次完整预约 + 一次插话咨询 + 一次取消。**
 - **测试方法**：`uv run pytest -q tests/integration/test_graph_persistence.py`；手动 `uv run python scripts/chat_cli.py`。
+- **实现备注**：`Agent`（`rift_agent.api`）提供 `run` / `run_turn_events`（token、candidates、confirm、booked、done、error 事件，供 G2 SSE）/ `run_turn`（纯文本流）；同一会话串行执行。润色结果必须保留模板中的全部数字，否则回退模板。`scripts/chat_cli.py` 支持 `--booking-db` 进程内运行 booking-mcp。**M1 验证**：已用 DeepSeek 实测 预约（抽取、候选引用、报价确认、下单）→ 查订单 → 取消 全流程；插话咨询的真实检索需 knowledge-mcp（阶段 E1 待迁入），目前验证的是检索不可用时的降级回复。
 
 ---
 
