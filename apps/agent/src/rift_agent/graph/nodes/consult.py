@@ -19,7 +19,7 @@ from rift_agent.deps import AgentDeps, get_deps
 from rift_agent.graph.nodes.quote import confirm_facts
 from rift_agent.graph.state import AgentState, Phase, booking_state, dump_booking
 from rift_agent.graph.tracing import traced_node
-from rift_agent.mcp_clients import KnowledgeResult, ToolError
+from rift_agent.mcp_clients import KnowledgeResult, McpUnavailable, ToolError
 from rift_agent.prompts import load_prompt
 from rift_common.llm import LLMError, Message
 from rift_domain.enums import PendingAction
@@ -47,6 +47,9 @@ async def answer_question(deps: AgentDeps, question: str) -> dict[str, Any]:
         return {"unavailable": True}
     try:
         results = await deps.knowledge.query_all(question)
+    except McpUnavailable as exc:  # expected degradation: no traceback noise
+        logger.warning("knowledge service unavailable: %s", exc)
+        return {"unavailable": True}
     except ToolError:
         logger.warning("knowledge query failed", exc_info=True)
         return {"unavailable": True}

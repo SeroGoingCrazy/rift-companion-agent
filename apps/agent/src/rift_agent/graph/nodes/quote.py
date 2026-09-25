@@ -27,13 +27,15 @@ def confirm_facts(state: AgentState, booking: BookingState) -> dict[str, Any]:
         {},
     )
     q = booking.quote
+    service = q.service_type if q else booking.service_type_effective
     return {
         "kind": "booking",
         "companion_id": booking.selected_companion_id,
         "companion": card.get("name", booking.companion_name or ""),
         "rank": card.get("rank"),
-        "mode": booking.game_mode,
-        "service": q.service_type if q else booking.service_type_effective,
+        # .value: state must stay JSON-native (no enum objects in the checkpoint).
+        "mode": booking.game_mode.value if booking.game_mode else None,
+        "service": service.value if service else None,
         "start_time": booking.start_time.isoformat() if booking.start_time else None,
         "hours": str(q.hours) if q else str(booking.duration_hours),
         "unit_price": str(q.unit_price) if q else None,
