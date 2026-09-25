@@ -583,7 +583,7 @@ session:
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
-| E | E1 E2 E3 E4 E5 E6 | ✅⬜✅⬜⬜⬜ |
+| E | E1 E2 E3 E4 E5 E6 | ✅✅✅⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`43 / 77`（E2/E4–E6 进行中）
+`44 / 77`（E4–E6 进行中）
 
 ---
 
@@ -795,11 +795,12 @@ session:
 - **测试方法**：同上。
 - **实现备注**：`src/`、`scripts/`、`tests/`、`config/prompts` 原样复制（包名保持 `src`，hatchling 打包），`config/settings.yaml` 由原文件生成：三处明文 key 替换为 `${OPENAI_API_KEY:-}`，`vision_llm` 关闭；`load_settings` 新增 `${VAR}` / `${VAR:-default}` 展开（未设置时为空串，离线可加载）。补齐原项目未声明的依赖（`pymupdf`、`pillow`），`langchain-community` 固定 `<0.4`（ragas 0.4.3 需要）。原项目在源仓库中本就有 13 个单测失败，均为测试与代码漂移：Windows 下 `time.time()`/`monotonic()` 精度导致耗时为 0（改用 `perf_counter`）、`list_collections` 位置参数调用、embedding 测试用裸 `Mock` 当配置、分词测试仍按旧正则分词器断言、trace 测试夹具格式过旧——已逐一修正，1212 个单测全部通过并加入 CI。另为 `*.pdf`/`*.png` 等加 `binary` 属性，防止 git 改写 PDF 夹具换行。
 
-### E2：MarkdownLoader
+### E2：MarkdownLoader ✅
 - **目标**：按标题层级切分 section，metadata 保留 `source`、`title_path`、`collection`；通过 loader 工厂注册，ingestion pipeline 按扩展名选择 loader；SHA256 增量检查沿用。
 - **修改文件**：`services/knowledge_mcp/src/libs/loader/markdown_loader.py`、loader 工厂、`tests/unit/test_markdown_loader.py`。
 - **验收标准**：多级标题文档切分正确；重复导入未变更文件被跳过。
 - **测试方法**：`uv run pytest -q services/knowledge_mcp/tests/unit/test_markdown_loader.py`。
+- **实现备注**：`MarkdownLoader` 仍按 `BaseLoader` 契约返回单个 `Document`，section 列表放在 `metadata["sections"]`（`title_path` 用 ` > ` 连接成字符串，便于 Chroma 存储与过滤；忽略代码块内的 `#`；无正文的容器标题不单独成 section）。`DocumentChunker` 检测到 `sections` 时逐 section 切分，chunk 不跨 section 且带 `title_path`、`section_index`，长 section 的后续片段补上标题行。新增 `LoaderFactory`（`.pdf` / `.md` / `.markdown` 注册）与 `ExtensionRoutingLoader`，pipeline 用它按扩展名分派，`scripts/ingest.py` 默认扫描所有已注册扩展名。增量检查仍由 pipeline 的 SHA256 完成，测试以真实 SQLite 记录验证未变更文件被跳过、修改后重新导入。
 
 ### E3：知识库文档生成（唯一数据源） ✅
 - **目标**：`gen_kb_docs.py` 从 `domain.yaml` 生成 `kb/platform_rules/*.md`（计费、退款、迟到补偿、违规、陪玩师等级）、`kb/modes_and_ranks/*.md`，从 `companions` 种子生成 `kb/companion_profiles/*.md`；使用 Jinja2 模板，数值全部插值。
