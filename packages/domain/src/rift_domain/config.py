@@ -139,6 +139,48 @@ class MatchingConfig(_Frozen):
     weights: MatchingWeights
 
 
+class LateArrivalPolicy(_Frozen):
+    grace_minutes: int = Field(ge=0)
+    makeup_minutes_per_late_minute: Decimal = Field(ge=0)
+    full_refund_after_minutes: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def _check_order(self) -> LateArrivalPolicy:
+        if self.full_refund_after_minutes <= self.grace_minutes:
+            raise ValueError("full_refund_after_minutes must exceed grace_minutes")
+        return self
+
+
+class ViolationRule(_Frozen):
+    name: str
+    description: str
+    penalty: str
+
+
+class CompanionLevel(_Frozen):
+    name: str
+    min_rating: float = Field(ge=0)
+    perks: str = ""
+
+
+class PoliciesConfig(_Frozen):
+    late_arrival: LateArrivalPolicy
+    violations: tuple[ViolationRule, ...] = ()
+    companion_levels: tuple[CompanionLevel, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _check_levels(self) -> PoliciesConfig:
+        bounds = [lv.min_rating for lv in self.companion_levels]
+        if bounds != sorted(bounds, reverse=True) or len(set(bounds)) != len(bounds):
+            raise ValueError("companion_levels must have strictly decreasing min_rating")
+        if bounds[-1] != 0:
+            raise ValueError("the last companion level must start at min_rating: 0")
+        return self
+
+    def level_for(self, rating: float) -> CompanionLevel:
+        return next(lv for lv in self.companion_levels if rating >= lv.min_rating)
+
+
 class DomainConfig(_Frozen):
     version: int
     game_modes: dict[GameMode, ModeConfig]
@@ -151,6 +193,7 @@ class DomainConfig(_Frozen):
     refund: RefundConfig
     relaxation: RelaxationConfig
     matching: MatchingConfig
+    policies: PoliciesConfig
 
     @model_validator(mode="after")
     def _check_consistency(self) -> DomainConfig:

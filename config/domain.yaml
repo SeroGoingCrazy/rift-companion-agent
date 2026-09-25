@@ -116,3 +116,23 @@ matching:
     role: 0.4
     style: 0.4
     rating: 0.2
+
+# Service policies published in the knowledge base (fictional platform rules).
+policies:
+  late_arrival:
+    # A companion up to this late is on time.
+    grace_minutes: 5
+    # Beyond the grace period every late minute adds this many minutes of free play.
+    makeup_minutes_per_late_minute: 2
+    # This late (or a no-show) and the user may cancel for a full refund.
+    full_refund_after_minutes: 30
+  violations:
+    - {name: 消极比赛, description: 挂机、故意送人头或明显不尽力, penalty: 本单全额退款，陪玩师信用分 -10}
+    - {name: 辱骂骚扰, description: 语音或文字辱骂、骚扰用户, penalty: 本单全额退款，陪玩师暂停接单 7 天}
+    - {name: 代打, description: 以任何形式登录用户账号代打, penalty: 永久封禁陪玩师，订单全额退款}
+    - {name: 私下交易, description: 引导用户绕过平台私下付款, penalty: 双方账号警告，陪玩师信用分 -20}
+  # Levels by rating, highest first; the first level whose min_rating <= rating applies.
+  companion_levels:
+    - {name: 王牌陪玩, min_rating: 4.8, perks: 首页优先展示}
+    - {name: 金牌陪玩, min_rating: 4.5, perks: 列表优先展示}
+    - {name: 新星陪玩, min_rating: 0, perks: 新人扶持曝光}
