@@ -1,0 +1,13 @@
+# 迟到补偿
+
+## 宽限时间
+
+陪玩师在约定开局时间后 {{ late.grace_minutes }} 分钟内上线视为准时。
+
+## 顺延补时
+
+超过宽限时间后，陪玩师每迟到 1 分钟，免费顺延 {{ late.makeup }} 分钟服务时长。例如迟到 {{ late.example_late }} 分钟，将免费补时 {{ late.example_makeup }} 分钟。
+
+## 严重迟到
+
+陪玩师迟到达到 {{ late.full_refund_after_minutes }} 分钟或未上线，用户可以直接取消订单并获得全额退款，不受取消退款档位限制。

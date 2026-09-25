@@ -35,3 +35,6 @@ training/outputs/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Generated knowledge base (scripts/gen_kb_docs.py)
+kb/

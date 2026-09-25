@@ -1,0 +1,21 @@
+# 预约与匹配规则
+
+## 预约需要的信息
+
+必须提供：{{ required | join("、") }}。{% for c in conditional %}选择{{ c.modes | join("、") }}时还需要提供{{ c.fields | join("、") }}。{% endfor %}
+
+{% for n in not_applicable %}
+{{ n.modes | join("、") }}不区分{{ n.fields | join("、") }}，填写了也会被忽略。
+{% endfor %}
+
+## 单双排段位规则
+
+预约{{ band.modes | join("、") }}时，陪玩师段位需在「要求段位」到「要求段位 + {{ band.gap }} 个大段」之间，例如要求{{ band.example_from }}，可匹配{{ band.example_range }}的陪玩师。其他排位模式只要求陪玩师段位不低于要求段位。
+
+## 可选偏好
+
+可以指定陪玩师性别、擅长位置、是否开麦、每小时预算、风格（如"温柔会聊天"）或直接点名某位陪玩师。系统按位置命中、风格相似度和评分综合排序，默认推荐 {{ top_k }} 位。
+
+## 找不到人时的放宽顺序
+
+没有完全符合条件的陪玩师时，系统依次放宽：{{ relax_steps | join(" → ") }}，并在回复中说明放宽了哪些条件。**{{ never_relax | join("与") }}永远不会放宽。**

@@ -1,0 +1,18 @@
+# 可预约的游戏模式
+
+峡谷陪练目前只提供英雄联盟陪玩，支持以下 {{ modes | length }} 种模式。
+
+{% for m in modes %}
+## {{ m.label }}
+
+- 常见说法：{{ m.aliases | join("、") }}
+- 人数：{{ m.players }}
+- 是否排位：{{ "是" if m.ranked else "否" }}
+- 默认服务类型：{{ m.default_service }}
+- 说明：{{ m.description }}
+{% if m.not_applicable %}
+- 注意：该模式不区分{{ m.not_applicable | join("、") }}
+{% endif %}
+- 可接该模式的陪玩师：{{ m.companion_count }} 位
+
+{% endfor %}

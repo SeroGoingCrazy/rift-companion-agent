@@ -1,0 +1,31 @@
+# 计费规则
+
+## 计价公式
+
+峡谷陪练按小时计费：**总价 = 陪玩师基础单价 × 服务类型系数 × 时长（小时）**。金额保留两位小数，由系统计算，陪玩师与客服都无法手动改价。
+
+## 服务类型与系数
+
+| 服务类型 | 说明 | 系数 |
+|---|---|---|
+{% for s in service_types %}
+| {{ s.label }} | {{ s.aliases | join("、") }} | {{ s.multiplier }} |
+{% endfor %}
+
+没有特别说明服务类型时，排位模式（{{ ranked_modes | join("、") }}）默认按「{{ default_ranked_service }}」计费，其余模式默认按「{{ default_casual_service }}」计费。
+
+## 时长
+
+单次预约时长 {{ duration.min }}–{{ duration.max }} 小时，以 {{ duration.step }} 小时为步长（例如 1.5 小时可以，1.2 小时不行）。
+
+## 计价示例
+
+以基础单价 {{ example.unit_price }} 元/小时的陪玩师、预约 {{ example.hours }} 小时为例：
+
+{% for q in example.quotes %}
+- {{ q.label }}：{{ example.unit_price }} × {{ q.multiplier }} × {{ example.hours }} = **{{ q.total }} 元**（折合每小时 {{ q.effective }} 元）
+{% endfor %}
+
+## 预算
+
+用户给出的预算指「每小时实际支付的价格」，即基础单价乘以服务系数之后的价格。预算不会因为找不到人而被放宽。

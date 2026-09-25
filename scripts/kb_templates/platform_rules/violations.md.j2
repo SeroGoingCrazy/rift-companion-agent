@@ -1,0 +1,11 @@
+# 违规处理
+
+平台对以下陪玩师违规行为零容忍，用户可在订单页举报，核实后按规则处理。
+
+{% for v in violations %}
+## {{ v.name }}
+
+- 情形：{{ v.description }}
+- 处理：{{ v.penalty }}
+
+{% endfor %}

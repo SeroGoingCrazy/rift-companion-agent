@@ -1,0 +1,21 @@
+# 段位说明
+
+## 段位顺序
+
+从低到高：{{ ranks | map(attribute="label") | join(" < ") }}。平台只记录陪玩师的单双排段位。
+
+## 单双排段位匹配表
+
+预约{{ band_modes | join("、") }}时，陪玩师段位需在要求段位到其上 {{ gap }} 个大段之间：
+
+| 要求段位 | 可匹配的陪玩师段位 |
+|---|---|
+{% for r in ranks %}
+| {{ r.label }} | {{ r.band }} |
+{% endfor %}
+
+## 常见说法
+
+{% for r in ranks %}
+- {{ r.label }}：{{ r.aliases | join("、") }}
+{% endfor %}

@@ -1,0 +1,23 @@
+# 陪玩师 {{ c.name }}
+
+## 基本信息
+
+- 性别：{{ c.gender }}
+- 单双排段位：{{ c.rank }}
+- 等级：{{ c.level }}（评分 {{ c.rating }}）
+- 擅长位置：{{ c.roles | join("、") }}
+- 可接模式：{{ c.modes | join("、") }}
+- 开麦：{{ "可以开麦" if c.voice else "不开麦，仅文字交流" }}
+- 风格标签：{{ c.tags | join("、") }}
+
+## 价格
+
+基础单价 {{ c.unit_price }} 元/小时：
+
+{% for p in c.prices %}
+- {{ p.label }}：{{ p.effective }} 元/小时
+{% endfor %}
+
+## 简介
+
+{{ c.bio }}
