@@ -44,6 +44,7 @@ from booking_mcp.errors import BookingError, ErrorCode, InvalidArgument, NotFoun
 from booking_mcp.seed import seed_database
 from booking_mcp.service import BookingService
 from booking_mcp.tools import (
+    browse_companions,
     cancel_booking,
     create_booking,
     find_companions,
@@ -55,6 +56,8 @@ from booking_mcp.tools import (
 from booking_mcp.tools.schemas import (
     BookingListOut,
     BookingOut,
+    BrowseCompanionsInput,
+    BrowseCompanionsOutput,
     CancelBookingInput,
     CancelOut,
     CreateBookingInput,
@@ -138,6 +141,13 @@ TOOLS: tuple[ToolSpec, ...] = (
         PayBookingInput,
         BookingOut,
         pay_booking.pay_booking,
+    ),
+    ToolSpec(
+        browse_companions.NAME,
+        browse_companions.DESCRIPTION,
+        BrowseCompanionsInput,
+        BrowseCompanionsOutput,
+        browse_companions.browse_companions,
     ),
 )
 

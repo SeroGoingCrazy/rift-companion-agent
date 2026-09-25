@@ -50,3 +50,11 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .notice.error { color: var(--danger); }
 dialog { color: var(--text); border: 1px solid #2c3a47; max-width: min(420px, 92vw); }
 dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; margin-bottom: 12px; }
+.filters label { display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card.comp { display: grid; gap: 8px; align-content: start; }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; }
+.slot { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: #1d2a36; }
+a.button { display: inline-block; text-align: center; text-decoration: none; border-radius: 8px; }
+a.button.primary { background: var(--accent); color: #111; }

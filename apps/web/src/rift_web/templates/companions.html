@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}陪玩师 · 峡谷陪练{% endblock %}
+{% block content %}
+<h1>陪玩师</h1>
+<form class="filters" method="get" action="/companions">
+  {% for name, label in [("mode", "模式"), ("rank", "段位要求"), ("role", "位置"), ("gender", "性别")] %}
+  <label>{{ label }}
+    <select name="{{ name }}">
+      <option value="">不限</option>
+      {% for value, text in options[name] %}
+      <option value="{{ value }}" {{ "selected" if selected[name] == value }}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% endfor %}
+  <button type="submit" class="primary">筛选</button>
+</form>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<p class="muted">共 {{ companions | length }} 位{% if selected.mode %}（段位要求按所选模式的规则匹配）{% endif %}</p>
+<section class="grid">
+  {% for c in companions %}
+  <article class="card comp" data-companion-id="{{ c.companion_id }}">
+    <div class="order-head">
+      <span class="title">{{ c.name }}</span>
+      <span class="badge">{{ c.level }}</span>
+    </div>
+    <div class="muted">{{ c.gender_label }}｜{{ c.rank_label }}｜{{ c.role_labels | join("/") }}｜评分 {{ c.rating }}{% if c.voice %}｜可开麦{% endif %}</div>
+    <div class="price">{% for label, price in c.price_labels %}{{ label }} {{ price }} 元/时{% if not loop.last %} · {% endif %}{% endfor %}</div>
+    <div class="tags">{{ c.tags | join(" · ") }}｜{{ c.mode_labels | join("、") }}</div>
+    <div class="slots">
+      {% if c.slot_texts %}{% for s in c.slot_texts %}<span class="slot">{{ s }}</span>{% endfor %}
+      {% else %}<span class="muted">近 3 天暂无空闲</span>{% endif %}
+    </div>
+    <a class="button primary small" href="{{ c.chat_link }}">约 TA</a>
+  </article>
+  {% else %}
+  <p class="muted">没有符合条件的陪玩师，放宽一下筛选试试。</p>
+  {% endfor %}
+</section>
+{% endblock %}

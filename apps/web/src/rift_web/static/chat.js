@@ -187,5 +187,7 @@
     });
   }
   window.riftChat = { send, sessionId };
+  const prefill = new URLSearchParams(location.search).get("q");
+  if (prefill) { input.value = prefill.slice(0, 500); input.focus(); }
   loadHistory();
 })();

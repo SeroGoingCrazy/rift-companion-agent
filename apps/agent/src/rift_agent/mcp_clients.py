@@ -239,6 +239,12 @@ class BookingClient:
     async def ensure_user(self, nickname: str) -> dict[str, Any]:
         return await self.client.call("ensure_user", {"nickname": nickname})
 
+    async def browse_companions(self, **filters: Any) -> list[dict[str, Any]]:
+        args = {k: v for k, v in filters.items() if v is not None}
+        out = await self.client.call("browse_companions", args)
+        companions: list[dict[str, Any]] = out.get("companions", [])
+        return companions
+
     async def pay_booking(self, user_id: int, booking_id: int) -> dict[str, Any]:
         return await self.client.call("pay_booking", {"user_id": user_id, "booking_id": booking_id})
 

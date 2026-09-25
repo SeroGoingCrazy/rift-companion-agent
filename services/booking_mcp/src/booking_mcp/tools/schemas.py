@@ -211,3 +211,44 @@ class UserOut(_Out):
 class PayBookingInput(_In):
     user_id: int
     booking_id: int
+
+
+# --- web support: companion list -------------------------------------------------------------
+
+
+class BrowseCompanionsInput(_In):
+    game_mode: GameMode | None = None
+    rank_requirement: Rank | None = Field(
+        default=None, description="same meaning as in find_companions (ranked modes only)"
+    )
+    role: Role | None = None
+    companion_gender: Gender | None = None
+    days: int = Field(default=3, ge=1, le=14, description="free-slot horizon from now")
+
+
+class FreeSlot(_Out):
+    start: datetime
+    end: datetime
+
+
+class CompanionCard(_Out):
+    companion_id: int
+    name: str
+    gender: Gender
+    rank: Rank
+    roles: list[Role]
+    modes: list[GameMode]
+    service_types: list[ServiceType]
+    hourly_price: Money
+    #: service type -> effective hourly price
+    prices: dict[str, Money]
+    voice: bool
+    rating: float
+    level: str
+    tags: list[str]
+    bio: str
+    free_slots: list[FreeSlot]
+
+
+class BrowseCompanionsOutput(_Out):
+    companions: list[CompanionCard]
