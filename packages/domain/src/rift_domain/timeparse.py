@@ -242,6 +242,15 @@ def _parse_date(text: str, today: date, parts: _Parts) -> tuple[str, str | None]
     return text, None
 
 
+def _has_date(text: str) -> bool:
+    """Whether ``text`` still names a day (used to reject two conflicting dates)."""
+    return (
+        "周末" in text
+        or any(word in text for word, _, _ in _DAY_WORDS)
+        or any(p.search(text) for p in (_WEEKDAY_RE, _ISO_DATE_RE, _MONTH_DAY_RE))
+    )
+
+
 def _parse_period(text: str, parts: _Parts) -> str:
     for word, period in _PERIODS:
         if word in text:
@@ -348,6 +357,8 @@ def parse_time_expr(
     rest, error = _parse_date(text, now.date(), parts)
     if error:
         return _fail(error)
+    if parts.day is not None and _has_date(rest):
+        return _fail(Reason.AMBIGUOUS_DATE, ambiguous=True)  # e.g. "明晚后天九点"
     rest, error = _parse_clock(rest, parts)
     if error:
         return _fail(error)
