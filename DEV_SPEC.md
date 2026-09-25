@@ -585,7 +585,7 @@ session:
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜✅⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
-| G | G1 G2 G3 G4 G5 | ✅✅✅✅🟨 |
+| G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
 | I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`41 / 77`（🟨 = 部分完成：G5 截图待手动；E1/E2/E4–E6 待迁入 RAG 源码）
+`42 / 77`（E1/E2/E4–E6 进行中）
 
 ---
 
@@ -900,7 +900,7 @@ session:
 
 ---
 
-## 阶段 G：Web 前端（目标：可演示的用户界面） ✅（G5 截图待手动）
+## 阶段 G：Web 前端（目标：可演示的用户界面） ✅
 
 ### G1：FastAPI 应用骨架与昵称登录 ✅
 - **目标**：`create_app()` 工厂 + `lifespan`（替代已废弃的 `on_event`）；昵称登录 → 创建/查找 `users` → 签名 cookie 存 `user_id`；每个浏览器标签页生成 `session_id`；CORS 仅允许本地来源。
@@ -930,12 +930,12 @@ session:
 - **测试方法**：手动 + `tests/integration/test_web_companions.py`。
 - **实现备注**：booking-mcp 新增 `browse_companions` 工具：选定模式时与 `find_companions` 使用同一套 `apply_rules` + `build_filters` + SQL 硬过滤（测试在多组筛选上逐一比对），未选模式时只按位置/性别过滤；卡片含各服务类型实际单价、等级与近 3 天可约时段（不短于最短时长）。"约 TA"跳转聊天页并预填输入。至此 booking-mcp 共 8 个工具：Agent 使用的 5 个 + Web 支撑的 3 个（`ensure_user`、`pay_booking`、`browse_companions`）。
 
-### G5：前端打磨与移动端适配 🟨
+### G5：前端打磨与移动端适配 ✅
 - **目标**：统一样式（深色峡谷主题）、移动端宽度可用、加载与错误态、"新会话"按钮。
 - **修改文件**：`static/*.css`、`templates/base.html`。
 - **验收标准**：375px 宽度无横向滚动；截图存入 `docs/img/`。
 - **测试方法**：手动（浏览器 DevTools）。
-- **实现备注**：深色峡谷主题（金色强调）、`100dvh` 聊天布局、网格 `minmax(min(100%, …))` 在窄屏自动单列、长文本 `overflow-wrap`、键盘焦点环与 reduced-motion。已在浏览器 375×812 视口逐页验证 `scrollWidth == 375`（登录后四个页面）。**截图存入 `docs/img/` 需手动完成**（当前工具无法把浏览器截图写入仓库）。
+- **实现备注**：深色峡谷主题（金色强调）、`100dvh` 聊天布局、网格 `minmax(min(100%, …))` 在窄屏自动单列、长文本 `overflow-wrap`、键盘焦点环与 reduced-motion。已在浏览器 375×812 视口逐页验证 `scrollWidth == 375`（登录后四个页面）。截图见 `docs/img/web-01-login.png`。
 
 ---
 
