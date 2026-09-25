@@ -583,7 +583,7 @@ session:
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
-| E | E1 E2 E3 E4 E5 E6 | ⬜⬜✅⬜⬜⬜ |
+| E | E1 E2 E3 E4 E5 E6 | ✅⬜✅⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`42 / 77`（E1/E2/E4–E6 进行中）
+`43 / 77`（E2/E4–E6 进行中）
 
 ---
 
@@ -788,11 +788,12 @@ session:
 
 ## 阶段 E：knowledge-mcp（目标：RAG 迁入、Markdown 知识库、L3 达标）
 
-### E1：迁入 RAG 源码
+### E1：迁入 RAG 源码 ✅
 - **目标**：将 `MODULAR-RAG-MCP-SERVER` 的 `src/`、`config/`（去除任何明文 key，改为 `${ENV}`）、相关测试复制到 `services/knowledge_mcp/`，作为 workspace 成员；原有 unit 测试在新位置通过。
 - **修改文件**：`services/knowledge_mcp/**`、根 `pyproject.toml`。
 - **验收标准**：`uv run pytest -q services/knowledge_mcp/tests/unit` 通过；仓库内 `grep -r "sk-" services/knowledge_mcp/config` 无结果。
 - **测试方法**：同上。
+- **实现备注**：`src/`、`scripts/`、`tests/`、`config/prompts` 原样复制（包名保持 `src`，hatchling 打包），`config/settings.yaml` 由原文件生成：三处明文 key 替换为 `${OPENAI_API_KEY:-}`，`vision_llm` 关闭；`load_settings` 新增 `${VAR}` / `${VAR:-default}` 展开（未设置时为空串，离线可加载）。补齐原项目未声明的依赖（`pymupdf`、`pillow`），`langchain-community` 固定 `<0.4`（ragas 0.4.3 需要）。原项目在源仓库中本就有 13 个单测失败，均为测试与代码漂移：Windows 下 `time.time()`/`monotonic()` 精度导致耗时为 0（改用 `perf_counter`）、`list_collections` 位置参数调用、embedding 测试用裸 `Mock` 当配置、分词测试仍按旧正则分词器断言、trace 测试夹具格式过旧——已逐一修正，1212 个单测全部通过并加入 CI。另为 `*.pdf`/`*.png` 等加 `binary` 属性，防止 git 改写 PDF 夹具换行。
 
 ### E2：MarkdownLoader
 - **目标**：按标题层级切分 section，metadata 保留 `source`、`title_path`、`collection`；通过 loader 工厂注册，ingestion pipeline 按扩展名选择 loader；SHA256 增量检查沿用。
