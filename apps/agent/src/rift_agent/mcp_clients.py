@@ -239,6 +239,9 @@ class BookingClient:
     async def ensure_user(self, nickname: str) -> dict[str, Any]:
         return await self.client.call("ensure_user", {"nickname": nickname})
 
+    async def pay_booking(self, user_id: int, booking_id: int) -> dict[str, Any]:
+        return await self.client.call("pay_booking", {"user_id": user_id, "booking_id": booking_id})
+
 
 # --- knowledge -----------------------------------------------------------------------------
 

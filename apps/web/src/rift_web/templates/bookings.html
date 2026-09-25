@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}我的订单 · 峡谷陪练{% endblock %}
+{% block content %}
+<h1>我的订单</h1>
+<p id="notice" class="notice" role="status"></p>
+<section id="bookings" class="orders"><p class="muted">加载中…</p></section>
+<dialog id="cancel-dialog" class="card">
+  <p id="cancel-text"></p>
+  <div class="row">
+    <button type="button" id="cancel-yes" class="primary small">确认取消</button>
+    <button type="button" id="cancel-no" class="ghost small">再想想</button>
+  </div>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="/static/bookings.js" defer></script>{% endblock %}

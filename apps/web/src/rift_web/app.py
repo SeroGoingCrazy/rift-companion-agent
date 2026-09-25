@@ -25,6 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from rift_web.routes import auth as auth_routes
+from rift_web.routes import bookings as booking_routes
 from rift_web.routes import chat as chat_routes
 from rift_web.services import WebConfig, WebServices, build_services
 
@@ -59,6 +60,7 @@ def create_app(config: WebConfig | None = None, *, services: WebServices | None 
     app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
     app.include_router(auth_routes.router)
     app.include_router(chat_routes.router)
+    app.include_router(booking_routes.router)
     return app
 
 

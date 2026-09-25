@@ -37,3 +37,16 @@ button.link { background: none; color: var(--muted); padding: 0; }
 button.small { padding: 6px 12px; font-size: 14px; }
 button.ghost { background: transparent; color: var(--text); border: 1px solid #2c3a47; }
 button:disabled { opacity: .5; cursor: not-allowed; }
+.orders { display: grid; gap: 12px; }
+.orders.loading { opacity: .6; }
+.card.order { display: grid; gap: 6px; }
+.order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.badge { font-size: 13px; padding: 2px 10px; border-radius: 999px; background: #2c3a47; }
+.badge.pending_payment { background: #5a4a1f; color: #ffd98a; }
+.badge.confirmed { background: #1f4a2e; color: #9be3b0; }
+.badge.cancelled { background: #3a2a2d; color: #c9a1a6; }
+.badge.completed { background: #243b55; color: #a9c8ef; }
+.notice { min-height: 1.4em; }
+.notice.error { color: var(--danger); }
+dialog { color: var(--text); border: 1px solid #2c3a47; max-width: min(420px, 92vw); }
+dialog::backdrop { background: rgba(0, 0, 0, .6); }

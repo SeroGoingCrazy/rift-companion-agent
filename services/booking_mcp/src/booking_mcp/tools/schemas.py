@@ -206,3 +206,8 @@ class UserOut(_Out):
     user_id: int
     nickname: str
     created: bool
+
+
+class PayBookingInput(_In):
+    user_id: int
+    booking_id: int

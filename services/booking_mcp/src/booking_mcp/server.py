@@ -48,6 +48,7 @@ from booking_mcp.tools import (
     create_booking,
     find_companions,
     list_my_bookings,
+    pay_booking,
     quote_price,
     users,
 )
@@ -61,6 +62,7 @@ from booking_mcp.tools.schemas import (
     FindCompanionsInput,
     FindCompanionsOutput,
     ListMyBookingsInput,
+    PayBookingInput,
     QuoteOut,
     QuotePriceInput,
     UserOut,
@@ -130,6 +132,13 @@ TOOLS: tuple[ToolSpec, ...] = (
     ),
     # Web support (login, order page, companion list); the agent uses only the five above.
     ToolSpec(users.NAME, users.DESCRIPTION, EnsureUserInput, UserOut, users.ensure_user),
+    ToolSpec(
+        pay_booking.NAME,
+        pay_booking.DESCRIPTION,
+        PayBookingInput,
+        BookingOut,
+        pay_booking.pay_booking,
+    ),
 )
 
 
