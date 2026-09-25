@@ -72,7 +72,10 @@ class ReplyConfig(_Frozen):
 
 class MCPServerConfig(_Frozen):
     url: str
+    timeout_s: float = Field(default=15.0, gt=0)
     collection_default: str | None = None
+    #: Knowledge server only: collections a consult question is searched in.
+    collections: tuple[str, ...] = ()
 
 
 class MCPConfig(_Frozen):
