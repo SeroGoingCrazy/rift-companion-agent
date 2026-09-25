@@ -11,6 +11,7 @@ from langgraph.graph import END
 from rift_agent.deps import get_deps
 from rift_agent.graph.state import TURN_RESET, AgentState, Phase, append_message, booking_state
 from rift_agent.graph.tracing import traced_node
+from rift_common.trace import current_span
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,13 @@ async def render(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
     except Exception:
         logger.exception("rendering %s failed", reply_type)
         reply_type, text = "error", renderer.render("error", {}, booking)
+    mode = "template"
+    if deps.polisher is not None and reply_type != "error":
+        text, polished = await deps.polisher.polish(text, facts)
+        mode = "polish" if polished else "polish_fallback"
+    s = current_span()
+    if s is not None:
+        s.set_attrs(mode=mode, reply_type=reply_type)
     messages = append_message(
         list(state.get("messages") or []), "assistant", text, keep_turns=deps.history_turns
     )

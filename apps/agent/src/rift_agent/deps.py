@@ -19,6 +19,7 @@ from rift_domain.config import DomainConfig
 if TYPE_CHECKING:
     from rift_agent.extractors.base import SlotExtractor
     from rift_agent.mcp_clients import BookingClient, KnowledgeClient
+    from rift_agent.replies.polisher import ReplyPolisher
     from rift_agent.replies.templates import ReplyRenderer
 
 
@@ -31,6 +32,8 @@ class AgentDeps:
     booking: BookingClient | None = None
     knowledge: KnowledgeClient | None = None
     replies: ReplyRenderer | None = None
+    #: Set when ``reply.polish`` is on; falls back to the template on any doubt.
+    polisher: ReplyPolisher | None = None
     clock: Callable[[], datetime] = datetime.now
     history_turns: int = 6
     extras: dict[str, Any] = field(default_factory=dict)

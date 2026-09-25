@@ -235,7 +235,7 @@ def create_http_app(server: Server[Any, Any]) -> Starlette:
 # --- CLI -------------------------------------------------------------------------------------
 
 
-def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="booking-mcp", description="Booking MCP server")
     p.add_argument("--transport", choices=("stdio", "http"), default="stdio")
     p.add_argument("--host", default="127.0.0.1")
@@ -296,7 +296,7 @@ def fixed_clock(now: datetime) -> Callable[[], datetime]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = _parse_args(argv)
+    args = parse_args(argv)
     logging.basicConfig(
         stream=sys.stderr,
         level=args.log_level,
