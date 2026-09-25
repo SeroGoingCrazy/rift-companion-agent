@@ -98,7 +98,7 @@ def test_any_rejected_where_meaningless(field: str) -> None:
         parse_extraction(_envelope({field: "any"}))
 
 
-# --- strict validation -----------------------------------------------------------------
+# --- strict validation ---
 
 
 @pytest.mark.parametrize(
@@ -161,7 +161,7 @@ def test_python_construction_with_enums() -> None:
     assert ext.delta.provided() == {"game_mode": GameMode.ARENA, "rank_requirement": ANY}
 
 
-# --- JSON schema -----------------------------------------------------------------------
+# --- JSON schema ---
 
 
 def test_json_schema_is_strict_and_lists_enums() -> None:
@@ -177,7 +177,7 @@ def test_json_schema_is_strict_and_lists_enums() -> None:
     json.dumps(schema)  # serializable
 
 
-# --- booking state -------------------------------------------------------------------------
+# --- booking state ---
 
 
 def test_booking_state_defaults_and_helpers() -> None:

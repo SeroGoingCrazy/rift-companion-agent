@@ -100,7 +100,7 @@ def test_first_turn_from_empty_state() -> None:
     }
 
 
-# --- time -----------------------------------------------------------------------------------
+# --- time ---
 
 
 def test_time_expression_is_resolved() -> None:
