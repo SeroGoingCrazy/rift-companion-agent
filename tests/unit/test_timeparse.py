@@ -176,10 +176,45 @@ def test_past_relative_shift() -> None:
         ("明晚8点70分", Reason.INVALID),
         ("10月32号晚上八点", Reason.INVALID),
         ("2026-02-30 20:00", Reason.INVALID),
+        ("十二十号晚上八点", Reason.INVALID),
+        ("明天十二十点", Reason.INVALID),
+        ("明晚八点十二十分", Reason.INVALID),
+        ("十二十小时后", Reason.INVALID),
+        ("吧", Reason.EMPTY),
     ],
 )
 def test_unparseable(expr: str, reason: str) -> None:
     assert parse_time_expr(expr, NOW) == TimeParseResult(value=None, reason=reason)
+
+
+def test_invalid_shift_amount() -> None:
+    result = parse_time_expr("晚十二十小时", NOW, current=CURRENT)
+    assert result == TimeParseResult(value=None, reason=Reason.INVALID)
+
+
+def test_next_month_without_that_day_is_invalid() -> None:
+    # Jan 31st: "30号" has passed this month and February has no 30th
+    result = parse_time_expr("30号晚上八点", datetime(2026, 1, 31, 10))
+    assert result == TimeParseResult(value=None, reason=Reason.INVALID)
+
+
+@pytest.mark.parametrize(
+    ("expr", "expected"),
+    [("深夜十一点", dt(10, 1, 23)), ("晚上20点", dt(10, 1, 20)), ("半夜十二点", dt(10, 2, 0))],
+)
+def test_late_night_periods(expr: str, expected: datetime) -> None:
+    assert parse_time_expr(expr, NOW).value == expected
+
+
+def test_explicit_past_day_without_period_is_past() -> None:
+    result = parse_time_expr("昨天八点", NOW)
+    assert result == TimeParseResult(value=datetime(2026, 9, 30, 20), reason=Reason.PAST)
+
+
+def test_same_weekday_ampm_rolls_to_next_week_then_stays_ambiguous() -> None:
+    thursday_night = datetime(2026, 10, 1, 21)
+    result = parse_time_expr("周四八点", thursday_night)
+    assert result.reason == Reason.AMBIGUOUS_AMPM
 
 
 def test_none_expression() -> None:

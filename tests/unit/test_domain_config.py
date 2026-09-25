@@ -174,6 +174,24 @@ def test_refund_tiers_must_decrease_and_end_at_zero() -> None:
     _expect_error(data, "must start at min_hours_before: 0")
 
 
+def test_refund_ratio_increasing_toward_start_rejected() -> None:
+    data = _raw()
+    data["refund"]["tiers"][2]["ratio"] = 0.8
+    _expect_error(data, "must not increase")
+
+
+def test_refund_tier_names_unique() -> None:
+    data = _raw()
+    data["refund"]["tiers"][1]["name"] = "full"
+    _expect_error(data, "names must be unique")
+
+
+def test_duplicate_rank_rejected() -> None:
+    data = _raw()
+    data["ranks"].append(dict(data["ranks"][0], label="黑铁2", aliases=[]))
+    _expect_error(data, "ranks has duplicate keys")
+
+
 def test_refund_ratio_out_of_range_rejected() -> None:
     data = _raw()
     data["refund"]["tiers"][0]["ratio"] = 1.5
