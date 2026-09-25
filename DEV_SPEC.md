@@ -585,7 +585,7 @@ session:
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅🟨 |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜✅⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
-| G | G1 G2 G3 G4 G5 | ⬜⬜⬜⬜⬜ |
+| G | G1 G2 G3 G4 G5 | ✅✅✅✅🟨 |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
 | I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`36 / 77`（D7 代码与文档完成，Claude Desktop 实机截图待手动；🟨 = 部分完成）
+`40 / 77`（🟨 = 部分完成：D7 Claude Desktop 实机截图、G5 截图待手动；E1/E2/E4–E6 待迁入 RAG 源码）
 
 ---
 
@@ -900,37 +900,42 @@ session:
 
 ---
 
-## 阶段 G：Web 前端（目标：可演示的用户界面）
+## 阶段 G：Web 前端（目标：可演示的用户界面） ✅（G5 截图待手动）
 
-### G1：FastAPI 应用骨架与昵称登录
+### G1：FastAPI 应用骨架与昵称登录 ✅
 - **目标**：`create_app()` 工厂 + `lifespan`（替代已废弃的 `on_event`）；昵称登录 → 创建/查找 `users` → 签名 cookie 存 `user_id`；每个浏览器标签页生成 `session_id`；CORS 仅允许本地来源。
 - **修改文件**：`apps/web/src/rift_web/{app.py, auth.py, routes/auth.py}`、`templates/login.html`、`tests/integration/test_web_auth.py`。
 - **验收标准**：未登录访问聊天页重定向到登录页；cookie 篡改被拒绝。
 - **测试方法**：`uv run pytest -q tests/integration/test_web_auth.py`。
+- **实现备注**：登录经 booking-mcp 新增的 `ensure_user` 工具创建/查找用户（Web 不直连数据库）。cookie 由 `itsdangerous` 签名（`RIFT_WEB_SECRET`），HttpOnly + SameSite=Lax；`next` 只接受站内相对路径，防开放重定向。浏览器标签页的 `session_id` 在服务端以 `u<uid>-<session_id>` 作为 Agent 线程 ID，他人无法凭 session_id 读取会话。
 
-### G2：聊天页与 SSE 流式
+### G2：聊天页与 SSE 流式 ✅
 - **目标**：`POST /api/chat` 返回 SSE（事件类型：`token`、`candidates`、`confirm`、`done`、`error`）；前端渲染候选卡片（点击即发送"选 xxx"）与确认卡片（确认 / 取消按钮）。
 - **修改文件**：`routes/chat.py`、`templates/chat.html`、`static/chat.js`、`tests/integration/test_web_chat.py`（mock agent）。
 - **验收标准**：错误以 `error` 事件下发（不再用 `[ERROR]` 字符串混入正文）；候选与确认卡片正确渲染。
 - **测试方法**：`uv run pytest -q tests/integration/test_web_chat.py`；浏览器手动验证。
+- **实现备注**：`POST /api/chat` 基于 F10 的 `Agent.run_turn_events` 输出 SSE（`token`/`candidates`/`confirm`/`booked`/`done`/`error`），异常一律以 `error` 事件下发；前端用 fetch 读取流（EventSource 不支持 POST），候选卡片"选这位"、确认卡片"确认下单/换一位"直接发送对应话术；刷新后通过 `/api/chat/history` 恢复文本记录。已用 DeepSeek + 进程内 booking-mcp 在浏览器中走通 预约 → 确认 → 下单。
 
-### G3：我的订单页与模拟支付
+### G3：我的订单页与模拟支付 ✅
 - **目标**：订单列表（状态徽标）、"模拟支付"按钮（`pending_payment → confirmed`）、取消按钮（展示退款金额后确认）。页面数据通过 booking-mcp 获取（与 Agent 一致，不直连 DB）。
 - **修改文件**：`routes/bookings.py`、`templates/bookings.html`、`static/bookings.js`、`tests/integration/test_web_bookings.py`。
 - **验收标准**：支付与取消后状态实时刷新。
 - **测试方法**：`uv run pytest -q tests/integration/test_web_bookings.py`。
+- **实现备注**：booking-mcp 新增 `pay_booking` 工具（`pending_payment → confirmed`，越权 FORBIDDEN）；取消先 `dry_run` 展示退款再执行，操作后列表实时刷新。浏览器已验证 支付 → 退款预估 → 取消。
 
-### G4：陪玩师列表页
+### G4：陪玩师列表页 ✅
 - **目标**：筛选（模式、段位、位置、性别）+ 卡片展示（价格、标签、评分、近 3 天空闲时段）。
 - **修改文件**：`routes/companions.py`、`templates/companions.html`。
 - **验收标准**：筛选结果与 `find_companions` 硬过滤一致。
 - **测试方法**：手动 + `tests/integration/test_web_companions.py`。
+- **实现备注**：booking-mcp 新增 `browse_companions` 工具：选定模式时与 `find_companions` 使用同一套 `apply_rules` + `build_filters` + SQL 硬过滤（测试在多组筛选上逐一比对），未选模式时只按位置/性别过滤；卡片含各服务类型实际单价、等级与近 3 天可约时段（不短于最短时长）。"约 TA"跳转聊天页并预填输入。至此 booking-mcp 共 8 个工具：Agent 使用的 5 个 + Web 支撑的 3 个（`ensure_user`、`pay_booking`、`browse_companions`）。
 
-### G5：前端打磨与移动端适配
+### G5：前端打磨与移动端适配 🟨
 - **目标**：统一样式（深色峡谷主题）、移动端宽度可用、加载与错误态、"新会话"按钮。
 - **修改文件**：`static/*.css`、`templates/base.html`。
 - **验收标准**：375px 宽度无横向滚动；截图存入 `docs/img/`。
 - **测试方法**：手动（浏览器 DevTools）。
+- **实现备注**：深色峡谷主题（金色强调）、`100dvh` 聊天布局、网格 `minmax(min(100%, …))` 在窄屏自动单列、长文本 `overflow-wrap`、键盘焦点环与 reduced-motion。已在浏览器 375×812 视口逐页验证 `scrollWidth == 375`（登录后四个页面）。**截图存入 `docs/img/` 需手动完成**（当前工具无法把浏览器截图写入仓库）。
 
 ---
 

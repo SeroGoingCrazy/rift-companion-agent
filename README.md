@@ -39,3 +39,22 @@ uv run python scripts/mcp_smoke.py                 # stdio 冒烟：找人 → �
 ```
 
 在 Claude Desktop 中挂载的配置片段与错误码说明见 [docs/mcp_desktop.md](docs/mcp_desktop.md)。
+
+## Agent（命令行对话）
+
+需要 `DEEPSEEK_API_KEY`。booking-mcp 可走 HTTP（`config/settings.yaml` 中的地址），也可在进程内运行：
+
+```bash
+uv run python scripts/chat_cli.py --booking-db data/booking.db
+```
+
+知识检索（咨询类问题）依赖 knowledge-mcp（阶段 E）；未启动时 Agent 会如实提示"规则查询服务暂时连不上"，预约与订单管理不受影响。
+
+## Web 界面
+
+```bash
+export RIFT_WEB_SECRET=...                                   # cookie 签名密钥（不设则每次启动随机）
+uv run python -m rift_web --booking-db data/booking.db       # http://127.0.0.1:8000
+```
+
+页面：昵称登录 → 聊天预约（SSE 流式、候选卡片、确认卡片）/ 我的订单（模拟支付、退款预估后取消）/ 陪玩师（按模式、段位、位置、性别筛选，展示近 3 天空闲时段）。
