@@ -29,6 +29,7 @@ from rift_agent.graph.nodes.book import book, route_booked
 from rift_agent.graph.nodes.classify import classify, route_intent
 from rift_agent.graph.nodes.common import after_render, other, render, route_from_phase, route_phase
 from rift_agent.graph.nodes.confirm import confirm, route_confirmed
+from rift_agent.graph.nodes.consult import abandon, consult, consult_interject, unrelated
 from rift_agent.graph.nodes.decide import decide, route_decision
 from rift_agent.graph.nodes.extract import extract_slots, route_extraction
 from rift_agent.graph.nodes.find import find_companions, route_found
@@ -48,6 +49,10 @@ NODES: dict[str, NodeFn] = {
     "quote": quote,
     "book": book,
     "confirm": confirm,
+    "consult": consult,
+    "consult_interject": consult_interject,
+    "unrelated": unrelated,
+    "abandon": abandon,
     "render": render,
 }
 
@@ -71,6 +76,10 @@ EDGES: dict[str, str] = {
     "merge_state": "decide",
     "quote": "render",
     "other": "render",
+    "consult": "render",
+    "consult_interject": "render",
+    "unrelated": "render",
+    "abandon": "render",
 }
 
 

@@ -86,3 +86,28 @@ booked: |
 
 booking_failed: |
   下单没有成功：{{ message }}。要换一位或者换个时间吗？
+
+consult: |
+  {% if unavailable %}规则查询服务暂时连不上，稍后再问我一次吧。
+  {% elif no_answer %}这个问题我暂时没有查到相关规则，可以换个问法试试。
+  {% else %}{{ answer }}
+  {% if sources %}（参考：{{ sources | join("、") }}）{% endif %}
+
+  {% endif %}
+  {% if resume %}
+  {% if resume.confirm %}回到刚才的订单：确认下单吗？（回复「确认」或「算了」）
+  {% elif resume.field %}回到预约：{% if resume.field == "game_mode" %}想约哪种模式？{% elif resume.field == "start_time" %}想约什么时候开始？{% elif resume.field == "duration_hours" %}打几个小时呢？{% elif resume.field == "rank_requirement" %}对段位有要求吗？{% else %}还需要确认{{ resume.field | field }}。{% endif %}
+
+  {% elif resume.candidates %}回到预约：上面几位陪玩师想约哪位？
+  {% endif %}
+  {% endif %}
+
+unrelated: |
+  这个我帮不上忙哈，我只负责峡谷陪练的陪玩预约和规则咨询～
+  {% if resume.confirm %}刚才的订单还等你确认：确认下单吗？
+  {% elif resume.field %}我们继续预约吧：还需要{{ resume.field | field }}。
+  {% elif resume.candidates %}上面几位陪玩师想约哪位？
+  {% endif %}
+
+abandon: |
+  好的，这次先不约了{% if dropped %}（已取消：{{ dropped }}）{% endif %}。想约的时候随时叫我～
