@@ -236,3 +236,28 @@ def test_local_extractor_not_available_yet(tmp_path: Path) -> None:
     llm = MockLLM(LLMConfig(provider="mock", model="m"))
     with pytest.raises(SettingsError, match="'local' is not available yet"):
         make_extractor(settings, llm)
+
+
+JSON_TYPES = (str, int, float, bool, type(None))
+
+
+def _assert_json_native(value: Any, path: str = "state") -> None:
+    """Exact JSON types only: enum/Decimal/datetime subclasses would need custom serde."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            assert type(k) is str, f"{path}: key {k!r} is {type(k).__name__}"
+            _assert_json_native(v, f"{path}.{k}")
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            _assert_json_native(v, f"{path}[{i}]")
+    else:
+        assert type(value) in JSON_TYPES, f"{path} is {type(value).__name__}: {value!r}"
+
+
+async def test_checkpointed_state_is_json_native(
+    tmp_path: Path, harness: AgentHarness, world: World
+) -> None:
+    async with Agent.open(harness.deps, tmp_path / "cp.db") as agent:
+        for text in ("约个大乱斗明晚八点两小时", "就第一个", "确认", "我有哪些订单", "取消第一个"):
+            await agent.run("j", world.user, text)
+            _assert_json_native(await agent.state("j"))
