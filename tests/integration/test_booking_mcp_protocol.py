@@ -34,13 +34,17 @@ if TYPE_CHECKING:
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NOW = datetime(2026, 10, 1, 14, 0)
 START = datetime(2026, 10, 3, 20, 0)
-EXPECTED_TOOLS = {
+#: The five booking tools the agent uses (DEV_SPEC 3.5.1) ...
+AGENT_TOOLS = {
     "find_companions",
     "quote_price",
     "create_booking",
     "list_my_bookings",
     "cancel_booking",
 }
+#: ... plus web-support tools (login, order page, companion list).
+WEB_TOOLS = {"ensure_user"}
+EXPECTED_TOOLS = AGENT_TOOLS | WEB_TOOLS
 
 
 class RecordingSink(TraceSink):
@@ -86,9 +90,10 @@ def _booking_args(world: dict[str, int], user: str = "alice") -> dict[str, Any]:
     }
 
 
-async def test_tools_list_has_five_tools_with_schemas(service: BookingService) -> None:
+async def test_tools_list_has_booking_tools_with_schemas(service: BookingService) -> None:
     async with _client(service) as client:
         tools = (await client.list_tools()).tools
+    assert {t.name for t in tools} >= AGENT_TOOLS
     assert {t.name for t in tools} == EXPECTED_TOOLS
     for t in tools:
         assert t.description
@@ -228,6 +233,22 @@ async def test_error_span_records_code(service: BookingService, world: dict[str,
         )
     tool_span = next(s for s in sink.traces[0].spans if s.name == "tool:cancel_booking")
     assert tool_span.attrs["error_code"] == "NOT_FOUND"
+
+
+async def test_ensure_user_finds_or_creates(service: BookingService, world: dict[str, int]) -> None:
+    async with _client(service) as client:
+        first = await client.call_tool("ensure_user", {"nickname": " 新玩家 "})
+        again = await client.call_tool("ensure_user", {"nickname": "新玩家"})
+        existing = await client.call_tool("ensure_user", {"nickname": "alice"})
+        empty = await client.call_tool("ensure_user", {"nickname": "  "})
+    assert first.structuredContent is not None and again.structuredContent is not None
+    assert first.structuredContent["created"] is True
+    assert first.structuredContent["nickname"] == "新玩家"
+    assert again.structuredContent == {**first.structuredContent, "created": False}
+    assert existing.structuredContent is not None
+    assert existing.structuredContent["user_id"] == world["alice"]
+    assert empty.structuredContent is not None
+    assert empty.structuredContent["error"]["code"] == "INVALID_ARGUMENT"
 
 
 def test_execute_validates_and_serializes(service: BookingService, world: dict[str, int]) -> None:

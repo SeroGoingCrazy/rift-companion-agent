@@ -4,7 +4,7 @@ hand-made companions and schedules, and in-process MCP servers for agent tests."
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
@@ -13,6 +13,7 @@ from typing import Any
 
 import mcp.types as mcp_types
 import pytest
+from fastapi.testclient import TestClient
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command
 from mcp.server.lowlevel import Server
@@ -32,6 +33,7 @@ from booking_mcp.db import (
 from booking_mcp.seed import seed_database
 from booking_mcp.server import build_server
 from booking_mcp.service import BookingService
+from rift_agent.api import AgentEvent
 from rift_agent.deps import AgentDeps
 from rift_agent.extractors.base import ExtractionContext, ExtractionResult, SlotExtractor
 from rift_agent.graph.builder import build_graph
@@ -48,6 +50,9 @@ from rift_common.settings import LLMConfig
 from rift_domain.config import DomainConfig
 from rift_domain.enums import GameMode, Gender, Rank, Role, ServiceType
 from rift_domain.slots import parse_extraction
+from rift_web.app import create_app
+from rift_web.auth import Auth
+from rift_web.services import WebConfig, WebServices
 
 
 @dataclass
@@ -308,3 +313,63 @@ def make_agent(
         return AgentHarness(graph, deps, session_id=session_id, user_id=user_id)
 
     return make
+
+
+# --- web app -------------------------------------------------------------------------------
+
+
+class FakeChatAgent:
+    """Stands in for ``rift_agent.api.Agent`` in web tests: scripted events per input."""
+
+    def __init__(self, script: dict[str, list[AgentEvent]] | None = None) -> None:
+        self.script = script or {}
+        self.calls: list[tuple[str, int, str]] = []
+        self.histories: dict[str, list[dict[str, str]]] = {}
+
+    async def run_turn_events(
+        self, session_id: str, user_id: int, text: str
+    ) -> AsyncIterator[AgentEvent]:
+        self.calls.append((session_id, user_id, text))
+        events = self.script.get(text) or [
+            AgentEvent("token", f"echo:{text}"),
+            AgentEvent("done", {}),
+        ]
+        for event in events:
+            yield event
+
+    async def history(self, session_id: str) -> list[dict[str, str]]:
+        return self.histories.get(session_id, [])
+
+
+@pytest.fixture
+def make_web(
+    booking_server: Server[Any, Any], domain: DomainConfig
+) -> Callable[..., tuple[TestClient, WebServices]]:
+    def make(
+        agent: Any = None,
+        *,
+        server: Server[Any, Any] | None = None,
+        secret: str = "test-secret",
+    ) -> tuple[TestClient, WebServices]:
+        services = WebServices(
+            agent=agent or FakeChatAgent(),
+            booking=BookingClient(
+                McpToolClient("booking", inprocess_connector(server or booking_server))
+            ),
+            domain=domain,
+            auth=Auth(secret),
+            clock=lambda: AGENT_NOW,
+        )
+        app = create_app(WebConfig(secret=secret), services=services)
+        return TestClient(app, follow_redirects=False), services
+
+    return make
+
+
+@pytest.fixture
+def web_login() -> Callable[..., None]:
+    def login(client: TestClient, nickname: str = "tester") -> None:
+        resp = client.post("/login", data={"nickname": nickname})
+        assert resp.status_code == 303, resp.text
+
+    return login
