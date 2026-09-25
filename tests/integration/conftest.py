@@ -342,6 +342,11 @@ class FakeChatAgent:
 
 
 @pytest.fixture
+def fake_chat_agent() -> type[FakeChatAgent]:
+    return FakeChatAgent
+
+
+@pytest.fixture
 def make_web(
     booking_server: Server[Any, Any], domain: DomainConfig
 ) -> Callable[..., tuple[TestClient, WebServices]]:
