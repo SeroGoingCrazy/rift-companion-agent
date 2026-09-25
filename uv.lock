@@ -1940,6 +1940,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "booking-mcp" },
+    { name = "jinja2" },
     { name = "rift-agent" },
     { name = "rift-common", extra = ["langfuse"] },
     { name = "rift-domain" },
@@ -1960,6 +1961,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "booking-mcp", editable = "services/booking_mcp" },
+    { name = "jinja2", specifier = ">=3.1" },
     { name = "rift-agent", editable = "apps/agent" },
     { name = "rift-common", extras = ["langfuse"], editable = "packages/common" },
     { name = "rift-domain", editable = "packages/domain" },
