@@ -81,10 +81,14 @@ async def decide(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
                 "reply_type": "candidates",
                 "facts": {"cards": state.get("candidate_cards") or [], "declined": True},
             }
+        from rift_agent.graph.nodes.quote import confirm_facts  # quote imports this module
+
+        facts = confirm_facts(state, booking)
         return {
             "action": "reconfirm",
             "reply_type": "reconfirm",
-            "facts": dict(state.get("facts") or {}),
+            "facts": facts,
+            "ui": {"confirm": facts},
         }
 
     if confirmation is Confirmation.NO and not changed and not state.get("pending_action"):

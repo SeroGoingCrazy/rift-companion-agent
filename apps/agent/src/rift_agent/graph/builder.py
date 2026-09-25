@@ -25,12 +25,15 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from rift_agent.graph.nodes.book import book, route_booked
 from rift_agent.graph.nodes.classify import classify, route_intent
 from rift_agent.graph.nodes.common import after_render, other, render, route_from_phase, route_phase
+from rift_agent.graph.nodes.confirm import confirm, route_confirmed
 from rift_agent.graph.nodes.decide import decide, route_decision
 from rift_agent.graph.nodes.extract import extract_slots, route_extraction
 from rift_agent.graph.nodes.find import find_companions, route_found
 from rift_agent.graph.nodes.merge import merge_state
+from rift_agent.graph.nodes.quote import quote
 from rift_agent.graph.state import AgentState
 from rift_agent.graph.tracing import NodeFn, unless_error
 
@@ -42,6 +45,9 @@ NODES: dict[str, NodeFn] = {
     "merge_state": merge_state,
     "decide": decide,
     "find_companions": find_companions,
+    "quote": quote,
+    "book": book,
+    "confirm": confirm,
     "render": render,
 }
 
@@ -55,12 +61,15 @@ ROUTES: dict[str, tuple[Callable[[AgentState], str], tuple[str, ...]]] = {
     ),
     "decide": (route_decision, ("book", "abandon", "quote", "find_companions", "render")),
     "find_companions": (route_found, ("quote", "render")),
+    "book": (route_booked, ("find_companions", "render")),
+    "confirm": (route_confirmed, ("extract_slots", "manage_confirm", "render")),
     "render": (after_render, ("confirm", END)),
 }
 
 #: Plain "go on unless it crashed" edges.
 EDGES: dict[str, str] = {
     "merge_state": "decide",
+    "quote": "render",
     "other": "render",
 }
 

@@ -29,17 +29,23 @@ def traced_node(name: str) -> Callable[[NodeFn], NodeFn]:
     def decorate(fn: NodeFn) -> NodeFn:
         @functools.wraps(fn)
         async def wrapper(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
+            paused: GraphBubbleUp | None = None
             try:
                 with span(f"node:{name}") as s:
-                    update = await fn(state, config)
-                    if update.get("action"):
-                        s.set_attr("action", update["action"])
-                    return update
-            except GraphBubbleUp:
-                raise
+                    try:
+                        update = await fn(state, config)
+                    except GraphBubbleUp as exc:  # interrupt(): a pause, not a failure
+                        s.set_attr("interrupted", True)
+                        paused = exc
+                    else:
+                        if update.get("action"):
+                            s.set_attr("action", update["action"])
+                        return update
             except Exception as exc:
                 logger.exception("node %s failed", name)
                 return {"error": f"{name}: {type(exc).__name__}: {exc}", "reply_type": "error"}
+            assert paused is not None
+            raise paused
 
         return wrapper
 

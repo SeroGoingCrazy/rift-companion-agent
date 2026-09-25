@@ -40,6 +40,10 @@ ask_time: |
   {% endif %}
 
 candidates: |
+  {% if declined %}好的，不约这位了。
+  {% endif %}
+  {% if quote_error %}这位陪玩师暂时约不了（{{ quote_error }}），换一位吧。
+  {% endif %}
   {% if conflict %}刚才那个时段被别人抢先约走了，帮你重新找了一下：
   {% endif %}
   {% if companion_unavailable %}{{ companion_unavailable }} 在新的条件下约不到了，看看这些：
@@ -59,3 +63,26 @@ no_candidates: |
   {% if has_budget %}预算和段位要求不会自动放宽，可以提高一点预算，或者换个时间试试？
   {% else %}换个时间或调整一下要求试试？
   {% endif %}
+
+confirm_booking: |
+  请确认订单：
+  · 陪玩师：{{ companion }}{% if rank %}（{{ rank | rank }}）{% endif %}
+
+  · 模式：{{ mode | mode }}｜{{ service | service }}
+  · 时间：{{ start_time | dt }} 起，{{ hours | hours }} 小时{% if time_adjusted %}（已按陪玩师可约时间调整）{% endif %}
+
+  · 价格：{{ unit_price | money }} × {{ multiplier }} × {{ hours | hours }} = {{ total | money }} 元
+  确认下单吗？（回复「确认」下单，或「算了」换一位）
+
+reconfirm: |
+  还在等你确认这一单：{{ companion }}｜{{ mode | mode }}｜{{ start_time | dt }} 起 {{ hours | hours }} 小时，共 {{ total | money }} 元。
+  确认下单吗？（回复「确认」或「算了」）
+
+booked: |
+  下单成功！订单号 #{{ order.booking_id }}
+  · {{ order.companion_name }}｜{{ order.game_mode | mode }}｜{{ order.start_time | dt }} 起 {{ order.hours | hours }} 小时
+  · 应付 {{ order.total | money }} 元（待支付，可在「我的订单」里完成支付）
+  ⏰ 开局提醒：请在 {{ order.start_time | dt }} 前 10 分钟上线，{{ order.companion_name }} 会在游戏里加你好友。
+
+booking_failed: |
+  下单没有成功：{{ message }}。要换一位或者换个时间吗？
