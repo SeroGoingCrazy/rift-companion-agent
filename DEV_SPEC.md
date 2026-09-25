@@ -582,7 +582,7 @@ session:
 | A | A1 A2 A3 A4 | ✅✅✅✅ |
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
-| D | D1 D2 D3 D4 D5 D6 D7 | ⬜⬜⬜⬜⬜⬜⬜ |
+| D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅🟨 |
 | E | E1 E2 E3 E4 E5 E6 | ⬜⬜⬜⬜⬜⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | G | G1 G2 G3 G4 G5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`19 / 77`
+`25 / 77`（D7 代码与文档完成，Claude Desktop 实机截图待手动；🟨 = 部分完成）
 
 ---
 
@@ -733,49 +733,56 @@ session:
 
 ---
 
-## 阶段 D：booking-mcp（目标：预约工具以 MCP 对外，Claude Desktop 可用）
+## 阶段 D：booking-mcp（目标：预约工具以 MCP 对外，Claude Desktop 可用） ✅（D7 实机截图待手动）
 
-### D1：数据库模型与会话
+### D1：数据库模型与会话 ✅
 - **目标**：SQLAlchemy 2.x 模型：`users(id, nickname)`、`companions(...)`、`schedules(companion_id, start, end, status, booking_id)`、`bookings(id, user_id, companion_id, start, end, game_mode, service_type, hours, unit_price, multiplier, total, status, created_at)`；状态机 `pending_payment → confirmed → completed | cancelled`。
 - **修改文件**：`services/booking_mcp/src/booking_mcp/db/{models.py, session.py}`、`tests/integration/test_booking_db.py`。
 - **验收标准**：建表成功；非法状态流转抛错。
 - **测试方法**：`uv run pytest -q tests/integration/test_booking_db.py`。
+- **实现备注**：金额/时长/系数以 `ScaledDecimal`（缩放整数）存储，SQLite 中可精确比较；陪玩师的位置/模式/服务类型拆为三张关联表便于 SQL 过滤，另存 `rank_tier` 用于段位区间比较。关闭 pysqlite 自带事务，由 `begin` 事件发 `BEGIN`；`write_session` 发 `BEGIN IMMEDIATE`。档期状态 `open / blocked / booked / released`：可用 = 被某个 `open` 窗口覆盖且不与 `blocked/booked` 重叠（首尾相接不算重叠）；取消时 hold 置为 `released` 以保留历史。
 
-### D2：种子数据
+### D2：种子数据 ✅
 - **目标**：生成 ≈ 30 名陪玩师（性别、段位、角色、可接模式、服务类型、单价、开麦、tags、bio、rating 分布合理）与未来 14 天档期（含部分已占用）；种子可重复生成（固定随机种子）。
 - **修改文件**：`booking_mcp/seed.py`、`scripts/seed_all.py`、`tests/integration/test_seed.py`。
 - **验收标准**：每种模式至少 5 人可接；每个段位区间都有覆盖；重复运行结果一致。
 - **测试方法**：`uv run python scripts/seed_all.py --reset && uv run pytest -q tests/integration/test_seed.py`。
+- **实现备注**：昵称列表顺序即 id 顺序；段位按固定配额分布（每个段位都有人），单双排由白银及以上承接，模式不足 `MIN_PER_MODE` 时补足；陪玩师自动具备其各模式默认服务类型，教学仅限钻石以上。另建演示用户 `demo`（id=1）。`seed_all.py` 不带 `--reset` 时不覆盖已有数据。
 
-### D3：Repository 与冲突检测
+### D3：Repository 与冲突检测 ✅
 - **目标**：`CompanionRepo.search(filter)`（CompanionFilter → SQL）、`ScheduleRepo.is_free(companion_id, start, end)`、`BookingRepo.create_atomic(...)`（`BEGIN IMMEDIATE` 事务内二次检测，冲突抛 `SlotConflict`）。
 - **修改文件**：`db/repo.py`、`tests/integration/test_repo_conflict.py`。
 - **验收标准**：两个线程并发创建同一时段，只有一个成功。
 - **测试方法**：`uv run pytest -q tests/integration/test_repo_conflict.py`。
+- **实现备注**：`CompanionRepo.static_query` 与 `rift_domain.matching.matches` 等价（测试逐例比对 SQL 路径与内存谓词）；预算换算为基础单价后向下取整到分再比较。时间窗放宽时以 30 分钟为步长尝试 `原时间 → +0.5h → -0.5h → …`，并排除早于当前时间的开始时间，返回实际可约的开始时间。`create_atomic` 若不在 `BEGIN IMMEDIATE` 事务内调用直接报错。
 
-### D4：Tool：find_companions / quote_price
+### D4：Tool：find_companions / quote_price ✅
 - **目标**：`find_companions` = 硬过滤 → 风格相似度（embedding）→ 软排序 → 零结果按放宽计划重试，返回 `candidates + relaxations`；`quote_price` 调用 `rift_domain.pricing`。
 - **修改文件**：`tools/{find_companions.py, quote_price.py}`、`tests/integration/test_tool_find.py`。
 - **验收标准**：构造"女 + 钻石 + 周六 20 点无人"场景，返回放宽后的结果并列出 `relaxations=["time_window"]`；预算过低时返回空列表而非放宽预算。
 - **测试方法**：`uv run pytest -q tests/integration/test_tool_find.py`。
+- **实现备注**：工具为纯函数 `(BookingService, 输入模型) -> 输出模型`，`BookingService` 持有 DB、领域配置、可注入时钟与可选 embedder（风格向量按陪玩师缓存，embedding 失败则不计风格分）。入参先经 `apply_rules` 去掉不适用字段（如大乱斗的段位）。放宽耗尽仍无人时返回空列表并在 `relaxations_tried` 中列出尝试过的步骤。金额以两位小数字符串输出。
 
-### D5：Tool：create_booking / list_my_bookings / cancel_booking
+### D5：Tool：create_booking / list_my_bookings / cancel_booking ✅
 - **目标**：`create_booking` 写订单与档期；`cancel_booking(dry_run)` 计算退款，非 dry_run 时释放档期并置 `cancelled`；越权（他人订单）返回 `FORBIDDEN`。
 - **修改文件**：`tools/{create_booking.py, list_my_bookings.py, cancel_booking.py}`、`tests/integration/test_tool_booking.py`。
 - **验收标准**：创建 → 列表可见 → dry_run 报退款 → 取消 → 档期释放。
 - **测试方法**：`uv run pytest -q tests/integration/test_tool_booking.py`。
+- **实现备注**：`cancel_booking` 默认 `dry_run=true`；未支付订单取消不退钱（`refund_amount=0`），但仍返回按 C8 计算的 `policy_refund_amount` 与档位，便于 Agent 如实说明。已取消/已完成订单再取消返回 `INVALID_ARGUMENT`。
 
-### D6：MCP Server（stdio + Streamable HTTP）与错误映射
+### D6：MCP Server（stdio + Streamable HTTP）与错误映射 ✅
 - **目标**：官方 SDK 注册 5 个工具（JSON Schema 入参）；`--transport stdio|http --port 8101`；日志只写 stderr；业务异常映射为错误码；读取 `_meta.trace_id` 创建子 span。
 - **修改文件**：`booking_mcp/server.py`、`tests/integration/test_booking_mcp_protocol.py`（进程内 client）。
 - **验收标准**：`tools/list` 返回 5 个工具；冲突返回 `SLOT_CONFLICT`。
 - **测试方法**：`uv run pytest -q tests/integration/test_booking_mcp_protocol.py`。
+- **实现备注**：MCP SDK 固定为 `mcp>=1.9,<2`（RAG 项目基于 1.x，同一 venv 需统一；2.x 已重命名/重构 API）。SDK 1.x 会把工具内的任何异常转成 `isError` 结果，因此业务错误以工具错误返回，结构化内容为 `{"error": {code, jsonrpc_code, message, details}}`（`SLOT_CONFLICT -32001 / NOT_FOUND -32002 / FORBIDDEN -32003 / INVALID_ARGUMENT -32602 / INTERNAL -32603`），LLM 客户端可读、Agent 可映射回异常。HTTP 模式为无状态 + JSON 响应，端点 `/mcp`。`_meta.trace_id`（及可选 `parent_span_id`、`session_id`）存在时在服务端延续该 trace，生成 `tool:<name>` span。
 
-### D7：Claude Desktop 联调
+### D7：Claude Desktop 联调 🟨
 - **目标**：提供 `claude_desktop_config` 示例片段，在 Claude Desktop 中通过 stdio 完成"找陪玩 → 报价 → 下单"。
 - **修改文件**：`README.md`（MCP 配置小节）、`docs/mcp_desktop.md`。
 - **验收标准**：手动演示成功并截图存入 `docs/img/`。
 - **测试方法**：手动。
+- **实现备注**：配置片段与错误码见 `docs/mcp_desktop.md`；`scripts/mcp_smoke.py` 以 stdio 子进程方式自动跑通 找人 → 报价 → 下单 → 查订单 → 退款试算（CI 覆盖）。**Claude Desktop 实机演示截图（`docs/img/`）需手动完成。**
 
 ---
 
