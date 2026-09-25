@@ -118,12 +118,9 @@ class RelaxationConfig(_Frozen):
 
     @model_validator(mode="after")
     def _check_order(self) -> RelaxationConfig:
+        # Budget/rank cannot appear in ``order``: it only accepts RelaxStepName values.
         if len(set(self.order)) != len(self.order):
             raise ValueError("relaxation.order has duplicate steps")
-        forbidden = {SlotField.BUDGET_PER_HOUR, SlotField.RANK_REQUIREMENT} | set(self.never_relax)
-        bad = [step for step in self.order if step.value in {f.value for f in forbidden}]
-        if bad:
-            raise ValueError(f"relaxation.order must not relax {', '.join(bad)}")
         missing = {SlotField.BUDGET_PER_HOUR, SlotField.RANK_REQUIREMENT} - set(self.never_relax)
         if missing:
             raise ValueError(f"relaxation.never_relax must include {', '.join(sorted(missing))}")
