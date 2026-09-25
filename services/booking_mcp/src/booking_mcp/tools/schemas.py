@@ -144,3 +144,50 @@ class BookingOut(_Out):
             cancelled_at=b.cancelled_at,
             refund_amount=b.refund_amount,
         )
+
+
+# --- create_booking / list_my_bookings / cancel_booking ------------------------------------
+
+
+class CreateBookingInput(_In):
+    user_id: int
+    companion_id: int
+    start_time: datetime = Field(description="local time, ISO 8601 e.g. 2026-10-02T20:00")
+    duration_hours: HoursIn
+    game_mode: GameMode
+    service_type: ServiceType | None = Field(
+        default=None, description="defaults to the mode's usual service (ranked -> climb)"
+    )
+
+
+class ListMyBookingsInput(_In):
+    user_id: int
+    status: BookingStatus | None = None
+
+
+class BookingListOut(_Out):
+    bookings: list[BookingOut]
+
+
+class CancelBookingInput(_In):
+    user_id: int
+    booking_id: int
+    dry_run: bool = Field(
+        default=True, description="true: only report the refund; false: really cancel"
+    )
+
+
+class CancelOut(_Out):
+    booking_id: int
+    dry_run: bool
+    #: Whether the booking had been paid; unpaid bookings refund nothing.
+    paid: bool
+    refund_tier: str
+    refund_label: str
+    refund_ratio: Decimal
+    #: What the refund policy gives for a paid booking at this time.
+    policy_refund_amount: Money
+    #: What the user actually gets back (0 when unpaid).
+    refund_amount: Money
+    hours_before_start: float
+    booking: BookingOut
