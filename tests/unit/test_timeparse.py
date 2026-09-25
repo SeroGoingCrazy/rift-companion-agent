@@ -125,6 +125,8 @@ AMBIGUOUS = [
     ("明天晚点", Reason.VAGUE),
     ("周末", Reason.AMBIGUOUS_DATE),
     ("周末晚上八点", Reason.AMBIGUOUS_DATE),
+    ("明晚后天九点", Reason.AMBIGUOUS_DATE),
+    ("明天周六晚上八点", Reason.AMBIGUOUS_DATE),
 ]
 
 
