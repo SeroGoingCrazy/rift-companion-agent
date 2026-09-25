@@ -9,13 +9,28 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, WithJsonSchema
 
 from booking_mcp.db.models import Booking, BookingStatus
 from rift_domain.enums import GameMode, Gender, Rank, Role, ServiceType
 
 Money = Annotated[Decimal, Field(description="decimal string with 2 places, e.g. '144.00'")]
 HoursIn = Annotated[float, Field(gt=0, le=24, multiple_of=0.5, description="hours, 0.5 steps")]
+
+# Booking times are local wall-clock values. JSON Schema's date-time format
+# requires a UTC offset, so advertising it makes strict MCP clients reject
+# otherwise valid responses containing our naive datetime serialization.
+LocalDateTime = Annotated[
+    datetime,
+    WithJsonSchema(
+        {
+            "type": "string",
+            "pattern": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$",
+            "description": "ISO 8601 local wall-clock time without a UTC offset",
+        },
+        mode="serialization",
+    ),
+]
 
 
 class _In(BaseModel):
@@ -68,7 +83,7 @@ class CandidateOut(_Out):
     bio: str
     score: float
     reasons: list[str]
-    start_time: datetime = Field(description="bookable start (shifted if time was relaxed)")
+    start_time: LocalDateTime = Field(description="bookable start (shifted if time was relaxed)")
 
 
 class FindCompanionsOutput(_Out):
@@ -109,8 +124,8 @@ class BookingOut(_Out):
     user_id: int
     companion_id: int
     companion_name: str
-    start_time: datetime
-    end_time: datetime
+    start_time: LocalDateTime
+    end_time: LocalDateTime
     game_mode: GameMode
     service_type: ServiceType
     hours: Decimal
@@ -118,9 +133,9 @@ class BookingOut(_Out):
     multiplier: Decimal
     total: Money
     status: BookingStatus
-    created_at: datetime
-    paid_at: datetime | None = None
-    cancelled_at: datetime | None = None
+    created_at: LocalDateTime
+    paid_at: LocalDateTime | None = None
+    cancelled_at: LocalDateTime | None = None
     refund_amount: Money | None = None
 
     @classmethod
@@ -227,8 +242,8 @@ class BrowseCompanionsInput(_In):
 
 
 class FreeSlot(_Out):
-    start: datetime
-    end: datetime
+    start: LocalDateTime
+    end: LocalDateTime
 
 
 class CompanionCard(_Out):
