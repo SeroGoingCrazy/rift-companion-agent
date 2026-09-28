@@ -1,15 +1,22 @@
 """MCP Server entry point using official MCP SDK.
 
 This module implements the MCP server using the official Python MCP SDK
-with stdio transport. It ensures stdout only contains protocol messages
-while all logs go to stderr.
+over stdio or Streamable HTTP. Logs always go to stderr, so stdout only
+carries protocol messages in stdio mode.
+
+Usage::
+
+    knowledge-mcp --transport stdio
+    knowledge-mcp --transport http --port 8102   # served at http://127.0.0.1:8102/mcp
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
+import contextlib
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, AsyncIterator, Optional, Sequence
 
 from src.mcp_server.protocol_handler import create_mcp_server
 from src.observability.logger import get_logger
@@ -122,8 +129,52 @@ def run_stdio_server() -> int:
     return asyncio.run(run_stdio_server_async())
 
 
-def main() -> int:
-    """Entry point for stdio MCP server."""
+def create_http_app(server: Any) -> Any:
+    """Stateless Streamable HTTP (JSON response) Starlette app serving MCP at ``/mcp``."""
+    from mcp.server.fastmcp.server import StreamableHTTPASGIApp
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+    from starlette.applications import Starlette
+    from starlette.routing import Route
+
+    manager = StreamableHTTPSessionManager(app=server, stateless=True, json_response=True)
+
+    @contextlib.asynccontextmanager
+    async def lifespan(_app: Starlette) -> AsyncIterator[None]:
+        async with manager.run():
+            yield
+
+    return Starlette(
+        routes=[Route("/mcp", endpoint=StreamableHTTPASGIApp(manager))], lifespan=lifespan
+    )
+
+
+def run_http_server(host: str, port: int) -> int:
+    """Run MCP server over Streamable HTTP at ``http://{host}:{port}/mcp``."""
+    import uvicorn
+
+    _redirect_all_loggers_to_stderr()
+    _preload_heavy_imports()
+
+    logger = get_logger(log_level="INFO")
+    server = create_mcp_server(SERVER_NAME, SERVER_VERSION)
+    logger.info("knowledge-mcp listening on http://%s:%s/mcp", host, port)
+    uvicorn.run(create_http_app(server), host=host, port=port, log_level="warning")
+    return 0
+
+
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="knowledge-mcp", description="Knowledge MCP server")
+    parser.add_argument("--transport", choices=("stdio", "http"), default="stdio")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8102)
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    """Entry point: stdio (default) or Streamable HTTP MCP server."""
+    args = parse_args(argv)
+    if args.transport == "http":
+        return run_http_server(args.host, args.port)
     return run_stdio_server()
 
 

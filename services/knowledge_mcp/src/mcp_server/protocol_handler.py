@@ -14,6 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 from mcp import types
 from mcp.server.lowlevel import Server
 
+from src.core.trace.trace_context import caller_trace
 from src.observability.logger import get_logger
 
 
@@ -189,6 +190,23 @@ class ProtocolHandler:
         }
 
 
+def _meta_value(meta: Any, key: str) -> Optional[str]:
+    """Read a key from a request's ``_meta`` (declared field or extra)."""
+    if meta is None:
+        return None
+    value = getattr(meta, key, None)
+    if value is None and getattr(meta, "model_extra", None):
+        value = meta.model_extra.get(key)
+    return str(value) if value else None
+
+
+def _request_meta(server: Server) -> Any:
+    try:
+        return server.request_context.meta
+    except LookupError:  # called outside a request (e.g. directly in tests)
+        return None
+
+
 def _register_default_tools(protocol_handler: ProtocolHandler) -> None:
     """Register all default MCP tools with the protocol handler.
 
@@ -253,8 +271,14 @@ def create_mcp_server(
     async def handle_call_tool(
         name: str, arguments: Dict[str, Any]
     ) -> types.CallToolResult:
-        """Handle tools/call request."""
-        return await protocol_handler.execute_tool(name, arguments)
+        """Handle tools/call request.
+
+        ``_meta.trace_id`` / ``_meta.parent_span_id`` from the caller become the
+        ``parent_trace_id`` / ``parent_span_id`` of RAG traces made by the tool.
+        """
+        meta = _request_meta(server)
+        with caller_trace(_meta_value(meta, "trace_id"), _meta_value(meta, "parent_span_id")):
+            return await protocol_handler.execute_tool(name, arguments)
 
     # Store protocol handler on server for access
     server._protocol_handler = protocol_handler  # type: ignore[attr-defined]

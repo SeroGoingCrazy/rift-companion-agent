@@ -2,13 +2,35 @@
 
 Provides trace_id, trace_type (query/ingestion), per-stage timing,
 finish() lifecycle, and to_dict() serialisation for JSON Lines output.
+
+A caller's trace (e.g. the agent's ``_meta.trace_id`` on an MCP tool call) is
+propagated with :func:`caller_trace`: every TraceContext created inside it records
+``parent_trace_id`` / ``parent_span_id`` so RAG traces join the agent's trace.
 """
 
 import time
 import uuid
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, Iterator, List, Literal, Optional, Tuple
+
+_CALLER: ContextVar[Tuple[Optional[str], Optional[str]]] = ContextVar(
+    "rag_caller_trace", default=(None, None)
+)
+
+
+@contextmanager
+def caller_trace(
+    trace_id: Optional[str], parent_span_id: Optional[str] = None
+) -> Iterator[None]:
+    """Link traces created in this block to the caller's ``trace_id`` / span."""
+    token = _CALLER.set((trace_id, parent_span_id) if trace_id else (None, None))
+    try:
+        yield
+    finally:
+        _CALLER.reset(token)
 
 
 @dataclass
@@ -30,6 +52,8 @@ class TraceContext:
     finished_at: Optional[str] = field(default=None)
     stages: List[Dict[str, Any]] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    parent_trace_id: Optional[str] = field(default_factory=lambda: _CALLER.get()[0])
+    parent_span_id: Optional[str] = field(default_factory=lambda: _CALLER.get()[1])
 
     # internal monotonic clock for accurate elapsed calculation
     _start_mono: float = field(default_factory=time.perf_counter, repr=False)
@@ -103,7 +127,7 @@ class TraceContext:
         Returns:
             Dictionary with all trace data.
         """
-        return {
+        data = {
             "trace_id": self.trace_id,
             "trace_type": self.trace_type,
             "started_at": self.started_at,
@@ -112,6 +136,10 @@ class TraceContext:
             "stages": list(self.stages),
             "metadata": dict(self.metadata),
         }
+        if self.parent_trace_id:
+            data["parent_trace_id"] = self.parent_trace_id
+            data["parent_span_id"] = self.parent_span_id
+        return data
 
     # ---- backwards-compat helper used in C5 / C6 -----------------------
 

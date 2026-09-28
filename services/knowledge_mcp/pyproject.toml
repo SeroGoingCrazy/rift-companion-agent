@@ -21,6 +21,9 @@ dependencies = [
     "langchain-community>=0.3,<0.4",
 ]
 
+[project.scripts]
+knowledge-mcp = "src.mcp_server.server:main"
+
 [project.optional-dependencies]
 # Offline Chinese embedding (embedding.provider: local)
 local-embedding = ["sentence-transformers>=3.0"]

@@ -16,8 +16,8 @@ from src.core.trace.trace_context import TraceContext
 
 logger = logging.getLogger(__name__)
 
-# Default absolute path for traces file (CWD-independent)
-_DEFAULT_TRACES_PATH = resolve_path("logs/traces.jsonl")
+# Default traces file, relative to the service root (CWD-independent)
+_DEFAULT_TRACES_PATH = "logs/traces.jsonl"
 
 
 class TraceCollector:
@@ -28,8 +28,9 @@ class TraceCollector:
             Parent directories are created automatically.
     """
 
-    def __init__(self, traces_path: str | Path = _DEFAULT_TRACES_PATH) -> None:
-        self._path = Path(traces_path)
+    def __init__(self, traces_path: str | Path | None = None) -> None:
+        # Resolved per instance so the service root is read at call time
+        self._path = Path(traces_path) if traces_path is not None else resolve_path(_DEFAULT_TRACES_PATH)
         self._path.parent.mkdir(parents=True, exist_ok=True)
 
     def collect(self, trace: TraceContext) -> None:
