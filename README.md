@@ -40,6 +40,19 @@ uv run python scripts/mcp_smoke.py                 # stdio 冒烟：找人 → �
 
 在 Claude Desktop 中挂载的配置片段与错误码说明见 [docs/mcp_desktop.md](docs/mcp_desktop.md)。
 
+## 知识库（knowledge-mcp）
+
+知识库由 `config/domain.yaml` 与陪玩师种子生成，Embedding 使用本地 `BAAI/bge-small-zh-v1.5`（首次运行自动下载），不需要 API key：
+
+```bash
+uv sync --extra local-embedding                     # sentence-transformers（含 torch）
+uv run python scripts/gen_kb_docs.py                # 生成 kb/（39 篇 Markdown）
+uv run python scripts/ingest_kb.py                  # 导入 3 个集合；未变更文件跳过，修改/删除的文件先清旧 chunk
+uv run python services/knowledge_mcp/scripts/query.py --query "开局前三小时取消退多少"
+```
+
+修改 `domain.yaml` 后重新执行后两步即可同步；`--force` 全量重导入，`--collections platform_rules` 只导入指定集合。
+
 ## Agent（命令行对话）
 
 需要 `DEEPSEEK_API_KEY`。booking-mcp 可走 HTTP（`config/settings.yaml` 中的地址），也可在进程内运行：
