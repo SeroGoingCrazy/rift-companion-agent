@@ -1615,6 +1615,11 @@ dependencies = [
     { name = "streamlit" },
 ]
 
+[package.optional-dependencies]
+local-embedding = [
+    { name = "sentence-transformers" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "chromadb", specifier = ">=0.4.0" },
@@ -1629,8 +1634,10 @@ requires-dist = [
     { name = "pymupdf", specifier = ">=1.24" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ragas", specifier = ">=0.4.3,<0.5.0" },
+    { name = "sentence-transformers", marker = "extra == 'local-embedding'", specifier = ">=3.0" },
     { name = "streamlit", specifier = ">=1.30.0" },
 ]
+provides-extras = ["local-embedding"]
 
 [[package]]
 name = "kubernetes"
@@ -4125,6 +4132,12 @@ dependencies = [
     { name = "rift-web" },
 ]
 
+[package.optional-dependencies]
+local-embedding = [
+    { name = "knowledge-mcp", extra = ["local-embedding"] },
+    { name = "rift-common", extra = ["local-embedding"] },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
@@ -4141,12 +4154,15 @@ requires-dist = [
     { name = "booking-mcp", editable = "services/booking_mcp" },
     { name = "jinja2", specifier = ">=3.1" },
     { name = "knowledge-mcp", editable = "services/knowledge_mcp" },
+    { name = "knowledge-mcp", extras = ["local-embedding"], marker = "extra == 'local-embedding'", editable = "services/knowledge_mcp" },
     { name = "rift-agent", editable = "apps/agent" },
     { name = "rift-common", extras = ["langfuse"], editable = "packages/common" },
+    { name = "rift-common", extras = ["local-embedding"], marker = "extra == 'local-embedding'", editable = "packages/common" },
     { name = "rift-domain", editable = "packages/domain" },
     { name = "rift-training", editable = "training" },
     { name = "rift-web", editable = "apps/web" },
 ]
+provides-extras = ["local-embedding"]
 
 [package.metadata.requires-dev]
 dev = [

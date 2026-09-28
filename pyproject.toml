@@ -15,6 +15,10 @@ dependencies = [
     "jinja2>=3.1",
 ]
 
+[project.optional-dependencies]
+# Local sentence-transformers embedding for style matching and the knowledge base
+local-embedding = ["rift-common[local-embedding]", "knowledge-mcp[local-embedding]"]
+
 [tool.uv]
 package = false
 
