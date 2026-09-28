@@ -226,6 +226,13 @@ class DocumentManager:
                     result.errors.append(f"Cannot identify document: {e}")
                     return result
 
+        # BM25 postings are keyed by chunk ID, not by file hash: collect the
+        # IDs' source prefixes before the Chroma rows are gone.
+        bm25_prefixes = sorted({
+            chunk_id.split("_", 1)[0] + "_"
+            for chunk_id in self._get_chunk_ids(source_hash)
+        })
+
         # 1. ChromaDB – delete chunks matching source_hash
         try:
             count = self.chroma.delete_by_metadata(
@@ -237,9 +244,11 @@ class DocumentManager:
 
         # 2. BM25 – remove postings for this document
         try:
-            result.bm25_removed = self.bm25.remove_document(
-                source_hash, collection
-            )
+            removed = [
+                self.bm25.remove_document(prefix, collection)
+                for prefix in (bm25_prefixes or [source_hash])
+            ]
+            result.bm25_removed = any(removed)
         except Exception as e:
             result.errors.append(f"BM25 remove failed: {e}")
 

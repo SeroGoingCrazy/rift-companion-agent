@@ -137,6 +137,15 @@ class VectorUpserter:
         
         return chunk_ids
     
+    @staticmethod
+    def source_prefix(source_path: str) -> str:
+        """Return the ID prefix shared by every chunk of one source file.
+
+        BM25 postings reuse these IDs, so removing postings by this prefix
+        drops a document's old chunks when it is re-ingested.
+        """
+        return hashlib.sha256(source_path.encode("utf-8")).hexdigest()[:8] + "_"
+
     def _generate_chunk_id(self, chunk: Chunk) -> str:
         """Generate deterministic chunk ID from content.
         
@@ -158,12 +167,10 @@ class VectorUpserter:
         source_path = chunk.metadata["source_path"]
         chunk_index = chunk.metadata["chunk_index"]
         
-        # Compute stable hashes
-        source_hash = hashlib.sha256(source_path.encode("utf-8")).hexdigest()[:8]
         content_hash = hashlib.sha256(chunk.text.encode("utf-8")).hexdigest()[:8]
         
         # Format: {source_hash}_{index:04d}_{content_hash}
-        chunk_id = f"{source_hash}_{chunk_index:04d}_{content_hash}"
+        chunk_id = f"{self.source_prefix(source_path)}{chunk_index:04d}_{content_hash}"
         
         return chunk_id
     

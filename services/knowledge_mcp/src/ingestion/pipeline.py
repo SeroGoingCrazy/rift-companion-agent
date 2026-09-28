@@ -450,10 +450,12 @@ class IngestionPipeline:
 
             # 6b: BM25 Index
             logger.info("  6b. BM25 Index...")
+            # Postings are keyed by vector IDs, which start with the source-path
+            # prefix; removing that prefix drops this file's previous chunks.
             self.bm25_indexer.add_documents(
                 sparse_stats,
                 collection=self.collection,
-                doc_id=document.id,
+                doc_id=VectorUpserter.source_prefix(document.metadata["source_path"]),
                 trace=trace,
             )
             logger.info(f"      Index built for {len(sparse_stats)} documents")
