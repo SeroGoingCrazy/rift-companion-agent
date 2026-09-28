@@ -583,7 +583,7 @@ session:
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
-| E | E1 E2 E3 E4 E5 E6 | ✅✅✅✅⬜⬜ |
+| E | E1 E2 E3 E4 E5 E6 | ✅✅✅✅✅⬜ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`45 / 77`（E5–E6 进行中）
+`46 / 77`（E6 进行中）
 
 ---
 
@@ -816,11 +816,12 @@ session:
 - **测试方法**：`uv run python scripts/ingest_kb.py && uv run python services/knowledge_mcp/scripts/query.py --query "..."`。
 - **实现备注**：DeepSeek 没有 embedding 接口，knowledge-mcp 新增 `local` embedding provider（sentence-transformers，`BAAI/bge-small-zh-v1.5`，512 维，懒加载、按模型共享；维度与配置不符时直接报错），依赖放在 `local-embedding` extra（`uv sync --extra local-embedding`，CI 不装）；LLM 改为 DeepSeek。`chunk_refiner` / `metadata_enricher` 的 LLM 模式关闭：知识库由 `domain.yaml` 生成，LLM 改写可能改动数字；`vision_llm` 关闭时 ImageCaptioner 直接跳过。`ingest_kb.py` 按目录导入三个集合，未变更文件靠 SHA256 跳过；文件修改（或 `--force`）时先删除旧 chunk 再导入，文件删除时从集合中移除。默认集合为 `platform_rules`（`query_knowledge_hub` 与 `query.py` 不传集合时使用）。实测：39 篇 → 123 个 chunk（平台规则 22、模式与段位 11、陪玩师 90）；`list_collections` 返回 3 个集合；"开局前三小时取消退多少" Top-3 全部来自 `refund.md`（退款档位、退款示例、陪玩师原因）。导入时发现并修复了几个原有问题：BM25 posting 用的是向量 ID（`{sha256(路径)[:8]}_序号_内容哈希`），而重新导入和 `delete_document` 分别按 doc id、文件哈希删旧 posting，一直删不掉，文档改过之后旧内容仍能被 BM25 检出，现在统一按向量 ID 前缀删除；`list_collections`、`get_document_summary`、`query.py` 把 Chroma / BM25 的相对路径按当前工作目录解析，从仓库根目录运行时找不到数据，现在统一按服务根目录解析。
 
-### E5：Streamable HTTP 模式与 trace_id 关联
+### E5：Streamable HTTP 模式与 trace_id 关联 ✅
 - **目标**：新增 `--transport http --port 8102`；工具调用读取 `_meta.trace_id` 写入 RAG trace 的 `parent_trace_id`。
 - **修改文件**：`services/knowledge_mcp/src/mcp_server/server.py`、trace 相关、`tests/integration/test_knowledge_http.py`。
 - **验收标准**：HTTP 客户端可调用三个工具；trace 文件中出现 `parent_trace_id`。
 - **测试方法**：`uv run pytest -q tests/integration/test_knowledge_http.py`。
+- **实现备注**：新增 `knowledge-mcp` 命令（`--transport stdio|http --host --port`，默认 stdio / 8102），HTTP 与 booking-mcp 一致：无状态 Streamable HTTP、JSON 响应、路径 `/mcp`。`tools/call` 处理函数读取 `_meta.trace_id` / `_meta.parent_span_id`，放入请求级 `ContextVar`（`caller_trace`）；调用期间新建的 `TraceContext` 自动带上 `parent_trace_id` / `parent_span_id`，写入 `logs/traces.jsonl`（没有 `_meta` 时不写这两个字段）。`TraceCollector` 的默认路径改为使用时再解析，便于测试和换根目录。集成测试现场生成 3 篇 Markdown，用确定性的字符 bigram 哈希 embedding 走真实导入流程（Chroma + BM25），再用 uvicorn 起 HTTP 服务调用三个工具，全程离线。另用真实知识库和 bge 手动验证：三个工具都能调用，trace 中的 `parent_trace_id` 与调用方一致。
 
 ### E6：L3 RAG 评测集与达标
 - **目标**：从 `domain.yaml` 与种子自动生成 ≈ 30 条 golden QA（问题模板 + 标准答案 + 期望来源文档）；运行 Hit Rate / MRR / ragas。

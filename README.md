@@ -53,6 +53,15 @@ uv run python services/knowledge_mcp/scripts/query.py --query "开局前三小�
 
 修改 `domain.yaml` 后重新执行后两步即可同步；`--force` 全量重导入，`--collections platform_rules` 只导入指定集合。
 
+启动服务（三个工具：`query_knowledge_hub`、`list_collections`、`get_document_summary`）：
+
+```bash
+uv run knowledge-mcp --transport http --port 8102   # Agent 使用：设置 KNOWLEDGE_MCP_URL=http://127.0.0.1:8102/mcp
+uv run knowledge-mcp --transport stdio              # 桌面客户端使用
+```
+
+Agent 调用时在 `_meta` 中带上 `trace_id` / `parent_span_id`，knowledge-mcp 的检索 trace（`services/knowledge_mcp/logs/traces.jsonl`）会记录为 `parent_trace_id` / `parent_span_id`，可与 Agent 的 trace 关联。
+
 ## Agent（命令行对话）
 
 需要 `DEEPSEEK_API_KEY`。booking-mcp 可走 HTTP（`config/settings.yaml` 中的地址），也可在进程内运行：
@@ -61,7 +70,7 @@ uv run python services/knowledge_mcp/scripts/query.py --query "开局前三小�
 uv run python scripts/chat_cli.py --booking-db data/booking.db
 ```
 
-知识检索（咨询类问题）依赖 knowledge-mcp（阶段 E）；未启动时 Agent 会如实提示"规则查询服务暂时连不上"，预约与订单管理不受影响。
+知识检索（咨询类问题）依赖 knowledge-mcp（见上文「知识库」）；未启动时 Agent 会如实提示"规则查询服务暂时连不上"，预约与订单管理不受影响。
 
 ## Web 界面
 
