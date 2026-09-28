@@ -44,3 +44,6 @@ services/knowledge_mcp/data/
 services/knowledge_mcp/cache/
 data/db/
 data/images/
+
+# Timestamped evaluation runs (named baselines such as rag_eval_baseline.json are committed)
+eval/reports/*_2*.json
