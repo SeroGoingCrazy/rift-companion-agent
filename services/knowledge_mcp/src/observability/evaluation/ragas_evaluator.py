@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import os
 from typing import Any, Dict, List, Optional, Sequence
 
 from src.libs.evaluator.base_evaluator import BaseEvaluator
@@ -27,6 +28,33 @@ ANSWER_RELEVANCY = "answer_relevancy"
 CONTEXT_PRECISION = "context_precision"
 
 SUPPORTED_METRICS = {FAITHFULNESS, ANSWER_RELEVANCY, CONTEXT_PRECISION}
+
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
+
+
+def _project_embeddings(settings: Any) -> Any:
+    """Ragas embeddings backed by the project's own provider (e.g. local bge)."""
+    from ragas.embeddings.base import BaseRagasEmbedding
+    from src.libs.embedding.embedding_factory import EmbeddingFactory
+
+    class ProjectEmbeddings(BaseRagasEmbedding):
+        def __init__(self, embedding: Any) -> None:
+            super().__init__()
+            self._embedding = embedding
+
+        def embed_text(self, text: str, **kwargs: Any) -> List[float]:
+            return self._embedding.embed([text])[0]
+
+        async def aembed_text(self, text: str, **kwargs: Any) -> List[float]:
+            return (await asyncio.to_thread(self._embedding.embed, [text]))[0]
+
+        def embed_texts(self, texts: List[str], **kwargs: Any) -> List[List[float]]:
+            return self._embedding.embed(list(texts))
+
+        async def aembed_texts(self, texts: List[str], **kwargs: Any) -> List[List[float]]:
+            return await asyncio.to_thread(self._embedding.embed, list(texts))
+
+    return ProjectEmbeddings(EmbeddingFactory.create(settings))
 
 
 def _import_ragas() -> None:
@@ -162,14 +190,25 @@ class RagasEvaluator(BaseEvaluator):
         self, query: str, contexts: List[str], answer: str,
     ) -> Dict[str, float]:
         """Execute Ragas collections metrics with shared async client lifetimes."""
+        # Build LLM / Embedding wrappers from settings
+        self._open_clients: List[Any] = []
+        llm, embeddings = self._build_wrappers()
+        try:
+            return await self._score_all(query, contexts, answer, llm, embeddings)
+        finally:
+            # Close clients on this loop: asyncio.run() closes the loop right after, and
+            # clients left for the GC would fail with "Event loop is closed".
+            for client in self._open_clients:
+                await client.close()
+
+    async def _score_all(
+        self, query: str, contexts: List[str], answer: str, llm: Any, embeddings: Any,
+    ) -> Dict[str, float]:
         from ragas.metrics.collections import (
             Faithfulness,
             AnswerRelevancy,
             ContextPrecisionWithoutReference,
         )
-
-        # Build LLM / Embedding wrappers from settings
-        llm, embeddings = self._build_wrappers()
 
         scores: Dict[str, float] = {}
 
@@ -235,12 +274,21 @@ class RagasEvaluator(BaseEvaluator):
             )
         elif provider == "openai":
             llm_client = AsyncOpenAI(api_key=llm_cfg.api_key, **client_options)
+        elif provider == "deepseek":
+            # OpenAI-compatible API; the key falls back to the env like DeepSeekLLM
+            llm_client = AsyncOpenAI(
+                api_key=llm_cfg.api_key or os.environ.get("DEEPSEEK_API_KEY"),
+                base_url=DEEPSEEK_BASE_URL,
+                **client_options,
+            )
         else:
             raise ValueError(
                 f"Unsupported LLM provider for Ragas: '{provider}'. "
-                "Supported: azure, openai"
+                "Supported: azure, openai, deepseek"
             )
 
+        if "http_client" not in client_options:  # a caller-supplied client stays open
+            self._track(llm_client)
         llm = llm_factory(
             llm_cfg.model, client=llm_client,
             max_tokens=self.kwargs.get("judge_max_tokens", 8192),
@@ -268,14 +316,19 @@ class RagasEvaluator(BaseEvaluator):
         elif emb_provider == "openai":
             emb_client = AsyncOpenAI(api_key=emb_cfg.api_key, **client_options)
         else:
-            raise ValueError(
-                f"Unsupported embedding provider for Ragas: '{emb_provider}'. "
-                "Supported: azure, openai"
-            )
+            # Any other provider (local, ollama, ...) goes through the project factory
+            return llm, _project_embeddings(self.settings)
 
+        if "http_client" not in client_options:
+            self._track(emb_client)
         embeddings = OpenAIEmbeddings(model=emb_cfg.model, client=emb_client)
 
         return llm, embeddings
+
+    def _track(self, client: Any) -> None:
+        if not hasattr(self, "_open_clients"):
+            self._open_clients = []
+        self._open_clients.append(client)
 
     def _extract_texts(self, chunks: List[Any]) -> List[str]:
         """Extract text strings from various chunk representations.

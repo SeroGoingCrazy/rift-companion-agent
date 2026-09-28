@@ -319,6 +319,29 @@ class QueryKnowledgeHubTool:
             # Return error response
             return self._build_error_response(query, effective_collection, str(e))
     
+    def retrieve(
+        self,
+        query: str,
+        top_k: Optional[int] = None,
+        collection: Optional[str] = None,
+        trace: Optional[Any] = None,
+    ) -> List[RetrievalResult]:
+        """Blocking search + optional rerank, the same path ``execute`` uses.
+
+        For offline callers such as the L3 RAG evaluation runner.
+        """
+        effective_top_k = min(top_k or self.config.default_top_k, self.config.max_top_k)
+        effective_collection = (
+            collection
+            or self.config.default_collection
+            or self.settings.vector_store.collection_name
+        )
+        self._ensure_initialized(effective_collection)
+        results = self._perform_search(query, effective_top_k, trace)
+        if self.config.enable_rerank and results:
+            results = self._apply_rerank(query, results, effective_top_k, trace)
+        return results
+
     def _perform_search(
         self,
         query: str,
