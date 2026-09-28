@@ -130,6 +130,10 @@ def _register_builtin_providers() -> None:
     except ImportError:
         pass  # Ollama provider not available
 
+    # sentence-transformers is imported lazily on first embed(), so this always registers
+    from src.libs.embedding.local_embedding import LocalEmbedding
+    EmbeddingFactory.register_provider("local", LocalEmbedding)
+
 
 # Register providers when module is imported
 _register_builtin_providers()

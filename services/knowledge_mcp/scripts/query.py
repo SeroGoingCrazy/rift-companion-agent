@@ -40,7 +40,7 @@ if sys.platform == "win32":
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.core.settings import load_settings
+from src.core.settings import load_settings, resolve_path
 from src.core.query_engine.query_processor import QueryProcessor
 from src.core.query_engine.hybrid_search import create_hybrid_search
 from src.core.query_engine.dense_retriever import create_dense_retriever
@@ -71,8 +71,8 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--collection", "-c",
-        default="default",
-        help="Collection name (default: 'default')"
+        default=None,
+        help="Collection name (default: vector_store.collection_name in settings)"
     )
 
     parser.add_argument(
@@ -145,7 +145,7 @@ def _build_components(settings, collection: str):
         vector_store=vector_store,
     )
 
-    bm25_indexer = BM25Indexer(index_dir=f"data/db/bm25/{collection}")
+    bm25_indexer = BM25Indexer(index_dir=str(resolve_path(f"data/db/bm25/{collection}")))
     sparse_retriever = create_sparse_retriever(
         settings=settings,
         bm25_indexer=bm25_indexer,
@@ -254,6 +254,7 @@ def main() -> int:
         print(f"[FAIL] Failed to load configuration: {e}")
         return 2
 
+    args.collection = args.collection or settings.vector_store.collection_name
     print("[*] Modular RAG Query Script")
     print("=" * 60)
     print(f"Collection: {args.collection}")

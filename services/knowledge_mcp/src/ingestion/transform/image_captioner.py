@@ -63,7 +63,7 @@ class ImageCaptioner(BaseTransform):
                  # We don't raise here to allow pipeline to continue without captioning
                  # effectively falling back to no-op for this transform
         else:
-             logger.warning("Vision LLM is disabled or not configured. ImageCaptioner will skip processing.")
+             logger.info("Vision LLM is disabled or not configured. ImageCaptioner will skip processing.")
         
         self.prompt = self._load_prompt()
         

@@ -6,30 +6,33 @@
 # =============================================================================
 # LLM Configuration
 # =============================================================================
+# DeepSeek (OpenAI-compatible) is the remote LLM for the whole project; only
+# LLM-backed options below (chunk refiner / metadata enricher / llm rerank) use it.
 llm:
-  provider: "openai"  # Options: openai, azure, ollama, deepseek
-  model: "gpt-4o"
+  provider: "deepseek"  # Options: openai, azure, ollama, deepseek
+  model: "deepseek-chat"
   deployment_name: ""
   azure_endpoint: ""
   api_version: ""
-  api_key: "${OPENAI_API_KEY:-}"
+  api_key: "${DEEPSEEK_API_KEY:-}"
   temperature: 0.0
   max_tokens: 4096
 
 # =============================================================================
 # Embedding Configuration
 # =============================================================================
+# Local sentence-transformers model (DeepSeek has no embedding API). Needs the
+# local-embedding extra: `uv sync --extra local-embedding`. Changing the model
+# changes the vector size: re-ingest with `scripts/ingest_kb.py --force`.
 embedding:
-  provider: "openai"  # Options: openai, azure, ollama
-  model: "text-embedding-ada-002"
-  dimensions: 1536  # text-embedding-ada-002 固定维度 (不传递给API, 仅用于验证)
+  provider: "local"  # Options: local, openai, azure, ollama
+  model: "BAAI/bge-small-zh-v1.5"
+  dimensions: 512  # bge-small-zh-v1.5 output size (checked after each embed call)
   # Azure-compatible settings (azure_endpoint triggers Azure compat mode):
   azure_endpoint: ""
   deployment_name: ""
   api_version: ""
-  api_key: "${OPENAI_API_KEY:-}"
-  # OpenAI-specific settings (if provider is openai):
-  # api_key: "YOUR_API_KEY_HERE"
+  api_key: ""
 
 # =============================================================================
 # Vision LLM Configuration (for Image Captioning)
@@ -53,7 +56,7 @@ vision_llm:
 vector_store:
   provider: "chroma"  # Options: chroma, qdrant, pinecone
   persist_directory: "./data/db/chroma"
-  collection_name: "knowledge_hub"
+  collection_name: "platform_rules"  # default collection; KB collections: platform_rules, modes_and_ranks, companion_profiles
 
 # =============================================================================
 # Retrieval Configuration
@@ -103,11 +106,13 @@ ingestion:
   batch_size: 100
   
   # Chunk Refiner Configuration (C5)
+  # Both LLM passes stay off: KB docs are generated from domain.yaml, and an LLM
+  # rewrite could change the numbers in them. Rule-based fallbacks still run.
   chunk_refiner:
-    use_llm: true  # Set to true to enable LLM-based refinement (requires LLM config)
+    use_llm: false  # Set to true to enable LLM-based refinement (requires LLM config)
     # When use_llm is false or LLM call fails, falls back to rule-based refinement
   
   # Metadata Enricher Configuration (C6)
   metadata_enricher:
-    use_llm: true  # Set to true to enable LLM-based enrichment (requires LLM config)
+    use_llm: false  # Set to true to enable LLM-based enrichment (requires LLM config)
     # When use_llm is false or LLM call fails, falls back to rule-based enrichment

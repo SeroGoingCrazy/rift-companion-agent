@@ -77,11 +77,12 @@ class QueryKnowledgeHubConfig:
         default_top_k: Default number of results if not specified
         max_top_k: Maximum allowed top_k value
         default_collection: Default collection if not specified
+            (None -> settings.vector_store.collection_name)
         enable_rerank: Whether to apply reranking
     """
     default_top_k: int = 5
     max_top_k: int = 20
-    default_collection: str = "default"
+    default_collection: Optional[str] = None
     enable_rerank: bool = True
 
 
@@ -244,7 +245,11 @@ class QueryKnowledgeHubTool:
             top_k or self.config.default_top_k,
             self.config.max_top_k
         )
-        effective_collection = collection or self.config.default_collection
+        effective_collection = (
+            collection
+            or self.config.default_collection
+            or self.settings.vector_store.collection_name
+        )
         
         logger.info(
             f"Executing query_knowledge_hub: query='{query[:50]}...', "
