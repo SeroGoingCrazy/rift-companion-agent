@@ -404,7 +404,8 @@ def write(items: list[GoldenQA], out: Path) -> str:
     digest = hashlib.sha256(data).hexdigest()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(data)
-    out.with_name(out.name + ".sha256").write_text(f"{digest}  {out.name}\n", encoding="utf-8")
+    sidecar = out.with_name(out.name + ".sha256")
+    sidecar.write_bytes(f"{digest}  {out.name}\n".encode())  # LF on every OS
     return digest
 
 
