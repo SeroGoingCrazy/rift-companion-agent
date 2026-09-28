@@ -16,6 +16,8 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from src.core.settings import resolve_path
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from mcp import types
@@ -205,7 +207,8 @@ class GetDocumentSummaryTool:
                 "Install it with: pip install chromadb"
             )
         
-        persist_path = Path(self.config.persist_directory).resolve()
+        # Relative paths are relative to the service root, not the cwd
+        persist_path = resolve_path(self.config.persist_directory)
         
         if not persist_path.exists():
             logger.warning(f"ChromaDB directory does not exist: {persist_path}")
