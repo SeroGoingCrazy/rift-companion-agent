@@ -1,0 +1,958 @@
+{
+  "dataset": "eval\\datasets\\rag_golden.jsonl",
+  "embedding": "BAAI/bge-small-zh-v1.5",
+  "hit_k": 3,
+  "top_k": 10,
+  "summary": {
+    "overall": {
+      "count": 34,
+      "hit_rate": 1.0,
+      "mrr": 0.9705882352941176,
+      "faithfulness": 0.892156862745098,
+      "answer_relevancy": 0.8583356700041529
+    },
+    "by_collection": {
+      "companion_profiles": {
+        "count": 7,
+        "hit_rate": 1.0,
+        "mrr": 1.0,
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9125056326237511
+      },
+      "modes_and_ranks": {
+        "count": 7,
+        "hit_rate": 1.0,
+        "mrr": 1.0,
+        "faithfulness": 0.9523809523809524,
+        "answer_relevancy": 0.9380679057416893
+      },
+      "platform_rules": {
+        "count": 20,
+        "hit_rate": 1.0,
+        "mrr": 0.95,
+        "faithfulness": 0.8333333333333334,
+        "answer_relevancy": 0.8114699005791556
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "refund_3h",
+      "collection": "platform_rules",
+      "query": "开局前三小时取消能退多少钱？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "开局前 3 小时取消属于 2–24 小时这一档，退一半（50%）。以 144.00 元的订单为例，可退 72.00 元 [1][2]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.92777345894986
+      }
+    },
+    {
+      "id": "refund_full",
+      "collection": "platform_rules",
+      "query": "提前一天以上取消订单能全额退款吗？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "可以，距开局时间≥24 小时取消是全额退款（100%）[2]。",
+      "ragas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.744652306449503
+      }
+    },
+    {
+      "id": "refund_none",
+      "collection": "platform_rules",
+      "query": "马上就要开局了，现在取消还能退钱吗？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "马上要开局（距开局不足 2 小时）取消的话不退款，退 0 元 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7687363701126121
+      }
+    },
+    {
+      "id": "refund_amount",
+      "collection": "platform_rules",
+      "query": "一单 200.00 元的订单，提前 10 小时取消能退多少？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/billing.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "提前 10 小时取消属于 2–24 小时这一档，退一半，也就是 100.00 元 [2]。",
+      "ragas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.8325746302030437
+      }
+    },
+    {
+      "id": "refund_boundary",
+      "collection": "platform_rules",
+      "query": "恰好提前 24 小时取消，按哪一档退款？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "恰好提前 24 小时取消按全额退款（100%）这一档计算 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8373187573407357
+      }
+    },
+    {
+      "id": "refund_unpaid",
+      "collection": "platform_rules",
+      "query": "还没付款的订单取消要扣钱吗？",
+      "expected_sources": [
+        "platform_rules/refund.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/refund.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "不用扣钱。订单处于「待支付」状态时取消不产生任何费用，也没有退款，因为尚未付款 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8798940032885701
+      }
+    },
+    {
+      "id": "billing_formula",
+      "collection": "platform_rules",
+      "query": "陪玩的费用是怎么算的？",
+      "expected_sources": [
+        "platform_rules/billing.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/refund.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/violations.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 0.5,
+      "answer": "陪玩费用按小时计费，总价 = 陪玩师基础单价 × 服务类型系数 × 时长（小时），金额保留两位小数，由系统计算，陪玩师和客服都无法手动改价 [3]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.973948791406352
+      }
+    },
+    {
+      "id": "billing_coaching",
+      "collection": "platform_rules",
+      "query": "教学服务比普通陪玩贵多少？",
+      "expected_sources": [
+        "platform_rules/billing.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/billing.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "教学服务的系数是 1.5，娱乐是 1，所以教学比普通陪玩贵 50% [1][2]。",
+      "ragas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.9999999999999994
+      }
+    },
+    {
+      "id": "billing_compute",
+      "collection": "platform_rules",
+      "query": "基础单价 80 元的陪玩师，上分 3 小时一共多少钱？",
+      "expected_sources": [
+        "platform_rules/billing.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/refund.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "基础单价 80 元的陪玩师上分 3 小时，总价为 80 × 1.2 × 3 = 288.00 元 [1][2]。",
+      "ragas": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.9724881829649568
+      }
+    },
+    {
+      "id": "billing_duration",
+      "collection": "platform_rules",
+      "query": "可以只约 1.2 个小时吗？",
+      "expected_sources": [
+        "platform_rules/billing.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/refund.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/refund.md",
+        "platform_rules/matching.md",
+        "platform_rules/late_arrival.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "不可以，单次预约时长以 0.5 小时为步长，1.2 小时不符合要求 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8679721797625595
+      }
+    },
+    {
+      "id": "billing_default_type",
+      "collection": "platform_rules",
+      "query": "约单双排没说要什么服务，按哪种收费？",
+      "expected_sources": [
+        "platform_rules/billing.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/violations.md",
+        "platform_rules/refund.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 0.5,
+      "answer": "单双排默认按「上分」计费，系数为 1.2 [2]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7531807937427678
+      }
+    },
+    {
+      "id": "late_grace",
+      "collection": "platform_rules",
+      "query": "陪玩师晚几分钟上线不算迟到？",
+      "expected_sources": [
+        "platform_rules/late_arrival.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "陪玩师在约定开局时间后 5 分钟内上线视为准时，不算迟到。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.910520103308304
+      }
+    },
+    {
+      "id": "late_makeup",
+      "collection": "platform_rules",
+      "query": "陪玩师迟到了 10 分钟，会补偿多少时长？",
+      "expected_sources": [
+        "platform_rules/late_arrival.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/billing.md",
+        "platform_rules/violations.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "迟到 10 分钟超过 5 分钟宽限期，超出部分每 1 分钟免费顺延 2 分钟服务时长，也就是补 10 分钟 [1][2]。",
+      "ragas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.7742795874860798
+      }
+    },
+    {
+      "id": "late_no_show",
+      "collection": "platform_rules",
+      "query": "陪玩师一直没上线怎么办？",
+      "expected_sources": [
+        "platform_rules/late_arrival.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "陪玩师迟到达到 30 分钟或未上线，你可以直接取消订单并获得全额退款，不受取消退款档位限制。[3]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6237946601522703
+      }
+    },
+    {
+      "id": "violation_afk",
+      "collection": "platform_rules",
+      "query": "陪玩师打游戏挂机、故意送人头怎么处理？",
+      "expected_sources": [
+        "platform_rules/violations.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md",
+        "platform_rules/matching.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "这种情况属于消极比赛，本单会全额退款，陪玩师信用分扣10分 [1]。",
+      "ragas": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.44137144655369753
+      }
+    },
+    {
+      "id": "violation_private",
+      "collection": "platform_rules",
+      "query": "陪玩师让我绕过平台私下转账可以吗？",
+      "expected_sources": [
+        "platform_rules/violations.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/companion_levels.md",
+        "platform_rules/billing.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "不可以，引导用户绕过平台私下付款属于私下交易违规，双方账号会被警告，陪玩师信用分还会被扣 20 分 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6728007804287266
+      }
+    },
+    {
+      "id": "level_top",
+      "collection": "platform_rules",
+      "query": "评分要多少才能成为王牌陪玩？",
+      "expected_sources": [
+        "platform_rules/companion_levels.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/companion_levels.md",
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "评分达到 4.8 及以上就能成为王牌陪玩 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9605948479724814
+      }
+    },
+    {
+      "id": "level_price",
+      "collection": "platform_rules",
+      "query": "陪玩师等级高是不是更贵？",
+      "expected_sources": [
+        "platform_rules/companion_levels.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/companion_levels.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/billing.md",
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "不是，等级只影响展示顺序，不影响价格；价格由陪玩师基础单价与服务类型决定 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.7964912994950849
+      }
+    },
+    {
+      "id": "matching_relax",
+      "collection": "platform_rules",
+      "query": "找不到合适的陪玩师时，系统会怎么放宽条件？",
+      "expected_sources": [
+        "platform_rules/matching.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/matching.md",
+        "platform_rules/violations.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/refund.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "系统会依次放宽开始时间（前后 1 小时）、性别、位置，并在回复中说明放宽了哪些条件；预算与段位要求永远不会放宽。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6764152465023533
+      }
+    },
+    {
+      "id": "matching_required",
+      "collection": "platform_rules",
+      "query": "预约陪玩需要提供哪些信息？",
+      "expected_sources": [
+        "platform_rules/matching.md"
+      ],
+      "retrieved_sources": [
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/matching.md",
+        "platform_rules/billing.md",
+        "platform_rules/billing.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/late_arrival.md",
+        "platform_rules/violations.md",
+        "platform_rules/companion_levels.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "预约必须提供游戏模式、开始时间、时长；如果选择单双排或灵活组排，还需要提供段位要求 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8145905654631539
+      }
+    },
+    {
+      "id": "mode_alias_flex",
+      "collection": "modes_and_ranks",
+      "query": "「五排」指的是哪个模式？",
+      "expected_sources": [
+        "modes_and_ranks/game_modes.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "「五排」指的是灵活组排模式 [2]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8601079069021704
+      }
+    },
+    {
+      "id": "mode_arena_players",
+      "collection": "modes_and_ranks",
+      "query": "斗魂竞技场是几个人一队？",
+      "expected_sources": [
+        "modes_and_ranks/game_modes.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/roles.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "斗魂竞技场是 2 人一队，共 8 队。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9580825243219854
+      }
+    },
+    {
+      "id": "mode_aram_rank",
+      "collection": "modes_and_ranks",
+      "query": "约大乱斗需要选段位吗？",
+      "expected_sources": [
+        "modes_and_ranks/game_modes.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/roles.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "不需要，大乱斗不区分段位要求、位置偏好 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8454567356048299
+      }
+    },
+    {
+      "id": "mode_mayhem_count",
+      "collection": "modes_and_ranks",
+      "query": "能接海克斯大乱斗的陪玩师有几位？",
+      "expected_sources": [
+        "modes_and_ranks/game_modes.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/roles.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "能接海克斯大乱斗的陪玩师有 13 位。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.961002736887176
+      }
+    },
+    {
+      "id": "rank_band_diamond",
+      "collection": "modes_and_ranks",
+      "query": "要求钻石的单双排，能匹配到哪些段位的陪玩师？",
+      "expected_sources": [
+        "modes_and_ranks/ranks.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/roles.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "要求钻石的单双排，可以匹配到钻石到宗师段位的陪玩师 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9595904119676875
+      }
+    },
+    {
+      "id": "rank_order",
+      "collection": "modes_and_ranks",
+      "query": "翡翠和铂金哪个段位更高？",
+      "expected_sources": [
+        "modes_and_ranks/ranks.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/roles.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "铂金比翡翠低，段位从低到高是黑铁 < 青铜 < 白银 < 黄金 < 铂金 < 翡翠 < 钻石 < 大师 < 宗师 < 王者，所以翡翠更高。[2]",
+      "ragas": {
+        "faithfulness": 0.6666666666666666,
+        "answer_relevancy": 0.9959523430672643
+      }
+    },
+    {
+      "id": "role_alias_support",
+      "collection": "modes_and_ranks",
+      "query": "「软辅」是什么位置？",
+      "expected_sources": [
+        "modes_and_ranks/roles.md"
+      ],
+      "retrieved_sources": [
+        "modes_and_ranks/roles.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/ranks.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md",
+        "modes_and_ranks/game_modes.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "「软辅」属于辅助位置，辅助的常见说法包括辅助、软辅、硬辅 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9862826814407123
+      }
+    },
+    {
+      "id": "companion_01_price",
+      "collection": "companion_profiles",
+      "query": "阿狸酱上分一小时多少钱？",
+      "expected_sources": [
+        "companion_profiles/companion_01.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_01.md",
+        "companion_profiles/companion_01.md",
+        "companion_profiles/companion_01.md",
+        "companion_profiles/companion_08.md",
+        "companion_profiles/companion_07.md",
+        "companion_profiles/companion_22.md",
+        "companion_profiles/companion_02.md",
+        "companion_profiles/companion_10.md",
+        "companion_profiles/companion_18.md",
+        "companion_profiles/companion_13.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "阿狸酱上分是 99.60 元/小时。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9926587063543657
+      }
+    },
+    {
+      "id": "companion_05_roles",
+      "collection": "companion_profiles",
+      "query": "北城以北擅长打什么位置？",
+      "expected_sources": [
+        "companion_profiles/companion_05.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_17.md",
+        "companion_profiles/companion_14.md",
+        "companion_profiles/companion_02.md",
+        "companion_profiles/companion_21.md",
+        "companion_profiles/companion_20.md",
+        "companion_profiles/companion_22.md",
+        "companion_profiles/companion_18.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "北城以北擅长上单和辅助位置。[1][3]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9562073103052903
+      }
+    },
+    {
+      "id": "companion_09_rank",
+      "collection": "companion_profiles",
+      "query": "星河滚烫是什么段位？",
+      "expected_sources": [
+        "companion_profiles/companion_09.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_09.md",
+        "companion_profiles/companion_09.md",
+        "companion_profiles/companion_09.md",
+        "companion_profiles/companion_04.md",
+        "companion_profiles/companion_03.md",
+        "companion_profiles/companion_07.md",
+        "companion_profiles/companion_13.md",
+        "companion_profiles/companion_03.md",
+        "companion_profiles/companion_07.md",
+        "companion_profiles/companion_19.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "星河滚烫是王者段位，主玩ADC和辅助。[2][3]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9158101204244516
+      }
+    },
+    {
+      "id": "companion_13_voice",
+      "collection": "companion_profiles",
+      "query": "云边小卖部打游戏能开麦吗？",
+      "expected_sources": [
+        "companion_profiles/companion_13.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_13.md",
+        "companion_profiles/companion_13.md",
+        "companion_profiles/companion_13.md",
+        "companion_profiles/companion_10.md",
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_22.md",
+        "companion_profiles/companion_06.md",
+        "companion_profiles/companion_02.md",
+        "companion_profiles/companion_12.md",
+        "companion_profiles/companion_03.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "云边小卖部不开麦，仅支持文字交流 [1]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6643969430243358
+      }
+    },
+    {
+      "id": "companion_17_modes",
+      "collection": "companion_profiles",
+      "query": "长安少年可以陪玩哪些模式？",
+      "expected_sources": [
+        "companion_profiles/companion_17.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_17.md",
+        "companion_profiles/companion_17.md",
+        "companion_profiles/companion_17.md",
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_10.md",
+        "companion_profiles/companion_03.md",
+        "companion_profiles/companion_14.md",
+        "companion_profiles/companion_30.md",
+        "companion_profiles/companion_02.md",
+        "companion_profiles/companion_16.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "长安少年可以接匹配和斗魂竞技场模式 [2]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8845817485390736
+      }
+    },
+    {
+      "id": "companion_21_level",
+      "collection": "companion_profiles",
+      "query": "南风知我意的评分和等级是多少？",
+      "expected_sources": [
+        "companion_profiles/companion_21.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_21.md",
+        "companion_profiles/companion_21.md",
+        "companion_profiles/companion_21.md",
+        "companion_profiles/companion_05.md",
+        "companion_profiles/companion_10.md",
+        "companion_profiles/companion_17.md",
+        "companion_profiles/companion_22.md",
+        "companion_profiles/companion_14.md",
+        "companion_profiles/companion_08.md",
+        "companion_profiles/companion_09.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "南风知我意的等级是金牌陪玩，评分是 4.5 [2]。",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9738845997187412
+      }
+    },
+    {
+      "id": "companion_25_unit_price",
+      "collection": "companion_profiles",
+      "query": "海盐芝士的基础单价是多少？",
+      "expected_sources": [
+        "companion_profiles/companion_25.md"
+      ],
+      "retrieved_sources": [
+        "companion_profiles/companion_25.md",
+        "companion_profiles/companion_25.md",
+        "companion_profiles/companion_25.md",
+        "companion_profiles/companion_06.md",
+        "companion_profiles/companion_07.md",
+        "companion_profiles/companion_18.md",
+        "companion_profiles/companion_10.md",
+        "companion_profiles/companion_15.md",
+        "companion_profiles/companion_08.md",
+        "companion_profiles/companion_02.md"
+      ],
+      "hit": true,
+      "reciprocal_rank": 1.0,
+      "answer": "海盐芝士的基础单价是 88.00 元/小时。[1]",
+      "ragas": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9999999999999994
+      }
+    }
+  ]
+}

@@ -583,7 +583,7 @@ session:
 | B | B1 B2 B3 B4 B5 B6 | ✅✅✅✅✅✅ |
 | C | C1 C2 C3 C4 C5 C6 C7 C8 C9 | ✅✅✅✅✅✅✅✅✅ |
 | D | D1 D2 D3 D4 D5 D6 D7 | ✅✅✅✅✅✅✅ |
-| E | E1 E2 E3 E4 E5 E6 | ✅✅✅✅✅⬜ |
+| E | E1 E2 E3 E4 E5 E6 | ✅✅✅✅✅✅ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +594,7 @@ session:
 
 ### 📈 总体进度
 
-`46 / 77`（E6 进行中）
+`47 / 77`
 
 ---
 
@@ -823,11 +823,12 @@ session:
 - **测试方法**：`uv run pytest -q tests/integration/test_knowledge_http.py`。
 - **实现备注**：新增 `knowledge-mcp` 命令（`--transport stdio|http --host --port`，默认 stdio / 8102），HTTP 与 booking-mcp 一致：无状态 Streamable HTTP、JSON 响应、路径 `/mcp`。`tools/call` 处理函数读取 `_meta.trace_id` / `_meta.parent_span_id`，放入请求级 `ContextVar`（`caller_trace`）；调用期间新建的 `TraceContext` 自动带上 `parent_trace_id` / `parent_span_id`，写入 `logs/traces.jsonl`（没有 `_meta` 时不写这两个字段）。`TraceCollector` 的默认路径改为使用时再解析，便于测试和换根目录。集成测试现场生成 3 篇 Markdown，用确定性的字符 bigram 哈希 embedding 走真实导入流程（Chroma + BM25），再用 uvicorn 起 HTTP 服务调用三个工具，全程离线。另用真实知识库和 bge 手动验证：三个工具都能调用，trace 中的 `parent_trace_id` 与调用方一致。
 
-### E6：L3 RAG 评测集与达标
+### E6：L3 RAG 评测集与达标 ✅
 - **目标**：从 `domain.yaml` 与种子自动生成 ≈ 30 条 golden QA（问题模板 + 标准答案 + 期望来源文档）；运行 Hit Rate / MRR / ragas。
 - **修改文件**：`eval/datasets/rag_golden.jsonl`、`eval/runners/run_rag_eval.py`。
 - **验收标准**：Hit@3 ≥ 0.9，MRR ≥ 0.8（首次跑出后可按实际调整并记录）。
-- **测试方法**：`uv run python eval/runners/run_rag_eval.py`。
+- **测试方法**：`uv run python eval/runners/run_rag_eval.py`（加 `--ragas` 需 `DEEPSEEK_API_KEY`：`uv run --env-file .env python eval/runners/run_rag_eval.py --ragas`）。
+- **实现备注**：`scripts/gen_rag_golden.py` 从 `domain.yaml` + 陪玩师种子生成 34 条 QA（平台规则 20、模式与段位 7、陪玩师 7），标准答案里的金额与比例用 `rift_domain.pricing` / `refund` 计算，并写出 `.sha256`；runner 会检查 checksum，还会在内存中重新生成一遍比对，过期时给出警告，单测在 CI 中守住这一点。评测方式与 Agent 的 consult 一致：每题只在自己的集合内检索（`QueryKnowledgeHubTool.retrieve`）；Hit@3 指期望文档的某个 chunk 排进前 3，MRR 取前 10 名内第一个命中 chunk 的倒数名次。ragas 的做法：用 Agent 的 `consult_answer.txt` 提示词、基于前 3 个 chunk 让 DeepSeek 作答，再由 DeepSeek 当评审，embedding 用本地 bge。为此 RagasEvaluator 新增了 deepseek 分支，并能调用项目自带的 embedding 工厂；评审用的异步客户端改为在事件循环内关闭（原来会报 "Event loop is closed"）。**首次结果**（`eval/reports/rag_eval_baseline.json`）：Hit@3 = 1.000、MRR = 0.971（平台规则中计费公式、默认服务类型两题的正确文档排第 2），faithfulness = 0.892，answer relevancy = 0.858。平台规则 faithfulness 最低（0.833）：评审对"答案里出现资料中没有的计算结果"（如 288.00 元、退 100.00 元）和同义改写（"信用分扣10分" 对 "-10"）判得较严，这几题的答案本身是正确的。题目问法接近文档原文，检索满分偏乐观，之后可加入口语化或错别字问法再测。带时间戳的报告不进 git。
 
 ---
 

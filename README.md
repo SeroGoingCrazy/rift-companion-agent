@@ -60,6 +60,13 @@ uv run knowledge-mcp --transport http --port 8102   # Agent 使用：设置 KNOW
 uv run knowledge-mcp --transport stdio              # 桌面客户端使用
 ```
 
+RAG 评测（L3，题库由 `scripts/gen_rag_golden.py` 从 `domain.yaml` 生成）：
+
+```bash
+uv run python eval/runners/run_rag_eval.py                              # Hit@3 / MRR，门槛 0.9 / 0.8
+uv run --env-file .env python eval/runners/run_rag_eval.py --ragas      # 另跑 faithfulness / answer relevancy（DeepSeek）
+```
+
 Agent 调用时在 `_meta` 中带上 `trace_id` / `parent_span_id`，knowledge-mcp 的检索 trace（`services/knowledge_mcp/logs/traces.jsonl`）会记录为 `parent_trace_id` / `parent_span_id`，可与 Agent 的 trace 关联。
 
 ## Agent（命令行对话）
