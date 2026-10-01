@@ -17,8 +17,15 @@ from booking_mcp.service import BookingService
 from booking_mcp.tools.list_my_bookings import list_my_bookings
 from booking_mcp.tools.schemas import ListMyBookingsInput
 from rift_agent.api import Agent, AgentEvent, chunks
+from rift_agent.extractors.llm import LLMSlotExtractor
 from rift_agent.extractors.routed import RoutedSlotExtractor
-from rift_agent.factory import build_deps, build_sinks, make_extractor
+from rift_agent.factory import (
+    build_deps,
+    build_single_extractor,
+    build_sinks,
+    make_extractor,
+    with_extractor_config,
+)
 from rift_agent.graph.state import booking_state
 from rift_agent.replies.polisher import ReplyPolisher, keeps_facts
 from rift_common.llm.mock import MockLLM
@@ -231,11 +238,43 @@ def test_build_deps_from_settings(tmp_path: Path, domain: DomainConfig) -> None:
     assert [type(s).__name__ for s in build_sinks(settings)] == ["SqliteSink"]
 
 
-def test_local_extractor_not_available_yet(tmp_path: Path) -> None:
+def test_local_extractor_uses_llama_server(tmp_path: Path) -> None:
     settings = _settings(tmp_path, primary="llm", shadow="local")
     llm = MockLLM(LLMConfig(provider="mock", model="m"))
-    with pytest.raises(SettingsError, match="'local' is not available yet"):
-        make_extractor(settings, llm)
+    extractor = make_extractor(settings, llm)
+    assert isinstance(extractor, RoutedSlotExtractor) and extractor.shadow is not None
+    local = extractor.shadow
+    assert isinstance(local, LLMSlotExtractor) and local.name == "local"
+    assert local.llm.provider_name == "llama_server"
+    assert local.max_tokens == settings.llm["local_slot"].max_tokens
+
+
+@pytest.mark.parametrize(
+    ("config", "primary", "fallback", "timeout"),
+    [("llm", "llm", None, 30.0), ("local", "local", None, 5.0), ("routed", "local", "llm", 5.0)],
+)
+def test_extractor_configs(
+    tmp_path: Path, config: str, primary: str, fallback: str | None, timeout: float
+) -> None:
+    settings = with_extractor_config(_settings(tmp_path, primary="local", shadow="llm"), config)
+    assert settings.slot_extractor.shadow is None
+    extractor = make_extractor(settings, MockLLM(LLMConfig(provider="mock", model="m")))
+    assert isinstance(extractor, RoutedSlotExtractor)
+    assert extractor.primary.name == primary
+    assert (extractor.fallback.name if extractor.fallback else None) == fallback
+    assert extractor.timeout_s == timeout
+
+
+def test_unknown_extractor_config_and_kind(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    llm = MockLLM(LLMConfig(provider="mock", model="m"))
+    with pytest.raises(SettingsError, match="unknown extractor config"):
+        with_extractor_config(settings, "teacher")
+    with pytest.raises(SettingsError, match="unknown slot_extractor kind"):
+        build_single_extractor("teacher", settings, llm)
+    no_local = settings.model_copy(update={"llm": {"default": settings.llm["default"]}})
+    with pytest.raises(SettingsError, match=r"needs llm.local_slot"):
+        build_single_extractor("local", no_local, llm)
 
 
 JSON_TYPES = (str, int, float, bool, type(None))
