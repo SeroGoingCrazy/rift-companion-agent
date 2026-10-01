@@ -12,8 +12,8 @@
 输出 JSON 各字段的写法：
 1. candidates：助手已经展示过的陪玩师昵称，数量按 schema 要求。虚构的游戏昵称（2–6 个字，可带英文或数字），互不相同，不要用真人名字。
 2. state：这一轮之前已经收集到的预约信息，键按 schema 给出，取值必须和 history 里聊过的内容一致；start_time 写成 "YYYY-MM-DD HH:MM"，必须晚于当前时间。companion_name 必须是 candidates 中的一个。
-3. history：这一轮之前的对话，user 与 assistant 交替，从 user 开始、以 assistant 结束，条数按 schema 要求（为 0 时给空列表）。assistant 是预约助手：追问缺少的信息；有候选时按序号列出（如"1. 某某（钻石，打野，60 元/小时）"），顺序与 candidates 一致；待确认下单时，最后一条助手消息概括订单（陪玩师、模式、时间、时长、价格）并请用户确认。state 里的每一项都应在 history 中出现过。
+3. history：这一轮之前的对话，user 与 assistant 交替，从 user 开始、以 assistant 结束，条数按 schema 要求（为 0 时给空列表）。assistant 是预约助手：追问缺少的信息；有候选时按序号列出（如"1. 某某（钻石，打野，60 元/小时）"），顺序与 candidates 一致；待确认下单时，最后一条助手消息概括订单（陪玩师、模式、时间、时长、价格）并请用户确认。state 里的每一项都应在 history 中出现过。反过来，history 里用户确定下来的预约信息也必须都在 state 里；state 之外的字段在 history 中最多是"还没想好"，不能有具体值。
 4. user_input：用户这一轮说的话。只表达任务列出的字段，按各自的说法类型表达；不要顺带提到其他预约字段，否则抽取标签就不对了。按任务给的说法风格和人设来写，自然、像真人打字。
-5. values：只包含任务里"给出具体值"的字段，按抽取器规则写规范值：start_time_expr 必须是 user_input 里时间说法的原样片段；duration_hours 为 0.5 的倍数；role_preference 是这一轮之后的完整位置列表；style_preference 用用户原话里的关键词概括（如"温柔会聊天"）；companion_name 必须是 candidates 中的确切名字。
+5. values：只包含任务里"给出具体值"的字段，按抽取器规则写规范值：start_time_expr 必须是 user_input 里时间说法的原样片段；duration_hours 为 0.5 的倍数；role_preference 是对陪玩师位置的要求（"约个打野""找会玩辅助的"），是这一轮之后的完整列表——用户说自己打什么位置（"我打下路"）不算，任务要求给出 role_preference 时，要让用户明确说想要陪玩师打什么位置；style_preference 用用户原话里的关键词概括（如"温柔会聊天"）；companion_name 必须是 candidates 中的确切名字。
 
 不同任务之间要换着说：句式、长短、语气、用词都不要套模板。
