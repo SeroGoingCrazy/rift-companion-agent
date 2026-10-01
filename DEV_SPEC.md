@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`52 / 77`
+`54 / 77`
 
 ---
 
@@ -987,17 +987,19 @@ session:
 
 ## 阶段 I：数据与训练（目标：M2 —— 小模型通过 L2 门槛）
 
-### I1：训练侧协议与 Prompt 同源
+### I1：训练侧协议与 Prompt 同源 ✅
 - **目标**：`training` 直接 import `rift_domain.slots` 与 `rift_agent.extractors.prompt.build_prompt`，保证训练样本的 prompt 与线上逐字节一致；数据卡记录 `slot_extract.txt` 的 sha256。
 - **修改文件**：`training/src/rift_training/contract/__init__.py`、`training/src/rift_training/data/card.py`、`tests/unit/test_training_contract.py`。
 - **验收标准**：同一上下文由线上与训练侧渲染的 prompt 完全相同（测试断言）。
 - **测试方法**：`uv run pytest -q tests/unit/test_training_contract.py`。
+- **实现备注**：线上渲染函数实际叫 `build_messages`（不是 `build_prompt`）。`rift_training.contract` 不复制任何协议代码：`context_from_sample` 把样本转成 `ExtractionContext`，`render_prompt` 直接调用线上的 `build_messages`，L2 Runner 的 `build_context` 也改为复用它；唯一新增的是 `render_target`（训练目标 JSON：按 schema 字段顺序，保留"未出现 / null / any"三态，整数值的浮点数写成 `2` 而不是 `2.0`）。测试把 87 条 L2 样本逐条组装成图状态，经真实的 `extract_slots` 节点拿到上下文，断言与训练侧渲染的消息逐字节相同。数据卡（`data_card.json` + `DATA_CARD.md`）记录 `slot_extract.txt` 的 sha256、类别 / intent / confirmation 分布和逐字段三态计数，`prompt_mismatch` 用于检测 prompt 改动后数据过期。`rift-training` 新增依赖 `rift-agent`。
 
-### I2：场景规格（Scenario Specs）
+### I2：场景规格（Scenario Specs） ✅
 - **目标**：YAML 描述场景类别、槽位组合、说法风格（口语、黑话、错别字、中英混杂如"打 jg""辅助位"）、上下文轮数、期望 turn_intent 分布；采样器按配额生成"生成任务"。
 - **修改文件**：`training/configs/data/specs_v0.1.yaml`、`rift_training/data/specs.py`、`tests/unit/test_specs_sampler.py`。
 - **验收标准**：采样 800 个任务，各类别配额误差 < 5%。
 - **测试方法**：`uv run pytest -q tests/unit/test_specs_sampler.py`。
+- **实现备注**：每个任务固定答案的"形状"：类别 / 子场景、模式、`now`、说法风格、历史轮数、候选人数、是否待确认、`current_state` 里已有哪些槽位，以及 delta 中每个键是给值、`any` 还是 `null`；Teacher 只负责写对话和具体取值，I3 的校验器按任务核对。类别和子场景数量都用最大余数法按配额分配，800 条时误差为 0；其余随机项由固定种子决定。各模式可用的字段从 `domain.yaml` 推出（段位只在排位模式，大乱斗类不出现段位和位置），哪些字段能取 `any` 从 `SlotDelta` 的类型注解推出。v0.1 配额：首轮 16%、多轮增量 14%、三态 16%、相对时间 10%、候选引用 10%、插话咨询 8%、无关 6%、确认 / 拒绝 10%、黑话 10%；按 H5 的错误分析加入了非必填字段 `any` 与 `null` 的对比、拒绝换人时 delta 为空、"声音好听"属于风格而不是 `voice_required` 三类子场景。说法风格分标准 / 口语 / 黑话 / 错别字 / 中英混杂五种。`training/scripts/data/sample_tasks.py --spec v0.1` 打印分布并可导出任务 JSONL。
 
 ### I3：Teacher 生成与校验
 - **目标**：可插拔 Teacher 后端（Anthropic / OpenAI，JSON Schema 约束）；每个任务生成"上下文 + 用户话术 + 期望输出"；校验器（C2 schema + 业务一致性：如大乱斗不应输出段位、时间表达可被 C3 解析）过滤；失败样本进入 `rejected/` 附原因；并发与断点续跑。
