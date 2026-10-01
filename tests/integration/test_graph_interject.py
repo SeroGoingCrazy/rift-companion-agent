@@ -31,7 +31,7 @@ TABLE = {
     "不约了": turn(confirmation="no"),
 }  # fmt: skip
 
-ANSWER = "开局前 24 小时以上取消全额退款，2–24 小时退一半，不足 2 小时不退 [1]。"
+ANSWER = "开局前 15 分钟以上取消全额退款，不足 15 分钟不退 [1]。"
 
 
 class Recorder(TraceSink):

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 NOW = datetime(2026, 10, 1, 14, 0)
 FRI_20 = datetime(2026, 10, 2, 20, 0)  # 30h ahead: full refund
-THU_15 = datetime(2026, 10, 1, 15, 0)  # 1h ahead: no refund
+THU_15 = datetime(2026, 10, 1, 15, 0)  # 1h ahead: still a full refund (cutoff 15 min)
 
 
 def turn(confirmation: str = "none", intent: str = "booking", **delta: Any) -> dict[str, Any]:
@@ -96,7 +96,7 @@ async def test_list_choose_confirm_cancel(agent: AgentHarness, shop: Shop) -> No
     with read_session(shop.db.factory) as sess:
         expected = refund(BookingRepo(sess).require(late), NOW, shop.db.domain)
     assert s["facts"]["refund_amount"] == f"{expected.amount:.2f}" == "120.00"
-    assert "可退 120.00 元" in s["reply"]
+    assert "可退 120.00 元" in s["reply"] and "距开局还有 30 小时" in s["reply"]
     assert shop.status(late) is BookingStatus.CONFIRMED  # nothing cancelled yet
 
     s = await agent.say("确认")
@@ -108,6 +108,17 @@ async def test_list_choose_confirm_cancel(agent: AgentHarness, shop: Shop) -> No
     assert shop.status(soon) is BookingStatus.PENDING_PAYMENT
     with read_session(shop.db.factory) as sess:
         assert ScheduleRepo(sess).is_free(shop.a, FRI_20, FRI_20 + timedelta(hours=2))
+
+
+async def test_cancel_inside_the_cutoff_refunds_nothing(agent: AgentHarness, shop: Shop) -> None:
+    bid = shop.book(shop.a, NOW + timedelta(minutes=10), paid=True)
+    s = await agent.say("帮我把订单取消了")
+    assert s["reply_type"] == "cancel_confirm"
+    assert "距开局还有 10 分钟，按规则不退款" in s["reply"]
+    s = await agent.say("确认")
+    assert s["reply_type"] == "cancelled"
+    assert "按规则不退款" in s["reply"] and "原路退回" not in s["reply"]
+    assert shop.status(bid) is BookingStatus.CANCELLED
 
 
 async def test_single_active_booking_is_picked_directly(agent: AgentHarness, shop: Shop) -> None:

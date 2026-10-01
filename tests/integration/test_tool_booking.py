@@ -147,7 +147,12 @@ def test_full_lifecycle(booking_db: BookingDB, svc: BookingService, world: dict[
 
 @pytest.mark.parametrize(
     ("hours_before", "tier", "amount"),
-    [(24, "full", "144.00"), (3, "half", "72.00"), (2, "half", "72.00"), (1.5, "none", "0.00")],
+    [
+        (24, "full", "144.00"),
+        (3, "full", "144.00"),
+        (0.25, "full", "144.00"),
+        (0.2, "none", "0.00"),
+    ],
 )
 def test_refund_tiers_match_domain(
     booking_db: BookingDB,

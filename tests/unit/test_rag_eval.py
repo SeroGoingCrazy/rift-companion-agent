@@ -72,8 +72,10 @@ def test_expected_sources_are_generated_kb_docs(domain: DomainConfig) -> None:
 def test_reference_answers_are_computed_from_domain(domain: DomainConfig) -> None:
     items = _by_id(_golden(domain))
 
-    assert "退一半" in items["refund_3h"].reference_answer
-    assert "100.00 元" in items["refund_amount"].reference_answer
+    assert "全额退款" in items["refund_3h"].reference_answer
+    assert "200.00 元" in items["refund_amount"].reference_answer
+    assert "15 分钟" in items["refund_full"].query
+    assert "提前 10 分钟则不退款" in items["refund_boundary"].reference_answer
     assert "288.00 元" in items["billing_compute"].reference_answer
     assert "钻石–宗师" in items["rank_band_diamond"].reference_answer
 
@@ -81,7 +83,11 @@ def test_reference_answers_are_computed_from_domain(domain: DomainConfig) -> Non
 def test_reference_answers_follow_domain_yaml_changes() -> None:
     raw = copy.deepcopy(RAW)
     raw["service_types"]["climb"]["multiplier"] = 1.3
-    raw["refund"]["tiers"][1]["ratio"] = 0.6
+    raw["refund"]["tiers"] = [
+        {"name": "full", "min_hours_before": 24, "ratio": 1.0, "label": "全额退款"},
+        {"name": "part", "min_hours_before": 2, "ratio": 0.6, "label": "退六成"},
+        {"name": "none", "min_hours_before": 0, "ratio": 0.0, "label": "不退款"},
+    ]
     raw["policies"]["late_arrival"]["grace_minutes"] = 8
     items = _by_id(_golden(parse_domain_config(raw)))
 

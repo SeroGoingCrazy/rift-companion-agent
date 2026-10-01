@@ -144,8 +144,8 @@ def booking_server(seeded_booking: BookingService) -> Server[Any, Any]:
 #: collection -> [(keyword, markdown passage)]
 KNOWLEDGE: dict[str, list[tuple[str, str]]] = {
     "platform_rules": [
-        ("取消", "## 退款档位\n距开局 ≥ 24 小时全额退款；2–24 小时退一半；< 2 小时不退款。"),
-        ("退", "## 退款档位\n距开局 ≥ 24 小时全额退款；2–24 小时退一半；< 2 小时不退款。"),
+        ("取消", "## 退款档位\n距开局 ≥ 15 分钟全额退款；< 15 分钟不退款。"),
+        ("退", "## 退款档位\n距开局 ≥ 15 分钟全额退款；< 15 分钟不退款。"),
         ("收费", "## 计价公式\n总价 = 基础单价 × 服务系数 × 时长；教学系数 1.5。"),
     ],
     "modes_and_ranks": [

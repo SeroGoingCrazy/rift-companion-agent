@@ -177,12 +177,12 @@ def test_two_sessions_conflict_and_restart_with_mock(domain: Any) -> None:
 def test_setup_bookings_and_refund_ratio(domain: Any) -> None:
     data = {
         "id": "mock_cancel",
-        "now": "2026-10-01 14:00",
+        "now": "2026-10-01 13:50",
         "setup": {
             "bookings": [
                 {
                     "game_mode": "aram",
-                    "start_time": "2026-10-01 20:00",
+                    "start_time": "2026-10-01 14:00",
                     "duration_hours": 1,
                     "paid": True,
                 }
@@ -197,7 +197,7 @@ def test_setup_bookings_and_refund_ratio(domain: Any) -> None:
             {"say": "确认", "expect_reply_type": "cancelled", "mock": {"intent": "manage"}},
         ],
         "expect": {
-            "setup_bookings": [{"status": "cancelled", "refund_ratio": 0.5}],
+            "setup_bookings": [{"status": "cancelled", "refund_ratio": 0}],
             "no_booking": True,
         },
     }
@@ -206,7 +206,7 @@ def test_setup_bookings_and_refund_ratio(domain: Any) -> None:
 
     data["expect"]["setup_bookings"] = [{"status": "cancelled", "refund_ratio": 1.0}, {}]
     failures = run_one(data, domain).failures
-    assert "setup_bookings[0].refund_ratio: expected 1.0, got 0.50" in failures
+    assert "setup_bookings[0].refund_ratio: expected 1.0, got 0.00" in failures
     assert "setup_bookings[1]: no such setup booking" in failures
 
 

@@ -101,19 +101,26 @@ def _number_after(text: str, prefix: str) -> Decimal:
 
 def test_refund_tiers_and_examples(docs: dict[str, str]) -> None:
     refund = docs["platform_rules/refund"]
-    assert "| ≥ 24 小时 | 全额退款（100%） |" in refund
-    assert "| 2–24 小时 | 退一半（50%） |" in refund
-    assert "| < 2 小时（含已开局） | 不退款（0%） |" in refund
-    assert "提前 3 小时取消：退一半，退 **72.00 元**" in refund
-    assert "提前 25 小时取消：全额退款，退 **144.00 元**" in refund
+    assert "| ≥ 15 分钟 | 全额退款（100%） |" in refund
+    assert "| < 15 分钟（含已开局） | 不退款（0%） |" in refund
+    assert "恰好提前 15 分钟取消仍全额退款" in refund
+    assert "提前 1 小时取消：全额退款，退 **144.00 元**" in refund
+    assert "提前 5 分钟取消：不退款，退 **0.00 元**" in refund
 
 
 def test_refund_tier_change_propagates() -> None:
     raw = copy.deepcopy(RAW)
-    raw["refund"]["tiers"][1]["ratio"] = 0.3
+    raw["refund"]["tiers"] = [
+        {"name": "full", "min_hours_before": 24, "ratio": 1.0, "label": "全额退款"},
+        {"name": "part", "min_hours_before": 2, "ratio": 0.3, "label": "退三成"},
+        {"name": "none", "min_hours_before": 0, "ratio": 0.0, "label": "不退款"},
+    ]
     refund = _docs(parse_domain_config(raw))["platform_rules/refund"]
-    assert "退一半（30%）" in refund
-    assert "退 **43.20 元**" in refund
+    assert "| 2 小时 – 24 小时 | 退三成（30%） |" in refund
+    assert "| < 2 小时（含已开局） | 不退款（0%） |" in refund
+    assert "提前 25 小时取消：全额退款，退 **144.00 元**" in refund
+    assert "提前 3 小时取消：退三成，退 **43.20 元**" in refund
+    assert "提前 40 分钟取消：不退款，退 **0.00 元**" in refund
 
 
 def test_policies_rendered(docs: dict[str, str], domain: DomainConfig) -> None:

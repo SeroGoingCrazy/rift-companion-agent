@@ -80,11 +80,9 @@ BOOKING = Booking(start_time=START, total=Decimal("144.00"))
     ("before", "tier", "amount"),
     [
         (timedelta(days=3), "full", "144.00"),
-        (timedelta(hours=24), "full", "144.00"),  # boundary: exactly 24h -> full
-        (timedelta(hours=24) - timedelta(seconds=1), "half", "72.00"),
-        (timedelta(hours=6), "half", "72.00"),
-        (timedelta(hours=2), "half", "72.00"),  # boundary: exactly 2h -> half
-        (timedelta(hours=2) - timedelta(seconds=1), "none", "0.00"),
+        (timedelta(hours=3), "full", "144.00"),
+        (timedelta(minutes=15), "full", "144.00"),  # boundary: exactly 15 min -> full
+        (timedelta(minutes=15) - timedelta(seconds=1), "none", "0.00"),
         (timedelta(minutes=10), "none", "0.00"),
         (timedelta(0), "none", "0.00"),
         (-timedelta(hours=1), "none", "0.00"),  # already started
@@ -101,13 +99,22 @@ def test_refund_tiers_and_boundaries(
 
 def test_refund_labels_and_ratio(domain: DomainConfig) -> None:
     result = refund(BOOKING, START - timedelta(hours=3), domain)
-    assert result.label == "退一半"
-    assert result.ratio == Decimal("0.5")
+    assert result.label == "全额退款"
+    assert result.ratio == Decimal("1")
+    late = refund(BOOKING, START - timedelta(minutes=10), domain)
+    assert late.label == "不退款" and late.ratio == Decimal("0")
 
 
 def test_refund_amount_rounds_to_cents(domain: DomainConfig) -> None:
+    raw = domain.model_dump(mode="json")
+    raw["refund"]["tiers"] = [
+        {"name": "half", "min_hours_before": 2, "ratio": 0.5, "label": "退一半"},
+        {"name": "none", "min_hours_before": 0, "ratio": 0, "label": "不退"},
+    ]
     odd = Booking(start_time=START, total=Decimal("99.99"))
-    assert refund(odd, START - timedelta(hours=5), domain).amount == Decimal("50.00")
+    assert refund(odd, START - timedelta(hours=5), parse_domain_config(raw)).amount == Decimal(
+        "50.00"
+    )
 
 
 def test_refund_tiers_follow_config(domain: DomainConfig) -> None:
