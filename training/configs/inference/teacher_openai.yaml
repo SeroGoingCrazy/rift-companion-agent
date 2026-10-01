@@ -1,0 +1,12 @@
+# OpenAI Teacher for SFT data generation (DEV_SPEC I3).
+# The key is read from the environment variable named by api_key_env (.env: OPENAI_API_KEY).
+# `model` can be overridden with --model or the TEACHER_MODEL environment variable.
+provider: openai
+model: gpt-5
+base_url: https://api.openai.com/v1
+api_key_env: OPENAI_API_KEY
+timeout_s: 180
+reasoning_effort: low          # reasoning models ignore temperature; keep the answer cheap
+max_completion_tokens: 8000    # includes reasoning tokens
+concurrency: 8
+max_retries: 4

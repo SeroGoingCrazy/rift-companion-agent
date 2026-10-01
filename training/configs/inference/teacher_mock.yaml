@@ -1,0 +1,6 @@
+# Offline Teacher: fills the answer schema with canned values. Used by tests and to dry-run
+# the generation pipeline without an API key.
+provider: mock
+model: mock-teacher
+concurrency: 4
+max_retries: 0
