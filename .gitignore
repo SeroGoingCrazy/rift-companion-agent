@@ -47,3 +47,4 @@ data/images/
 
 # Timestamped evaluation runs (named baselines such as rag_eval_baseline.json are committed)
 eval/reports/*_2*.json
+eval/reports/*_2*.md
