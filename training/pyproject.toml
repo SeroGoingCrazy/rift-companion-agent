@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Post-training pipeline for the local slot extractor."
 requires-python = ">=3.12"
 dependencies = [
+    "rift-common",
     "rift-domain",
 ]
 
@@ -12,4 +13,5 @@ requires = ["uv_build>=0.8,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
+rift-common = { workspace = true }
 rift-domain = { workspace = true }
