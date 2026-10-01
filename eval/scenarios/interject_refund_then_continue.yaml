@@ -1,0 +1,43 @@
+id: interject_refund_then_continue
+description: 预约中插话问退款规则，答完继续收集槽位并下单（DEV_SPEC 4.3 示例；CI 冒烟剧本）
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "帮我约个明晚八点的单双排，钻石以上"
+    expect_reply_type: ask_missing
+    mock:
+      intent: booking
+      extraction:
+        turn_intent: booking
+        delta: { game_mode: ranked_solo_duo, start_time_expr: "明晚八点", rank_requirement: diamond }
+        confirmation: none
+  - say: "等下，取消要扣钱吗？"
+    expect_span: { tool: query_knowledge_hub }
+    expect_reply_type: consult
+    mock:
+      extraction: { turn_intent: consult, delta: {}, confirmation: none }
+  - say: "那就两小时吧"
+    expect_reply_type: candidates
+    expect_slots: { start_time: "2026-10-02 20:00", rank_requirement: diamond }
+    mock:
+      extraction: { turn_intent: booking, delta: { duration_hours: 2 }, confirmation: none }
+  - say: "选第一个"
+    expect_span: { tool: quote_price }
+    expect_reply_type: confirm_booking
+    mock:
+      extraction: { turn_intent: booking, delta: { companion_name: "一只小熊软糖" }, confirmation: none }
+  - say: "确认"
+    expect_span: { tool: create_booking }
+    expect_reply_type: booked
+    mock:
+      extraction: { turn_intent: booking, delta: {}, confirmation: "yes" }
+expect:
+  booking:
+    status: pending_payment
+    game_mode: ranked_solo_duo
+    service_type: climb
+    start_time: "2026-10-02 20:00"
+    duration_hours: 2
+    companion_name: "一只小熊软糖"
+    total: "218.40"
+  state_phase: IDLE

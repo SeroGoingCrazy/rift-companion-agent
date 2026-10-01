@@ -1,0 +1,15 @@
+id: relax_rank_gap
+description: 宗师以上 + 上单小姐姐无人满足，逐级放宽时间、性别、位置（段位不放宽）
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "约个单双排，宗师以上，要会玩上单的小姐姐，明晚八点两小时"
+    expect_reply_type: candidates
+    expect_relaxations: true
+    expect_slots: { rank_requirement: grandmaster }
+  - say: "第一个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+expect:
+  booking: { status: pending_payment, game_mode: ranked_solo_duo, duration_hours: 2 }

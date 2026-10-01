@@ -1,0 +1,17 @@
+id: list_orders
+description: 查看订单列表，不改变任何订单
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+setup:
+  bookings:
+    - { game_mode: aram, start_time: "2026-10-03 20:00", duration_hours: 2, paid: true }
+    - { game_mode: normal_draft, start_time: "2026-10-04 15:00", duration_hours: 1 }
+turns:
+  - say: "看看我的订单"
+    expect_span: { tool: list_my_bookings }
+    expect_reply_type: manage_list
+expect:
+  setup_bookings:
+    - { status: confirmed }
+    - { status: pending_payment }
+  no_booking: true

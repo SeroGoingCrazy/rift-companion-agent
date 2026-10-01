@@ -1,0 +1,14 @@
+id: consult_only
+description: 空闲状态下连续咨询规则，不进入预约
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "斗魂竞技场是几个人一起玩的？"
+    expect_span: { tool: query_knowledge_hub }
+    expect_reply_type: consult
+  - say: "开局前3小时取消能退多少？"
+    expect_span: { tool: query_knowledge_hub }
+    expect_reply_type: consult
+expect:
+  no_booking: true
+  state_phase: IDLE

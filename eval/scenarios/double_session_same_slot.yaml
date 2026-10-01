@@ -1,0 +1,25 @@
+id: double_session_same_slot
+description: 两个用户同时抢唯一的挑战者陪玩，后确认的一方收到冲突并重新给出候选
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+users: [tester_02]
+turns:
+  - say: "帮我约个明晚八点的单双排，挑战者，两小时"
+    expect_reply_type: candidates
+  - say: "帮我约个明晚八点的单双排，挑战者，两小时"
+    session: other
+    user: tester_02
+    expect_reply_type: candidates
+  - say: "第一个"
+    expect_reply_type: confirm_booking
+  - say: "第一个"
+    session: other
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+  - say: "确认"
+    session: other
+    expect_reply_type: [candidates, no_candidates]
+expect:
+  booking: { status: pending_payment, companion_name: "星河滚烫", start_time: "2026-10-02 20:00" }
+  bookings: { tester_01: 1, tester_02: 0 }

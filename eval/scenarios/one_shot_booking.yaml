@@ -1,0 +1,21 @@
+id: one_shot_booking
+description: 一句话给齐信息，选第二位候选并确认
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "帮我约个明晚八点的单双排，钻石以上，打两个小时"
+    expect_span: { tool: find_companions }
+    expect_reply_type: candidates
+  - say: "就第二个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+expect:
+  booking:
+    status: pending_payment
+    game_mode: ranked_solo_duo
+    start_time: "2026-10-02 20:00"
+    duration_hours: 2
+    companion_name: "海盐芝士"
+    total: "211.20"
+  state_phase: IDLE

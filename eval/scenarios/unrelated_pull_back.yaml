@@ -1,0 +1,16 @@
+id: unrelated_pull_back
+description: 预约中聊无关话题被礼貌拉回，状态保留后继续下单
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "帮我约个明晚八点的大乱斗，两个小时"
+    expect_reply_type: candidates
+  - say: "今天天气怎么样"
+    expect_reply_type: unrelated
+    expect_slots: { game_mode: aram, start_time: "2026-10-02 20:00" }
+  - say: "选第一个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+expect:
+  booking: { status: pending_payment, game_mode: aram, start_time: "2026-10-02 20:00", duration_hours: 2 }

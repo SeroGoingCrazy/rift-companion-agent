@@ -1,0 +1,16 @@
+id: tri_state_any_rank
+description: 三态：段位无所谓（any）满足必填但不参与过滤
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "约个灵活组排，明晚八点，两个小时"
+    expect_reply_type: ask_missing
+  - say: "段位无所谓"
+    expect_reply_type: candidates
+    expect_slots: { rank_requirement: any }
+  - say: "第一个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+expect:
+  booking: { status: pending_payment, game_mode: ranked_flex, start_time: "2026-10-02 20:00" }

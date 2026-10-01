@@ -1,0 +1,12 @@
+id: explicit_abandon
+description: 预约途中说不约了，归档状态回到 IDLE，不下单
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "帮我约个明晚八点的单双排，钻石以上"
+    expect_reply_type: ask_missing
+  - say: "算了，不约了"
+    expect_reply_type: abandon
+expect:
+  no_booking: true
+  state_phase: IDLE

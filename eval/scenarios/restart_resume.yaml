@@ -1,0 +1,15 @@
+id: restart_resume
+description: 等待确认时服务重启，恢复会话后确认下单
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "帮我约个明晚八点的大乱斗，两个小时"
+    expect_reply_type: candidates
+  - say: "第二个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    restart: true
+    expect_reply_type: booked
+expect:
+  booking: { status: pending_payment, game_mode: aram, start_time: "2026-10-02 20:00", duration_hours: 2 }
+  state_phase: IDLE

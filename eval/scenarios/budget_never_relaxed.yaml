@@ -1,0 +1,11 @@
+id: budget_never_relaxed
+description: 预算每小时 5 元，放宽时间也找不到，预算不会被放宽，不下单
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "约个大乱斗，明晚八点两小时，预算每小时5块"
+    expect_span: { tool: find_companions }
+    expect_reply_type: no_candidates
+    expect_slots: { budget_per_hour: 5 }
+expect:
+  no_booking: true

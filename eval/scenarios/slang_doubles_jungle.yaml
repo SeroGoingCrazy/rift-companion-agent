@@ -1,0 +1,14 @@
+id: slang_doubles_jungle
+description: 黑话：双排、上分、jg 位
+now: "2026-10-01 14:00"
+user: { nickname: tester_01 }
+turns:
+  - say: "约个双排上分，要会打jg的，翡翠以上，周六晚上七点，两小时"
+    expect_reply_type: candidates
+    expect_slots: { game_mode: ranked_solo_duo, role_preference: [jungle], rank_requirement: emerald }
+  - say: "选第一个"
+    expect_reply_type: confirm_booking
+  - say: "确认"
+    expect_reply_type: booked
+expect:
+  booking: { status: pending_payment, game_mode: ranked_solo_duo, service_type: climb, start_time: "2026-10-03 19:00", duration_hours: 2 }
