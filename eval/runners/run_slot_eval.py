@@ -423,8 +423,12 @@ def run(
     )
     stem.parent.mkdir(parents=True, exist_ok=True)
     json_path, md_path = stem.with_suffix(".json"), stem.with_suffix(".md")
-    json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    md_path.write_text(render_markdown(report, max_examples=args.examples), encoding="utf-8")
+    json_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n"
+    )
+    md_path.write_text(
+        render_markdown(report, max_examples=args.examples), encoding="utf-8", newline="\n"
+    )
     report["paths"] = [str(json_path), str(md_path)]
     return report
 
