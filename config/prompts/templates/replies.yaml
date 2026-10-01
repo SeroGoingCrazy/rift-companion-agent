@@ -135,7 +135,7 @@ manage_error: |
 
 cancel_confirm: |
   确认取消订单 #{{ order.booking_id }}（{{ order.companion_name }}｜{{ order.game_mode | mode }}｜{{ order.start_time | dt }}）吗？
-  {% if paid %}距开局还有 {{ hours_before }} 小时，按规则{{ refund_label }}，可退 {{ refund_amount | money }} 元。
+  {% if paid %}距开局还有 {{ hours_before | left }}，按规则{{ refund_label }}，可退 {{ refund_amount | money }} 元。
   {% else %}这单还没支付，取消不产生任何费用。
   {% endif %}
   回复「确认」取消，或「算了」保留订单。
@@ -144,7 +144,7 @@ cancel_unclear: |
   没太听明白～确认取消订单 #{{ order.booking_id }} 吗？回复「确认」或「算了」。
 
 cancelled: |
-  已取消订单 #{{ order.booking_id }}。{% if paid %}退款 {{ refund_amount | money }} 元将原路退回（{{ refund_label }}）。{% else %}订单未支付，无需退款。{% endif %}
+  已取消订单 #{{ order.booking_id }}。{% if paid and refund_amount | float > 0 %}退款 {{ refund_amount | money }} 元将原路退回（{{ refund_label }}）。{% elif paid %}按规则{{ refund_label }}。{% else %}订单未支付，无需退款。{% endif %}
 
 cancel_aborted: |
   好的，订单 #{{ order.booking_id }} 保留，不取消了。

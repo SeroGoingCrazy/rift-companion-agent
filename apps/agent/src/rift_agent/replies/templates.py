@@ -67,6 +67,14 @@ def fmt_hours(value: Any) -> str:
     return format(d, "f")
 
 
+def fmt_time_left(hours: Any) -> str:
+    """Time until the start as people say it: 0.25 -> "15 分钟", 6.5 -> "6.5 小时"."""
+    h = Decimal(str(hours))
+    if h < 1:
+        return f"{max(int((h * 60).to_integral_value()), 0)} 分钟"
+    return f"{fmt_hours(h.quantize(Decimal('0.1')))} 小时"
+
+
 class ReplyRenderer:
     def __init__(self, domain: DomainConfig, path: str | Path = DEFAULT_TEMPLATES) -> None:
         self.domain = domain
@@ -89,6 +97,7 @@ class ReplyRenderer:
             dt=fmt_dt,
             money=fmt_money,
             hours=fmt_hours,
+            left=fmt_time_left,
             status=lambda s: STATUS_LABELS.get(str(s), str(s)),
         )
         self.templates = {k: self.env.from_string(str(v)) for k, v in raw.items()}
