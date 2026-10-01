@@ -61,10 +61,13 @@ L2 集合**不使用任何 Teacher 生成**，训练前冻结；造数（阶段 
   由代码推断，不进 delta。
 - **黑话**：双排 / 单排 → `ranked_solo_duo`，五排 → `ranked_flex`，斗魂 → `arena`，jg → `jungle`，
   小姐姐 / 妹子 → `female`，小哥哥 → `male`。
-- **"不限" vs 撤回**："无所谓 / 都行 / 不限 / 没要求" 标 `"any"`；"先不定 / 再想想 / 先别定" 标 `null`。
+- **"不限" vs 撤回**："无所谓 / 都行 / 不限 / 没要求 / 换谁都行" 标 `"any"`，对非必填字段（风格、
+  指定陪玩师、性别等）同样适用；"先不定 / 再想想 / 先别定" 标 `null`。
+- **声音**："声音好听" 一类说法是风格偏好（`style_preference`），只有 "开麦 / 能语音" 才标 `voice_required`。
 - **候选引用**：输出 `candidates` 中的确切名字（"1号""最后那个" 也一样）。
 - **确认**：`yes` 只用于回答待确认订单（`pending_confirmation: true`）；"改成三小时再下单" 标为
   `delta + yes`（代码先合并、重新报价）；没有待确认订单时的 "不约了" 标 `no`（显式放弃）。
+  拒绝确认（"不了，换一个人吧"）只标 `confirmation: no`，delta 为空，不撤回 `companion_name`，换人由代码处理。
 - **consult / unrelated** 轮次 `delta` 为空。
 
 ## 校验与冻结
