@@ -88,7 +88,7 @@
 |---|---|---|---|
 | L4 任务完成率 | 100%（22/22） | – | – |
 | 平均轮数 | 3.32 | – | – |
-| 单轮 P50 / P95 延迟 | 834 / 1686 ms | – | – |
+| 单轮 P50 / P95 延迟 | 804 / 1937 ms | – | – |
 | 远程 LLM 调用次数 / 会话 | 4.14 | – | – |
 | L2 主集 / holdout 通过率 | 98.3% / 88.9% | – | – |
 
@@ -134,7 +134,7 @@
 - **服务类型推断**：用户未明确说明时，排位 → `climb`，其余 → `casual`；用户明确说明以用户为准。
 - **单双排段位规则（平台虚构规则）**：陪玩师段位须满足 `rank_requirement ≤ companion.rank ≤ rank_requirement + max_tier_gap`（默认 `max_tier_gap = 2`）。
 - **计价**：`总价 = companion.hourly_price × service_multiplier[service_type] × duration_hours`；默认系数 `casual 1.0 / climb 1.2 / coaching 1.5`。
-- **退款**：距开局 ≥ 24h 全额；2h–24h 退 50%；< 2h 不退（可配）。
+- **退款**：距开局 ≥ 15 分钟全额；< 15 分钟（含已开局）不退（可配；2026-10 由原 24h / 2h 三档改为两档）。
 - **时长**：0.5h 为步长，1–8h。
 - **放宽顺序**：`time_window(±1h) → companion_gender → role_preference`；`budget`、`rank_requirement` 永不放宽。
 
@@ -981,7 +981,7 @@ session:
 - **修改文件**：`eval/reports/baseline_llm_*.md`、`DEV_SPEC.md` 2.4 表。
 - **验收标准**：报告提交；分析 DeepSeek 主要错误类型（作为造数重点）。
 - **测试方法**：同 H3 / H4。
-- **实现备注**：L2 主集通过率 98.3%（59/60），holdout 88.9%（24/27），协议层均为 100%。L4 完成率 22/22，两次运行结果一致；平均 3.32 轮，单轮 P50 / P95 为 834 / 1686 ms，每个会话 4.14 次远程调用。DeepSeek 的 4 个错误都出在"该不该输出某个键"上：非必填字段把 "不限" 输出成 `null`（2 个）；拒绝确认时多输出了 `companion_name: null`；把 "声音好听" 当成了 `voice_required`。据此定下的 I2 造数重点见 `eval/reports/baseline_llm_summary.md`。目前的 L4 剧本对大模型区分度不高，后续可以加入口语化、多意图的剧本。
+- **实现备注**：L2 主集通过率 98.3%（59/60），holdout 88.9%（24/27），协议层均为 100%。L4 完成率 22/22，多次运行结果一致；平均 3.32 轮，单轮 P50 / P95 为 804 / 1937 ms（退款规则改为 15 分钟后重跑），每个会话 4.14 次远程调用。DeepSeek 的 4 个错误都出在"该不该输出某个键"上：非必填字段把 "不限" 输出成 `null`（2 个）；拒绝确认时多输出了 `companion_name: null`；把 "声音好听" 当成了 `voice_required`。据此定下的 I2 造数重点见 `eval/reports/baseline_llm_summary.md`。目前的 L4 剧本对大模型区分度不高，后续可以加入口语化、多意图的剧本。
 
 ---
 
