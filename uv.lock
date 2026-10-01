@@ -4195,12 +4195,14 @@ name = "rift-training"
 version = "0.1.0"
 source = { editable = "training" }
 dependencies = [
+    { name = "rift-agent" },
     { name = "rift-common" },
     { name = "rift-domain" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "rift-agent", editable = "apps/agent" },
     { name = "rift-common", editable = "packages/common" },
     { name = "rift-domain", editable = "packages/domain" },
 ]

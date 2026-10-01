@@ -34,7 +34,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from rift_agent.extractors.base import ExtractionContext, ExtractionResult, SlotExtractor
+from rift_agent.extractors.base import ExtractionResult, SlotExtractor
+from rift_training.contract import context_from_sample
 from rift_training.evaluation.dataset import (
     CATEGORIES,
     SlotSample,
@@ -81,16 +82,8 @@ class ItemResult:
 # --- running -------------------------------------------------------------------------------
 
 
-def build_context(sample: SlotSample) -> ExtractionContext:
-    """The context the agent's ``extract_slots`` node would build for this sample."""
-    return ExtractionContext(
-        now=sample.now,
-        current_state=sample.state(),
-        user_input=sample.user_input,
-        candidates=tuple(sample.candidates),
-        history=tuple({"role": m.role, "content": m.content} for m in sample.history),
-        pending_confirmation=sample.pending_confirmation,
-    )
+#: The context the agent's ``extract_slots`` node would build for a sample (shared with training).
+build_context = context_from_sample
 
 
 async def run_extractor(
