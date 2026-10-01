@@ -69,6 +69,24 @@ uv run --env-file .env python eval/runners/run_rag_eval.py --ragas      # 另跑
 
 Agent 调用时在 `_meta` 中带上 `trace_id` / `parent_span_id`，knowledge-mcp 的检索 trace（`services/knowledge_mcp/logs/traces.jsonl`）会记录为 `parent_trace_id` / `parent_span_id`，可与 Agent 的 trace 关联。
 
+## 评测（L2 槽位抽取 / L4 端到端）
+
+L2 数据集是人工编写的（`eval/datasets/slot_{main,holdout}.jsonl`，格式与标注约定见 `eval/datasets/README.md`），训练前用 checksum 冻结：
+
+```bash
+uv run python eval/runners/validate_datasets.py                                         # schema、类别分布、checksum
+uv run --env-file .env python eval/runners/run_slot_eval.py --extractor llm --dataset main   # 也可用 local / routed，数据集可选 holdout
+```
+
+L4 剧本位于 `eval/scenarios/*.yaml`。每个剧本都在新 seed 的临时数据库上，用固定时钟驱动整个 Agent，断言订单状态和 trace span：
+
+```bash
+uv run --env-file .env python eval/runners/run_e2e.py --config llm      # 可选 local / routed，知识库默认 rag（进程内 knowledge-mcp）
+uv run python eval/runners/run_e2e.py --config mock --knowledge stub    # 不调用任何模型（CI 冒烟用的剧本）
+```
+
+报告同时输出 JSON 和 Markdown，默认写到 `eval/reports/`（带时间戳的不进 git）。DeepSeek 基线见 `eval/reports/baseline_llm_summary.md`。
+
 ## Agent（命令行对话）
 
 需要 `DEEPSEEK_API_KEY`。booking-mcp 可走 HTTP（`config/settings.yaml` 中的地址），也可在进程内运行：

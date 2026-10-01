@@ -82,15 +82,17 @@
 - 影子模式 + 样本挖掘看板 + 至少一轮完整数据飞轮。
 - docker compose 一键启动；GitHub Actions 离线 CI（零 API Key）。
 
-### 2.4 简历核心指标（待填，由阶段 J/K 产出）
+### 2.4 简历核心指标（纯大模型列由 H5 产出，其余待阶段 J/K 产出）
 
 | 指标 | 纯大模型 | 纯小模型 | 小模型 + 降级 |
 |---|---|---|---|
-| L4 任务完成率 | – | – | – |
-| 平均轮数 | – | – | – |
-| 单轮 P50 / P95 延迟 | – | – | – |
-| 远程 LLM 调用次数 / 会话 | – | – | – |
-| L2 主集 / holdout 通过率 | – | – | – |
+| L4 任务完成率 | 100%（22/22） | – | – |
+| 平均轮数 | 3.32 | – | – |
+| 单轮 P50 / P95 延迟 | 834 / 1686 ms | – | – |
+| 远程 LLM 调用次数 / 会话 | 4.14 | – | – |
+| L2 主集 / holdout 通过率 | 98.3% / 88.9% | – | – |
+
+「纯大模型」列由阶段 H5 产出（DeepSeek，见 `eval/reports/baseline_llm_summary.md`）。
 
 ---
 
@@ -586,7 +588,7 @@ session:
 | E | E1 E2 E3 E4 E5 E6 | ✅✅✅✅✅✅ |
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
-| H | H1 H2 H3 H4 H5 | ⬜⬜⬜⬜⬜ |
+| H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
 | I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
@@ -594,7 +596,7 @@ session:
 
 ### 📈 总体进度
 
-`47 / 77`
+`52 / 77`
 
 ---
 
@@ -944,37 +946,42 @@ session:
 
 ---
 
-## 阶段 H：评测基座（目标：大模型基线数据）
+## 阶段 H：评测基座（目标：大模型基线数据） ✅
 
-### H1：L2 评测集编写（人工）
+### H1：L2 评测集编写（人工） ✅
 - **目标**：编写 `slot_main.jsonl`（≈ 60）与 `slot_holdout.jsonl`（≈ 25），覆盖 3.7 所列全部场景类别；每条包含输入上下文（now、current_state、candidates、history、user_input）与期望 `SlotExtraction`。由 Claude 起草、**人工逐条审核**，记录 checksum 后冻结。
 - **修改文件**：`eval/datasets/{slot_main.jsonl, slot_holdout.jsonl, CHECKSUMS}`、`eval/datasets/README.md`（类别分布表）。
 - **验收标准**：所有样本通过 C2 schema；类别分布表中每类 ≥ 3 条；holdout 与 main 无重复用户输入。
 - **测试方法**：`uv run python eval/runners/validate_datasets.py`。
+- **实现备注**：主集 60 条、holdout 27 条（每类 3 条，比 ≈ 25 多两条，保证每类 ≥ 3），9 个类别的分布见 `eval/datasets/README.md`，标注约定也写在那里：时间照抄原话；服务类型只在用户明说时标；"不限" 标 any、"先不定" 标 null；带修改的确认标 `delta + yes`。样本模型 `rift_training.evaluation.dataset.SlotSample` 用 C2 严格 schema 校验 `expected`，用 `BookingState` 校验 `current_state`。校验器还检查：候选引用的名字必须在 `candidates` 里；consult / unrelated 轮次的 delta 为空；`yes` 只出现在待确认时；`history` 以助手消息结尾；main 与 holdout 没有相同的用户输入。31 个时间表达都已确认能被 C3 解析到预期时刻。`CHECKSUMS` 为 sha256sum 格式，用 LF 写出。**审核状态**：样本由 Claude 起草，仍需人工逐条审核；审核时如有改动，重跑 `--write-checksums` 后再冻结。
 
-### H2：L2 评分器
+### H2：L2 评分器 ✅
 - **目标**：迁移 slot-extractor 评分思路：协议层（JSON、schema、枚举）+ 任务层（`turn_intent`、`confirmation`、delta 逐字段：键集合一致性 + 值一致；`style_preference` 用本地 embedding 相似度阈值；`start_time_expr` 通过 C3 解析后比较绝对时间）。
 - **修改文件**：`training/src/rift_training/evaluation/{protocol.py, task.py, preferences.py}`、`tests/unit/test_scorers.py`。
 - **验收标准**：多写一个键（本应"未出现"）判错；`"明晚8点"` 与 `"明天晚上八点"` 解析一致判对。
 - **测试方法**：`uv run pytest -q tests/unit/test_scorers.py`。
+- **实现备注**：协议层把错误分为 `empty / json / not_object / extra_key / missing_key / enum / type` 几类。与线上解析一致，不剥离 Markdown 代码块；`1` 对应 `bool | "any"` 时算类型错误，未知字符串算枚举错误。任务层逐字段比较 `turn_intent`、`confirmation` 以及任一方输出过的所有 delta 键，只在一方出现的键记为 `missing_key` 或 `extra_key`。各字段的比较方式：时间按与 `merge` 完全相同的方式解析（考虑 `now`、当前 `start_time` 和之前未能解析的表达式），解析不出来时比较规范化后的文本；`role_preference` 按集合比较；`style_preference` 用 `EmbeddingStyleMatcher`（本地 bge，规范化后相同直接判对）。风格阈值 0.7 是在种子风格标签上标定的：同义说法的相似度 ≥ 0.74，不同风格 ≤ 0.59。任务分 = 正确字段数 / 比较字段数；协议通过且任务分 ≥ 0.95 才算通过，由于每条样本只有 2–7 个字段，实际上要求全部字段正确。`rift-training` 新增依赖 `rift-common`，`training/src` 纳入 CI 的 mypy 检查。
 
-### H3：L2 Runner 与报告
+### H3：L2 Runner 与报告 ✅
 - **目标**：`run_slot_eval.py --extractor llm|local|routed --dataset main|holdout`，输出 JSON + Markdown 报告（通过率、逐字段错误分布、错误样例、延迟分布）。
 - **修改文件**：`eval/runners/run_slot_eval.py`、`eval/reports/`。
 - **验收标准**：DeepSeek 基线报告生成并提交。
 - **测试方法**：`uv run python eval/runners/run_slot_eval.py --extractor llm --dataset main`。
+- **实现备注**：每条样本都构造与 `extract_slots` 节点相同的 `ExtractionContext`，因此 prompt 与线上逐字节一致。`llm` / `local` 只调用一次、不重试，衡量的是模型本身；`routed` 走 M3 路由（local 为主，失败重试，再降级到 DeepSeek）。`rift_agent.factory` 新增 `EXTRACTOR_CONFIGS`、`with_extractor_config` 和 `build_single_extractor`；其中 `local` 暂时是连接 llama-server OpenAI 兼容接口的 `LLMSlotExtractor`（name=`local`），J1 会换成专用的 `LocalSlotExtractor`。报告分 JSON（逐条样本）和 Markdown（总览、分类别、协议错误、逐字段错误分布、错误样例、延迟分位数）两份；`--out` 可指定文件名，带时间戳的报告不进 git。数据集 checksum 不符时打印警告并写入报告。基线报告：`eval/reports/baseline_llm_slot_{main,holdout}.{json,md}`。
 
-### H4：L4 剧本与 Runner
+### H4：L4 剧本与 Runner ✅
 - **目标**：编写 ≈ 20 个 YAML 剧本（见 4.3），Runner 用固定 `now` 与临时数据库（每个剧本重新 seed）驱动 `run_turn`，断言最终 DB 状态与关键 span；统计任务完成率、平均轮数、单轮 P50/P95、远程 LLM 调用数。
 - **修改文件**：`eval/scenarios/*.yaml`、`eval/runners/run_e2e.py`、`tests/integration/test_e2e_smoke.py`（mock 回放 1 个剧本，进 CI）。
 - **验收标准**：Runner 可按 `--config llm|local|routed` 切换；CI 中冒烟剧本通过。
 - **测试方法**：`uv run python eval/runners/run_e2e.py --config llm`。
+- **实现备注**：共 22 个剧本，覆盖 4.3 列出的全部必备场景，另外加了一句话下单、拒绝后改选、确认时改时长和查看订单列表。剧本格式写在 `run_e2e.py` 的模块文档里。在 4.3 的 `expect_span` 和最终 `booking` 之外，每轮还可以断言 `expect_reply_type` / `expect_slots` / `expect_relaxations`；剧本支持多会话（`session` / `user`）、`restart`（用同一个 checkpoint 库重建 Agent）和 `setup.bookings`（开聊前通过 booking-mcp 下单或支付）；最终断言还有 `no_booking`、按用户统计的 `bookings`、`setup_bookings`（含 `refund_ratio`）和 `state_phase`。每个剧本使用独立的临时目录：按 `now` 当天重新 seed 的 SQLite（booking-mcp 在进程内运行）、固定时钟和新的 checkpoint 库。知识库有三种模式：`rag`（knowledge-mcp 在进程内运行，使用已导入的知识库）、`http`、`stub`（对 `kb/` 做字符二元组检索；没有 `kb/` 时改用内置段落，CI 中就是这种情况）。远程 LLM 调用数按 `llm:*` generation span 统计，不含 `llm:llama_server`。`--config mock` 只运行每轮都带 `mock`（意图 + 抽取结果）的剧本，CI 冒烟用这种方式回放 `interject_refund_then_continue`。测试里还故意写错期望值，确认这些断言确实会报失败。
 
-### H5：大模型基线
+### H5：大模型基线 ✅
 - **目标**：用 DeepSeek 跑 L2（main + holdout）与 L4，产出基线报告，填入 2.4 表"纯大模型"列。
 - **修改文件**：`eval/reports/baseline_llm_*.md`、`DEV_SPEC.md` 2.4 表。
 - **验收标准**：报告提交；分析 DeepSeek 主要错误类型（作为造数重点）。
 - **测试方法**：同 H3 / H4。
+- **实现备注**：L2 主集通过率 98.3%（59/60），holdout 88.9%（24/27），协议层均为 100%。L4 完成率 22/22，两次运行结果一致；平均 3.32 轮，单轮 P50 / P95 为 834 / 1686 ms，每个会话 4.14 次远程调用。DeepSeek 的 4 个错误都出在"该不该输出某个键"上：非必填字段把 "不限" 输出成 `null`（2 个）；拒绝确认时多输出了 `companion_name: null`；把 "声音好听" 当成了 `voice_required`。据此定下的 I2 造数重点见 `eval/reports/baseline_llm_summary.md`。目前的 L4 剧本对大模型区分度不高，后续可以加入口语化、多意图的剧本。
 
 ---
 

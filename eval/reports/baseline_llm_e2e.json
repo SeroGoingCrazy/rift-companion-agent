@@ -1,0 +1,1524 @@
+{
+  "meta": {
+    "config": "llm",
+    "model": "deepseek-chat",
+    "knowledge": "rag",
+    "started_at": "2026-10-01 10:35:04"
+  },
+  "summary": {
+    "scenarios": 22,
+    "passed": 22,
+    "completion_rate": 1.0,
+    "avg_turns": 3.32,
+    "turns": 73,
+    "latency_ms": {
+      "p50": 834.3,
+      "p95": 1686.0,
+      "max": 9548.7
+    },
+    "remote_llm_calls_per_session": 4.14,
+    "remote_llm_calls_per_turn": 1.25,
+    "failed": []
+  },
+  "scenarios": [
+    {
+      "id": "budget_never_relaxed",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "约个大乱斗，明晚八点两小时，预算每小时5块",
+          "reply": "抱歉，按「大乱斗 · 10月2日（周五）20:00 · 2 小时 · 每小时 ≤5 元」没找到能约的陪玩师（已尝试放宽时间、性别、位置）。\n预算和段位要求不会自动放宽，可以提高一点预算，或者换个时间试试？",
+          "reply_type": "no_candidates",
+          "phase": "BOOKING",
+          "latency_ms": 2109.4,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "预算每小时 5 元，放宽时间也找不到，预算不会被放宽，不下单"
+    },
+    {
+      "id": "cancel_refund_full",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我取消订单",
+          "reply": "确认取消订单 #1（云边小卖部｜大乱斗｜10月4日（周日）20:00）吗？\n距开局还有 78.0 小时，按规则全额退款，可退 107.00 元。\n回复「确认」取消，或「算了」保留订单。",
+          "reply_type": "cancel_confirm",
+          "phase": "MANAGE",
+          "latency_ms": 880.7,
+          "remote_llm_calls": 1,
+          "tools": [
+            "cancel_booking",
+            "list_my_bookings"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "已取消订单 #1。退款 107.00 元将原路退回（全额退款）。",
+          "reply_type": "cancelled",
+          "phase": "IDLE",
+          "latency_ms": 30.7,
+          "remote_llm_calls": 0,
+          "tools": [
+            "cancel_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "已支付订单，距开局 ≥ 24 小时取消，全额退款"
+    },
+    {
+      "id": "cancel_refund_half",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我取消订单",
+          "reply": "确认取消订单 #1（烤红薯｜大乱斗｜10月1日（周四）20:00）吗？\n距开局还有 6.0 小时，按规则退一半，可退 32.00 元。\n回复「确认」取消，或「算了」保留订单。",
+          "reply_type": "cancel_confirm",
+          "phase": "MANAGE",
+          "latency_ms": 755.8,
+          "remote_llm_calls": 1,
+          "tools": [
+            "cancel_booking",
+            "list_my_bookings"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "已取消订单 #1。退款 32.00 元将原路退回（退一半）。",
+          "reply_type": "cancelled",
+          "phase": "IDLE",
+          "latency_ms": 29.4,
+          "remote_llm_calls": 0,
+          "tools": [
+            "cancel_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "已支付订单，距开局 2–24 小时取消，退 50%"
+    },
+    {
+      "id": "cancel_refund_none",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我取消订单",
+          "reply": "确认取消订单 #1（烤红薯｜大乱斗｜10月1日（周四）15:00）吗？\n距开局还有 1.0 小时，按规则不退款，可退 0.00 元。\n回复「确认」取消，或「算了」保留订单。",
+          "reply_type": "cancel_confirm",
+          "phase": "MANAGE",
+          "latency_ms": 753.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "cancel_booking",
+            "list_my_bookings"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "已取消订单 #1。退款 0.00 元将原路退回（不退款）。",
+          "reply_type": "cancelled",
+          "phase": "IDLE",
+          "latency_ms": 29.8,
+          "remote_llm_calls": 0,
+          "tools": [
+            "cancel_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "已支付订单，距开局不足 2 小时取消，不退款"
+    },
+    {
+      "id": "confirm_with_change",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的大乱斗，两个小时",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1830.7,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：山海皆可平（黑铁）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：30.00 × 1 × 2 = 60.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 875.0,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "改成三小时再下单",
+          "reply": "请确认订单：\n· 陪玩师：山海皆可平（黑铁）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，3 小时\n· 价格：30.00 × 1 × 3 = 90.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 700.5,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions",
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 山海皆可平｜大乱斗｜10月2日（周五）20:00 起 3 小时\n· 应付 90.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，山海皆可平 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 691.0,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 15,
+            "companion_name": "山海皆可平",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T23:00:00",
+            "game_mode": "aram",
+            "service_type": "casual",
+            "hours": "3.0",
+            "unit_price": "30.00",
+            "multiplier": "1.0000",
+            "total": "90.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:13.852628",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "确认时同时改时长（改成三小时再下单），重新报价后再确认"
+    },
+    {
+      "id": "consult_only",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "斗魂竞技场是几个人一起玩的？",
+          "reply": "斗魂竞技场是 8 队 × 2 人，也就是 2 人一队的多队淘汰赛，回合制对决 [2]。\n（参考：平台规则、模式与段位、陪玩师资料）",
+          "reply_type": "consult",
+          "phase": "IDLE",
+          "latency_ms": 9548.7,
+          "remote_llm_calls": 2,
+          "tools": [
+            "query_knowledge_hub"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "开局前3小时取消能退多少？",
+          "reply": "开局前3小时取消属于\"2–24小时\"这一档，退一半（50%）[1]。以144.00元的订单为例，提前3小时取消退72.00元[1]。\n（参考：平台规则、模式与段位、陪玩师资料）",
+          "reply_type": "consult",
+          "phase": "IDLE",
+          "latency_ms": 1686.0,
+          "remote_llm_calls": 2,
+          "tools": [
+            "query_knowledge_hub"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "空闲状态下连续咨询规则，不进入预约"
+    },
+    {
+      "id": "decline_then_pick_another",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的大乱斗，两个小时",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1561.2,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：山海皆可平（黑铁）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：30.00 × 1 × 2 = 60.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 711.5,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "算了，换一个人吧",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 525.2,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第二个",
+          "reply": "请确认订单：\n· 陪玩师：白桃乌龙（白银）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：46.00 × 1 × 2 = 92.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 625.1,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 白桃乌龙｜大乱斗｜10月2日（周五）20:00 起 2 小时\n· 应付 92.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，白桃乌龙 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 793.0,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 19,
+            "companion_name": "白桃乌龙",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "aram",
+            "service_type": "casual",
+            "hours": "2.0",
+            "unit_price": "46.00",
+            "multiplier": "1.0000",
+            "total": "92.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:29.547362",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "确认时拒绝，回到候选列表改选另一位"
+    },
+    {
+      "id": "double_session_same_slot",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的单双排，挑战者，两小时",
+          "reply": "按「单双排 · 10月2日（周五）20:00 · 2 小时 · 王者起」为你找到这些陪玩师：\n1. 星河滚烫｜王者｜ADC/辅助｜134.40 元/小时\n   评分 4.6\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1572.5,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "other",
+          "say": "帮我约个明晚八点的单双排，挑战者，两小时",
+          "reply": "按「单双排 · 10月2日（周五）20:00 · 2 小时 · 王者起」为你找到这些陪玩师：\n1. 星河滚烫｜王者｜ADC/辅助｜134.40 元/小时\n   评分 4.6\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1431.1,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：星河滚烫（王者）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：112.00 × 1.2 × 2 = 268.80 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 755.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "other",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：星河滚烫（王者）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：112.00 × 1.2 × 2 = 268.80 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 608.8,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 星河滚烫｜单双排｜10月2日（周五）20:00 起 2 小时\n· 应付 268.80 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，星河滚烫 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 1019.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        },
+        {
+          "session": "other",
+          "say": "确认",
+          "reply": "抱歉，按「单双排 · 10月2日（周五）20:00 · 2 小时 · 王者起」没找到能约的陪玩师（已尝试放宽时间、性别、位置）。\n换个时间或调整一下要求试试？",
+          "reply_type": "no_candidates",
+          "phase": "BOOKING",
+          "latency_ms": 946.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking",
+            "find_companions"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 9,
+            "companion_name": "星河滚烫",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "112.00",
+            "multiplier": "1.2000",
+            "total": "268.80",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:35.045776",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ],
+        "tester_02": []
+      },
+      "error": null,
+      "description": "两个用户同时抢唯一的挑战者陪玩，后确认的一方收到冲突并重新给出候选"
+    },
+    {
+      "id": "explicit_abandon",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的单双排，钻石以上",
+          "reply": "好的，已记下：单双排 · 10月2日（周五）20:00 · 钻石起。\n打几个小时呢？（1–8 小时，可以按半小时算）",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 1492.8,
+          "remote_llm_calls": 2,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "算了，不约了",
+          "reply": "好的，这次先不约了（已取消：单双排 · 10月2日（周五）20:00 · 钻石起）。想约的时候随时叫我～",
+          "reply_type": "abandon",
+          "phase": "IDLE",
+          "latency_ms": 620.4,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "预约途中说不约了，归档状态回到 IDLE，不下单"
+    },
+    {
+      "id": "interject_refund_then_continue",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的单双排，钻石以上",
+          "reply": "好的，已记下：单双排 · 10月2日（周五）20:00 · 钻石起。\n打几个小时呢？（1–8 小时，可以按半小时算）",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 1483.2,
+          "remote_llm_calls": 2,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "等下，取消要扣钱吗？",
+          "reply": "要看情况：如果订单还没支付，取消不产生任何费用 [1]；如果已支付，提前 25 小时取消全额退款，提前 3 小时取消退一半，提前 1 小时取消不退款 [1]。另外，因陪玩师迟到或违规导致的取消不适用这些档位 [1]。\n（参考：平台规则、模式与段位、陪玩师资料）\n回到预约：打几个小时呢？",
+          "reply_type": "consult",
+          "phase": "BOOKING",
+          "latency_ms": 1432.9,
+          "remote_llm_calls": 2,
+          "tools": [
+            "query_knowledge_hub"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "那就两小时吧",
+          "reply": "按「单双排 · 10月2日（周五）20:00 · 2 小时 · 钻石起」为你找到这些陪玩师：\n1. 一只小熊软糖｜大师｜ADC/打野/辅助｜109.20 元/小时\n   评分 4.7\n2. 海盐芝士｜钻石｜打野/辅助｜105.60 元/小时\n   评分 4.5\n3. 峡谷清风｜大师｜打野/辅助｜103.20 元/小时\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 869.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "选第一个",
+          "reply": "请确认订单：\n· 陪玩师：一只小熊软糖（大师）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：91.00 × 1.2 × 2 = 218.40 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 949.8,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 一只小熊软糖｜单双排｜10月2日（周五）20:00 起 2 小时\n· 应付 218.40 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，一只小熊软糖 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 749.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 16,
+            "companion_name": "一只小熊软糖",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "91.00",
+            "multiplier": "1.2000",
+            "total": "218.40",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:43.799823",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "预约中插话问退款规则，答完继续收集槽位并下单（DEV_SPEC 4.3 示例；CI 冒烟剧本）"
+    },
+    {
+      "id": "list_orders",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "看看我的订单",
+          "reply": "你的订单：\n1. #1 阿狸酱｜大乱斗｜10月3日（周六）20:00 起 2 小时｜166.00 元｜已支付\n2. #2 阿狸酱｜匹配｜10月4日（周日）15:00 起 1 小时｜83.00 元｜待支付\n需要取消的话，说「取消第一个」就行；支付请到「我的订单」页面。",
+          "reply_type": "manage_list",
+          "phase": "MANAGE",
+          "latency_ms": 616.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "list_my_bookings"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": []
+      },
+      "error": null,
+      "description": "查看订单列表，不改变任何订单"
+    },
+    {
+      "id": "multi_turn_collect",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "我想约个陪玩",
+          "reply": "想约哪种模式呢？单双排、灵活组排、匹配、大乱斗、海克斯大乱斗、斗魂竞技场都可以。",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 1420.2,
+          "remote_llm_calls": 2,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "灵活组排吧",
+          "reply": "好的，已记下：灵活组排。\n想约什么时候开始？比如「明晚八点」「周六下午三点」。",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 973.6,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "明晚八点，打两个小时",
+          "reply": "好的，已记下：灵活组排 · 10月2日（周五）20:00 · 2 小时。\n对陪玩师段位有要求吗？比如「钻石以上」，没要求也可以说「无所谓」。",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 758.2,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "铂金以上",
+          "reply": "按「灵活组排 · 10月2日（周五）20:00 · 2 小时 · 铂金起」为你找到这些陪玩师：\n1. 柚子茶｜铂金｜打野/中单/辅助｜74.40 元/小时\n   评分 4.7\n2. 星河滚烫｜王者｜ADC/辅助｜134.40 元/小时\n   评分 4.6\n3. 海盐芝士｜钻石｜打野/辅助｜105.60 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 698.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：柚子茶（铂金）\n· 模式：灵活组排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：62.00 × 1.2 × 2 = 148.80 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 720.6,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 柚子茶｜灵活组排｜10月2日（周五）20:00 起 2 小时\n· 应付 148.80 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，柚子茶 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 905.6,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 29,
+            "companion_name": "柚子茶",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_flex",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "62.00",
+            "multiplier": "1.2000",
+            "total": "148.80",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:50.196238",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "从零开始逐项追问：模式 → 时间与时长 → 段位"
+    },
+    {
+      "id": "one_shot_booking",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的单双排，钻石以上，打两个小时",
+          "reply": "按「单双排 · 10月2日（周五）20:00 · 2 小时 · 钻石起」为你找到这些陪玩师：\n1. 一只小熊软糖｜大师｜ADC/打野/辅助｜109.20 元/小时\n   评分 4.7\n2. 海盐芝士｜钻石｜打野/辅助｜105.60 元/小时\n   评分 4.5\n3. 峡谷清风｜大师｜打野/辅助｜103.20 元/小时\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1568.4,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "就第二个",
+          "reply": "请确认订单：\n· 陪玩师：海盐芝士（钻石）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：88.00 × 1.2 × 2 = 211.20 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 655.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 海盐芝士｜单双排｜10月2日（周五）20:00 起 2 小时\n· 应付 211.20 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，海盐芝士 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 809.4,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 25,
+            "companion_name": "海盐芝士",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "88.00",
+            "multiplier": "1.2000",
+            "total": "211.20",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:53.558529",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "一句话给齐信息，选第二位候选并确认"
+    },
+    {
+      "id": "relative_time_edit",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的单双排，钻石以上，两个小时",
+          "reply": "按「单双排 · 10月2日（周五）20:00 · 2 小时 · 钻石起」为你找到这些陪玩师：\n1. 一只小熊软糖｜大师｜ADC/打野/辅助｜109.20 元/小时\n   评分 4.7\n2. 海盐芝士｜钻石｜打野/辅助｜105.60 元/小时\n   评分 4.5\n3. 峡谷清风｜大师｜打野/辅助｜103.20 元/小时\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1515.7,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "改成晚一小时",
+          "reply": "按「单双排 · 10月2日（周五）21:00 · 2 小时 · 钻石起」为你找到这些陪玩师：\n1. 一只小熊软糖｜大师｜ADC/打野/辅助｜109.20 元/小时\n   评分 4.7\n2. 海盐芝士｜钻石｜打野/辅助｜105.60 元/小时\n   评分 4.5\n3. 半糖主义｜宗师｜ADC/打野｜106.80 元/小时\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1089.5,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：一只小熊软糖（大师）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）21:00 起，2 小时\n· 价格：91.00 × 1.2 × 2 = 218.40 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 735.2,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 一只小熊软糖｜单双排｜10月2日（周五）21:00 起 2 小时\n· 应付 218.40 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）21:00 前 10 分钟上线，一只小熊软糖 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 678.8,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 16,
+            "companion_name": "一只小熊软糖",
+            "start_time": "2026-10-02T21:00:00",
+            "end_time": "2026-10-02T23:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "91.00",
+            "multiplier": "1.2000",
+            "total": "218.40",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:35:57.678518",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "相对时间修改：看到候选后改成晚一小时"
+    },
+    {
+      "id": "relax_rank_gap",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "约个单双排，宗师以上，要会玩上单的小姐姐，明晚八点两小时",
+          "reply": "按原条件没找到合适的陪玩师，已帮你开始时间放宽到前后 1 小时，不再限定陪玩师性别，不再限定位置：\n1. 星河滚烫｜王者｜ADC/辅助｜134.40 元/小时\n   评分 4.6\n2. 半糖主义｜宗师｜ADC/打野｜106.80 元/小时｜可约 10月2日（周五）21:00\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1366.3,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：星河滚烫（王者）\n· 模式：单双排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时（已按陪玩师可约时间调整）\n· 价格：112.00 × 1.2 × 2 = 268.80 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 732.1,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 星河滚烫｜单双排｜10月2日（周五）20:00 起 2 小时\n· 应付 268.80 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，星河滚烫 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 1092.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 9,
+            "companion_name": "星河滚烫",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "112.00",
+            "multiplier": "1.2000",
+            "total": "268.80",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:00.968499",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "宗师以上 + 上单小姐姐无人满足，逐级放宽时间、性别、位置（段位不放宽）"
+    },
+    {
+      "id": "restart_resume",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的大乱斗，两个小时",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1186.2,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第二个",
+          "reply": "请确认订单：\n· 陪玩师：白桃乌龙（白银）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：46.00 × 1 × 2 = 92.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 897.0,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 白桃乌龙｜大乱斗｜10月2日（周五）20:00 起 2 小时\n· 应付 92.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，白桃乌龙 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 717.7,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 19,
+            "companion_name": "白桃乌龙",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "aram",
+            "service_type": "casual",
+            "hours": "2.0",
+            "unit_price": "46.00",
+            "multiplier": "1.0000",
+            "total": "92.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:03.870861",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "等待确认时服务重启，恢复会话后确认下单"
+    },
+    {
+      "id": "slang_aram_mayhem",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "明晚9点想打海克斯大乱斗，一个小时",
+          "reply": "按「海克斯大乱斗 · 10月2日（周五）21:00 · 1 小时」为你找到这些陪玩师：\n1. 一只小熊软糖｜大师｜ADC/打野/辅助｜91.00 元/小时\n   评分 4.7\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 月下独酌｜铂金｜ADC/上单｜67.00 元/小时\n   评分 4.3\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1650.4,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：一只小熊软糖（大师）\n· 模式：海克斯大乱斗｜娱乐\n· 时间：10月2日（周五）21:00 起，1 小时\n· 价格：91.00 × 1 × 1 = 91.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 943.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 一只小熊软糖｜海克斯大乱斗｜10月2日（周五）21:00 起 1 小时\n· 应付 91.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）21:00 前 10 分钟上线，一只小熊软糖 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 871.8,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 16,
+            "companion_name": "一只小熊软糖",
+            "start_time": "2026-10-02T21:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "aram_mayhem",
+            "service_type": "casual",
+            "hours": "1.0",
+            "unit_price": "91.00",
+            "multiplier": "1.0000",
+            "total": "91.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:07.441045",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "海克斯大乱斗与大乱斗区分"
+    },
+    {
+      "id": "slang_arena",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "今晚十点约个斗魂，一个小时",
+          "reply": "按「斗魂竞技场 · 10月1日（周四）22:00 · 1 小时」为你找到这些陪玩师：\n1. 橘子味的猫｜翡翠｜打野/上单｜70.00 元/小时\n   评分 4.7\n2. 柚子茶｜铂金｜打野/中单/辅助｜62.00 元/小时\n   评分 4.7\n3. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1305.9,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：橘子味的猫（翡翠）\n· 模式：斗魂竞技场｜娱乐\n· 时间：10月1日（周四）22:00 起，1 小时\n· 价格：70.00 × 1 × 1 = 70.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 867.5,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 橘子味的猫｜斗魂竞技场｜10月1日（周四）22:00 起 1 小时\n· 应付 70.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月1日（周四）22:00 前 10 分钟上线，橘子味的猫 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 552.4,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 8,
+            "companion_name": "橘子味的猫",
+            "start_time": "2026-10-01T22:00:00",
+            "end_time": "2026-10-01T23:00:00",
+            "game_mode": "arena",
+            "service_type": "casual",
+            "hours": "1.0",
+            "unit_price": "70.00",
+            "multiplier": "1.0000",
+            "total": "70.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:10.264838",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "黑话：斗魂（斗魂竞技场），今晚的单"
+    },
+    {
+      "id": "slang_doubles_jungle",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "约个双排上分，要会打jg的，翡翠以上，周六晚上七点，两小时",
+          "reply": "按「单双排 · 10月3日（周六）19:00 · 2 小时 · 翡翠起 · 打野 · 上分」为你找到这些陪玩师：\n1. 阿狸酱｜钻石｜打野/辅助/上单｜99.60 元/小时\n   擅长打野，评分 4.9\n2. 薄荷微凉｜大师｜打野/辅助｜97.20 元/小时\n   擅长打野，评分 4.9\n3. 野区守望者｜钻石｜打野/中单/上单｜99.60 元/小时\n   擅长打野，评分 4.6\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1394.2,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "选第一个",
+          "reply": "请确认订单：\n· 陪玩师：阿狸酱（钻石）\n· 模式：单双排｜上分\n· 时间：10月3日（周六）19:00 起，2 小时\n· 价格：83.00 × 1.2 × 2 = 199.20 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 646.6,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 阿狸酱｜单双排｜10月3日（周六）19:00 起 2 小时\n· 应付 199.20 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月3日（周六）19:00 前 10 分钟上线，阿狸酱 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 646.0,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 1,
+            "companion_name": "阿狸酱",
+            "start_time": "2026-10-03T19:00:00",
+            "end_time": "2026-10-03T21:00:00",
+            "game_mode": "ranked_solo_duo",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "83.00",
+            "multiplier": "1.2000",
+            "total": "199.20",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:13.054131",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "黑话：双排、上分、jg 位"
+    },
+    {
+      "id": "tri_state_any_rank",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "约个灵活组排，明晚八点，两个小时",
+          "reply": "好的，已记下：灵活组排 · 10月2日（周五）20:00 · 2 小时。\n对陪玩师段位有要求吗？比如「钻石以上」，没要求也可以说「无所谓」。",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 1630.1,
+          "remote_llm_calls": 2,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "段位无所谓",
+          "reply": "按「灵活组排 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 柚子茶｜铂金｜打野/中单/辅助｜74.40 元/小时\n   评分 4.7\n2. 星河滚烫｜王者｜ADC/辅助｜134.40 元/小时\n   评分 4.6\n3. 山海皆可平｜黑铁｜打野/上单｜36.00 元/小时\n   评分 4.6\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 625.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：柚子茶（铂金）\n· 模式：灵活组排｜上分\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：62.00 × 1.2 × 2 = 148.80 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 760.1,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 柚子茶｜灵活组排｜10月2日（周五）20:00 起 2 小时\n· 应付 148.80 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，柚子茶 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 731.6,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 29,
+            "companion_name": "柚子茶",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "ranked_flex",
+            "service_type": "climb",
+            "hours": "2.0",
+            "unit_price": "62.00",
+            "multiplier": "1.2000",
+            "total": "148.80",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:16.897575",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "三态：段位无所谓（any）满足必填但不参与过滤"
+    },
+    {
+      "id": "tri_state_withdraw_time",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的大乱斗，两个小时",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1347.6,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "时间先不定，我再看看",
+          "reply": "好的，已记下：大乱斗 · 2 小时。\n想约什么时候开始？比如「明晚八点」「周六下午三点」。",
+          "reply_type": "ask_missing",
+          "phase": "BOOKING",
+          "latency_ms": 890.3,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "后天晚上九点吧",
+          "reply": "按「大乱斗 · 10月3日（周六）21:00 · 2 小时」为你找到这些陪玩师：\n1. 阿狸酱｜钻石｜打野/辅助/上单｜83.00 元/小时\n   评分 4.9\n2. 夜雨声烦｜黄金｜ADC｜59.00 元/小时\n   评分 4.9\n3. 云边小卖部｜王者｜打野/中单｜107.00 元/小时\n   评分 4.8\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 642.7,
+          "remote_llm_calls": 1,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "第一个",
+          "reply": "请确认订单：\n· 陪玩师：阿狸酱（钻石）\n· 模式：大乱斗｜娱乐\n· 时间：10月3日（周六）21:00 起，2 小时\n· 价格：83.00 × 1 × 2 = 166.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 834.3,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 阿狸酱｜大乱斗｜10月3日（周六）21:00 起 2 小时\n· 应付 166.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月3日（周六）21:00 前 10 分钟上线，阿狸酱 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 666.2,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 1,
+            "companion_name": "阿狸酱",
+            "start_time": "2026-10-03T21:00:00",
+            "end_time": "2026-10-03T23:00:00",
+            "game_mode": "aram",
+            "service_type": "casual",
+            "hours": "2.0",
+            "unit_price": "83.00",
+            "multiplier": "1.0000",
+            "total": "166.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:21.371916",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "三态：撤回时间（null）后重新给时间"
+    },
+    {
+      "id": "unrelated_pull_back",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "session": "main",
+          "say": "帮我约个明晚八点的大乱斗，两个小时",
+          "reply": "按「大乱斗 · 10月2日（周五）20:00 · 2 小时」为你找到这些陪玩师：\n1. 山海皆可平｜黑铁｜打野/上单｜30.00 元/小时\n   评分 4.6\n2. 白桃乌龙｜白银｜打野/上单｜46.00 元/小时\n   评分 4.5\n3. 海盐芝士｜钻石｜打野/辅助｜88.00 元/小时\n   评分 4.5\n想约哪位？说「第一个」或直接说名字就行。",
+          "reply_type": "candidates",
+          "phase": "BOOKING",
+          "latency_ms": 1171.4,
+          "remote_llm_calls": 2,
+          "tools": [
+            "find_companions"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "今天天气怎么样",
+          "reply": "这个我帮不上忙哈，我只负责峡谷陪练的陪玩预约和规则咨询～\n上面几位陪玩师想约哪位？",
+          "reply_type": "unrelated",
+          "phase": "BOOKING",
+          "latency_ms": 511.5,
+          "remote_llm_calls": 1,
+          "tools": [],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "选第一个",
+          "reply": "请确认订单：\n· 陪玩师：山海皆可平（黑铁）\n· 模式：大乱斗｜娱乐\n· 时间：10月2日（周五）20:00 起，2 小时\n· 价格：30.00 × 1 × 2 = 60.00 元\n确认下单吗？（回复「确认」下单，或「算了」换一位）",
+          "reply_type": "confirm_booking",
+          "phase": "BOOKING",
+          "latency_ms": 660.9,
+          "remote_llm_calls": 1,
+          "tools": [
+            "quote_price"
+          ],
+          "failures": []
+        },
+        {
+          "session": "main",
+          "say": "确认",
+          "reply": "下单成功！订单号 #1\n· 山海皆可平｜大乱斗｜10月2日（周五）20:00 起 2 小时\n· 应付 60.00 元（待支付，可在「我的订单」里完成支付）\n⏰ 开局提醒：请在 10月2日（周五）20:00 前 10 分钟上线，山海皆可平 会在游戏里加你好友。",
+          "reply_type": "booked",
+          "phase": "IDLE",
+          "latency_ms": 766.1,
+          "remote_llm_calls": 1,
+          "tools": [
+            "create_booking"
+          ],
+          "failures": []
+        }
+      ],
+      "bookings": {
+        "tester_01": [
+          {
+            "booking_id": 1,
+            "user_id": 2,
+            "companion_id": 15,
+            "companion_name": "山海皆可平",
+            "start_time": "2026-10-02T20:00:00",
+            "end_time": "2026-10-02T22:00:00",
+            "game_mode": "aram",
+            "service_type": "casual",
+            "hours": "2.0",
+            "unit_price": "30.00",
+            "multiplier": "1.0000",
+            "total": "60.00",
+            "status": "pending_payment",
+            "created_at": "2026-10-01T10:36:24.579646",
+            "paid_at": null,
+            "cancelled_at": null,
+            "refund_amount": null
+          }
+        ]
+      },
+      "error": null,
+      "description": "预约中聊无关话题被礼貌拉回，状态保留后继续下单"
+    }
+  ]
+}

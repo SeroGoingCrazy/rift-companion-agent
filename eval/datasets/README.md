@@ -9,6 +9,9 @@
 
 L2 集合**不使用任何 Teacher 生成**，训练前冻结；造数（阶段 I）不得读取这两个文件。
 
+**审核状态**：v1 由 Claude 起草（2026-10-01），待人工逐条审核。审核中如有修改，重跑
+`validate_datasets.py --write-checksums`，并重跑 DeepSeek 基线（H5）。
+
 ## L2 样本格式
 
 每行一个 JSON 对象：
