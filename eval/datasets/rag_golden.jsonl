@@ -1,8 +1,8 @@
-{"id": "refund_3h", "collection": "platform_rules", "category": "refund", "query": "开局前三小时取消能退多少钱？", "reference_answer": "开局前 2–24 小时取消退一半，退款比例 50%。", "expected_sources": ["platform_rules/refund.md"]}
-{"id": "refund_full", "collection": "platform_rules", "category": "refund", "query": "提前一天以上取消订单能全额退款吗？", "reference_answer": "距开局 ≥ 24 小时取消全额退款（100%）。", "expected_sources": ["platform_rules/refund.md"]}
-{"id": "refund_none", "collection": "platform_rules", "category": "refund", "query": "马上就要开局了，现在取消还能退钱吗？", "reference_answer": "距开局不足 2 小时（含已开局）取消不退款。", "expected_sources": ["platform_rules/refund.md"]}
-{"id": "refund_amount", "collection": "platform_rules", "category": "refund", "query": "一单 200.00 元的订单，提前 10 小时取消能退多少？", "reference_answer": "退一半，退 100.00 元。", "expected_sources": ["platform_rules/refund.md"]}
-{"id": "refund_boundary", "collection": "platform_rules", "category": "refund", "query": "恰好提前 24 小时取消，按哪一档退款？", "reference_answer": "边界按更有利于用户的一档：恰好提前 24 小时仍全额退款；提前 3 小时则退一半。", "expected_sources": ["platform_rules/refund.md"]}
+{"id": "refund_3h", "collection": "platform_rules", "category": "refund", "query": "开局前三小时取消能退多少钱？", "reference_answer": "开局前 3 小时取消全额退款，退款比例 100%。", "expected_sources": ["platform_rules/refund.md"]}
+{"id": "refund_full", "collection": "platform_rules", "category": "refund", "query": "提前 15 分钟取消订单能全额退款吗？", "reference_answer": "距开局 ≥ 15 分钟取消全额退款（100%）。", "expected_sources": ["platform_rules/refund.md"]}
+{"id": "refund_none", "collection": "platform_rules", "category": "refund", "query": "马上就要开局了，现在取消还能退钱吗？", "reference_answer": "距开局不足 15 分钟（含已开局）取消不退款。", "expected_sources": ["platform_rules/refund.md"]}
+{"id": "refund_amount", "collection": "platform_rules", "category": "refund", "query": "一单 200.00 元的订单，提前 10 小时取消能退多少？", "reference_answer": "全额退款，退 200.00 元。", "expected_sources": ["platform_rules/refund.md"]}
+{"id": "refund_boundary", "collection": "platform_rules", "category": "refund", "query": "恰好提前 15 分钟取消，按哪一档退款？", "reference_answer": "边界按更有利于用户的一档：恰好提前 15 分钟仍全额退款；提前 10 分钟则不退款。", "expected_sources": ["platform_rules/refund.md"]}
 {"id": "refund_unpaid", "collection": "platform_rules", "category": "refund", "query": "还没付款的订单取消要扣钱吗？", "reference_answer": "待支付订单取消不产生任何费用，也没有退款。", "expected_sources": ["platform_rules/refund.md"]}
 {"id": "billing_formula", "collection": "platform_rules", "category": "billing", "query": "陪玩的费用是怎么算的？", "reference_answer": "总价 = 陪玩师基础单价 × 服务类型系数 × 时长（小时），保留两位小数。", "expected_sources": ["platform_rules/billing.md"]}
 {"id": "billing_coaching", "collection": "platform_rules", "category": "billing", "query": "教学服务比普通陪玩贵多少？", "reference_answer": "教学系数 1.5，娱乐系数 1。", "expected_sources": ["platform_rules/billing.md"]}

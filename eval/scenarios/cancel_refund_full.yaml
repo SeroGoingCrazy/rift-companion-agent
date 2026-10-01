@@ -1,5 +1,5 @@
 id: cancel_refund_full
-description: 已支付订单，距开局 ≥ 24 小时取消，全额退款
+description: 已支付订单，提前三天取消，全额退款
 now: "2026-10-01 14:00"
 user: { nickname: tester_01 }
 setup:

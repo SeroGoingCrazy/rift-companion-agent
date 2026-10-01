@@ -1,10 +1,10 @@
-id: cancel_refund_half
-description: 已支付订单，距开局 2–24 小时取消，退 50%
-now: "2026-10-01 14:00"
+id: cancel_refund_boundary
+description: 已支付订单，恰好提前 15 分钟取消，按边界仍全额退款
+now: "2026-10-01 13:45"
 user: { nickname: tester_01 }
 setup:
   bookings:
-    - { game_mode: aram, start_time: "2026-10-01 20:00", duration_hours: 1, paid: true }
+    - { game_mode: aram, start_time: "2026-10-01 14:00", duration_hours: 1, paid: true }
 turns:
   - say: "帮我取消订单"
     expect_span: { tool: cancel_booking }
@@ -13,6 +13,6 @@ turns:
     expect_reply_type: cancelled
 expect:
   setup_bookings:
-    - { status: cancelled, refund_ratio: 0.5 }
+    - { status: cancelled, refund_ratio: 1.0 }
   no_booking: true
   state_phase: IDLE

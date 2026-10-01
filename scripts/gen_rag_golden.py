@@ -82,12 +82,17 @@ def _qa(id: str, collection: str, doc: str, category: str, query: str, answer: s
 
 def platform_rules(domain: DomainConfig) -> list[GoldenQA]:
     rules = "platform_rules"
-    tiers = {t.name: t for t in domain.refund.tiers}
-    full, half, none = tiers["full"], tiers["half"], tiers["none"]
+    tiers = domain.refund.tiers
+    top, last = tiers[0], tiers[-1]
+    cutoff = kb._duration(tiers[-2].min_hours_before) if len(tiers) > 1 else "0 小时"
     start = datetime(2026, 10, 1, 20, 0)
     total = Decimal("200.00")
-    ten_hours = refund(_Booking(start, total), start - timedelta(hours=10), domain)
-    three_hours = refund(_Booking(start, total), start - timedelta(hours=3), domain)
+    booking = _Booking(start, total)
+    ten_hours = refund(booking, start - timedelta(hours=10), domain)
+    three_hours = refund(booking, start - timedelta(hours=3), domain)
+    # Just inside the tier below the top one (e.g. 10 minutes before a 15-minute cutoff).
+    below_top = top.min_hours_before * 2 / 3
+    just_below = refund(booking, start - timedelta(hours=float(below_top)), domain)
 
     st = domain.service_types
     climb_quote = quote(80, ServiceType.CLIMB, 3, domain)
@@ -115,17 +120,16 @@ def platform_rules(domain: DomainConfig) -> list[GoldenQA]:
             "refund",
             "refund",
             "开局前三小时取消能退多少钱？",
-            f"开局前 {kb._num(half.min_hours_before)}–{kb._num(full.min_hours_before)} 小时取消"
-            f"{half.label}，退款比例 {kb._percent(half.ratio)}。",
+            f"开局前 3 小时取消{three_hours.label}，退款比例 {kb._percent(three_hours.ratio)}。",
         ),
         _qa(
             "refund_full",
             rules,
             "refund",
             "refund",
-            "提前一天以上取消订单能全额退款吗？",
-            f"距开局 ≥ {kb._num(full.min_hours_before)} 小时取消{full.label}"
-            f"（{kb._percent(full.ratio)}）。",
+            f"提前 {kb._duration(top.min_hours_before)}取消订单能全额退款吗？",
+            f"距开局 ≥ {kb._duration(top.min_hours_before)}取消{top.label}"
+            f"（{kb._percent(top.ratio)}）。",
         ),
         _qa(
             "refund_none",
@@ -133,7 +137,7 @@ def platform_rules(domain: DomainConfig) -> list[GoldenQA]:
             "refund",
             "refund",
             "马上就要开局了，现在取消还能退钱吗？",
-            f"距开局不足 {kb._num(half.min_hours_before)} 小时（含已开局）取消{none.label}。",
+            f"距开局不足 {cutoff}（含已开局）取消{last.label}。",
         ),
         _qa(
             "refund_amount",
@@ -148,9 +152,9 @@ def platform_rules(domain: DomainConfig) -> list[GoldenQA]:
             rules,
             "refund",
             "refund",
-            "恰好提前 24 小时取消，按哪一档退款？",
-            f"边界按更有利于用户的一档：恰好提前 {kb._num(full.min_hours_before)} 小时仍"
-            f"{full.label}；提前 3 小时则{three_hours.label}。",
+            f"恰好提前 {kb._duration(top.min_hours_before)}取消，按哪一档退款？",
+            f"边界按更有利于用户的一档：恰好提前 {kb._duration(top.min_hours_before)}仍"
+            f"{top.label}；提前 {kb._duration(below_top)}则{just_below.label}。",
         ),
         _qa(
             "refund_unpaid",

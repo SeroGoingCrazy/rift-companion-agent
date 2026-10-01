@@ -1,10 +1,10 @@
 id: cancel_refund_none
-description: 已支付订单，距开局不足 2 小时取消，不退款
-now: "2026-10-01 14:00"
+description: 已支付订单，距开局不足 15 分钟取消，不退款
+now: "2026-10-01 13:50"
 user: { nickname: tester_01 }
 setup:
   bookings:
-    - { game_mode: aram, start_time: "2026-10-01 15:00", duration_hours: 1, paid: true }
+    - { game_mode: aram, start_time: "2026-10-01 14:00", duration_hours: 1, paid: true }
 turns:
   - say: "帮我取消订单"
     expect_span: { tool: cancel_booking }

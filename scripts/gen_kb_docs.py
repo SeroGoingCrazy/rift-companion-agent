@@ -87,6 +87,14 @@ def _percent(ratio: Decimal) -> str:
     return f"{_num(ratio * 100)}%"
 
 
+def _duration(hours: Decimal | float | int) -> str:
+    """Hours as people say them: 24 -> "24 小时", 0.25 -> "15 分钟"."""
+    h = Decimal(str(hours))
+    if 0 < h < 1:
+        return f"{_num((h * 60).quantize(Decimal(1)))} 分钟"
+    return f"{_num(h)} 小时"
+
+
 def _mode_labels(domain: DomainConfig, modes: tuple[GameMode, ...]) -> list[str]:
     return [domain.game_modes[m].label for m in modes]
 
@@ -141,28 +149,41 @@ def refund_context(domain: DomainConfig) -> dict[str, Any]:
     tiers = domain.refund.tiers
     rows = []
     for i, t in enumerate(tiers):
-        lo = _num(t.min_hours_before)
+        lo = _duration(t.min_hours_before)
         if i == 0:
-            rng = f"≥ {lo} 小时"
+            rng = f"≥ {lo}"
         elif t.min_hours_before == 0:
-            rng = f"< {_num(tiers[i - 1].min_hours_before)} 小时（含已开局）"
+            rng = f"< {_duration(tiers[i - 1].min_hours_before)}（含已开局）"
         else:
-            rng = f"{lo}–{_num(tiers[i - 1].min_hours_before)} 小时"
-        rows.append({"range": rng, "label": t.label, "percent": _percent(t.ratio), "min_hours": lo})
+            rng = f"{lo} – {_duration(tiers[i - 1].min_hours_before)}"
+        rows.append({"range": rng, "label": t.label, "percent": _percent(t.ratio), "min": lo})
 
     total = quote(EXAMPLE_UNIT_PRICE, ServiceType.CLIMB, EXAMPLE_HOURS, domain).total
     start = datetime(2026, 1, 3, 20, 0)
     booking = _ExampleBooking(start, total)
-    # One example inside each tier (bounds +1h, the last tier 1h before start).
-    hours = [t.min_hours_before + 1 for t in tiers[:-1]] + [Decimal(1)]
     cases = []
-    for h in hours:
+    for h in refund_example_hours(domain):
         r = refund(booking, start - timedelta(hours=float(h)), domain)
-        cases.append({"hours_before": _num(h), "label": r.label, "amount": _money(r.amount)})
+        cases.append({"before": _duration(h), "label": r.label, "amount": _money(r.amount)})
     return {
         "tiers": rows,
         "example": {"total": _money(total), "start": "晚上 8 点", "cases": cases},
     }
+
+
+def refund_example_hours(domain: DomainConfig) -> list[Decimal]:
+    """One point inside each refund tier: 1h above a bound of >= 1h (else 1h for the top
+    tier, the bound itself below that); a third of the previous bound for the last tier."""
+    tiers = domain.refund.tiers
+    hours = []
+    for i, t in enumerate(tiers[:-1]):
+        if t.min_hours_before >= 1:
+            hours.append(t.min_hours_before + 1)
+        else:
+            hours.append(Decimal(1) if i == 0 else t.min_hours_before)
+    prev = tiers[-2].min_hours_before if len(tiers) > 1 else Decimal(3)
+    last = Decimal(1) if prev >= 3 else (prev * 60 / 3).quantize(Decimal(1)) / 60
+    return [*hours, last]
 
 
 def late_context(domain: DomainConfig) -> dict[str, Any]:
