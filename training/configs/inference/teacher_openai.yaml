@@ -7,6 +7,6 @@ base_url: https://api.openai.com/v1
 api_key_env: OPENAI_API_KEY
 timeout_s: 180
 reasoning_effort: low          # reasoning models ignore temperature; keep the answer cheap
-max_completion_tokens: 8000    # includes reasoning tokens
+max_completion_tokens: 16000   # includes reasoning tokens
 concurrency: 8
 max_retries: 4
