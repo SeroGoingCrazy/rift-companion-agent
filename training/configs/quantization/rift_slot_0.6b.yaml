@@ -1,0 +1,39 @@
+# Quantization and CPU benchmark of the final slot model (DEV_SPEC I10).
+#   uv run python training/scripts/quantize/quantize.py
+#   uv run --env-file .env python training/scripts/quantize/bench.py
+model: rift-slot-0.6b
+# I9 winner: SFT r003 0.6B + rule-perturbation DPO, beta 0.3 (training/experiments/dpo/ablation.md).
+source: training/outputs/gguf/rift-slot-0.6b-dpo_rule_b03-f16.gguf
+out_dir: training/outputs/gguf
+# Name -> llama-quantize type. f16 is the source itself and is never re-quantized.
+variants:
+  f16: F16
+  q8_0: Q8_0
+  q4_k_m: Q4_K_M
+imatrix: null            # optional importance matrix (.dat); only needed if Q4_K_M misses the gate
+
+llama_cpp:
+  repo_wsl: /mnt/c/Users/1/rift-companion-agent
+  quantize: ~/rift-train/llama.cpp/build/bin/llama-quantize
+  server: ~/rift-train/llama.cpp/build/bin/llama-server
+  logs: ~/rift-train/logs
+
+server:
+  port: 8080
+  ctx: 4096
+  parallel: 1
+  threads: 6             # physical cores of the Ryzen 5 9600X
+  # Thinking off, exactly like training (template qwen3 + enable_thinking=false).
+  chat_template_kwargs: {enable_thinking: false}
+
+bench:
+  datasets: [main, holdout]
+  # Requests with cache_prompt=false, to show what the warm shared prefix saves.
+  nocache_samples: 10
+  timeout_s: 60
+
+# Q4_K_M may fail at most 2 more L2 samples (main + holdout) than F16.
+gate:
+  baseline: f16
+  candidate: q4_k_m
+  max_extra_failures: 2
