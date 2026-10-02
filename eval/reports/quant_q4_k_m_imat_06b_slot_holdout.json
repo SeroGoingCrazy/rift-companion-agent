@@ -1,0 +1,796 @@
+{
+  "meta": {
+    "extractor": "local",
+    "model": "rift-slot-0.6b-q4km",
+    "dataset": "holdout",
+    "dataset_file": "eval\\datasets\\slot_holdout.jsonl",
+    "sha256": "c0d49233b0b40b22d27a01afbd30c0b439c68e92724e98384ea6382f5315869d",
+    "checksum_problems": [],
+    "started_at": "2026-10-02 13:42:22",
+    "pass_threshold": 0.95,
+    "style_matcher": "EmbeddingStyleMatcher",
+    "style_threshold": 0.7,
+    "concurrency": 1
+  },
+  "summary": {
+    "n": 27,
+    "passed": 24,
+    "pass_rate": 0.8889,
+    "protocol_pass_rate": 1.0,
+    "mean_task_score": 0.9638,
+    "protocol_errors": {},
+    "field_errors": {
+      "delta.game_mode": {
+        "missing_key": 2
+      },
+      "turn_intent": {
+        "wrong_value": 1
+      }
+    },
+    "by_category": {
+      "first_turn": {
+        "n": 3,
+        "passed": 2,
+        "pass_rate": 0.6667
+      },
+      "multi_turn": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "tri_state": {
+        "n": 3,
+        "passed": 2,
+        "pass_rate": 0.6667
+      },
+      "relative_time": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "candidate_ref": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "consult": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "unrelated": {
+        "n": 3,
+        "passed": 2,
+        "pass_rate": 0.6667
+      },
+      "confirmation": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      },
+      "mode_slang": {
+        "n": 3,
+        "passed": 3,
+        "pass_rate": 1.0
+      }
+    },
+    "retried": 0,
+    "fell_back": 0,
+    "latency_ms": {
+      "mean": 517.4,
+      "p50": 482.9,
+      "p90": 721.9,
+      "p95": 838.0,
+      "max": 862.8
+    }
+  },
+  "items": [
+    {
+      "id": "holdout-001",
+      "category": "first_turn",
+      "user_input": "下周一晚上七点约个灵活组排，大师以上，两小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "下周一晚上七点",
+          "game_mode": "ranked_flex",
+          "rank_requirement": "master",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_flex\", \"start_time_expr\": \"下周一晚上七点\", \"rank_requirement\": \"master\", \"duration_hours\": 2}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 721.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-002",
+      "category": "first_turn",
+      "user_input": "我想找个声音好听的妹子陪我玩匹配，今晚9点半，一小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "style_preference": "声音好听",
+          "companion_gender": "female",
+          "game_mode": "normal_draft",
+          "start_time_expr": "今晚9点半",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"今晚9点半\", \"duration_hours\": 1, \"companion_gender\": \"female\", \"style_preference\": \"声音好听\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 0.8571,
+      "field_errors": [
+        {
+          "field": "delta.game_mode",
+          "error": "missing_key",
+          "expected": "normal_draft",
+          "predicted": "<absent>",
+          "detail": ""
+        }
+      ],
+      "latency_ms": 681.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-003",
+      "category": "first_turn",
+      "user_input": "约个单双排的教学复盘，钻石，明天中午12点，一个半小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": "ranked_solo_duo",
+          "service_type": "coaching",
+          "rank_requirement": "diamond",
+          "start_time_expr": "明天中午12点",
+          "duration_hours": 1.5
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"明天中午12点\", \"duration_hours\": 1.5, \"rank_requirement\": \"diamond\", \"service_type\": \"coaching\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 862.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-004",
+      "category": "multi_turn",
+      "user_input": "10月5号晚上8点，打三个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "10月5号晚上8点",
+          "duration_hours": 3
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"10月5号晚上8点\", \"duration_hours\": 3}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 653.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-005",
+      "category": "multi_turn",
+      "user_input": "要会玩ADC的",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "adc"
+          ]
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"role_preference\": [\"adc\"]}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 482.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-006",
+      "category": "multi_turn",
+      "user_input": "预算可以加到80",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "budget_per_hour": 80
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"budget_per_hour\": 80}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 505.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-007",
+      "category": "tri_state",
+      "user_input": "性别不限",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_gender": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"companion_gender\": \"any\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 474.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-008",
+      "category": "tri_state",
+      "user_input": "不指定阿狸酱了，换谁都行",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"companion_name\": \"any\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 493.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-009",
+      "category": "tri_state",
+      "user_input": "模式我再想想，先别定",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": null
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 0.6667,
+      "field_errors": [
+        {
+          "field": "delta.game_mode",
+          "error": "missing_key",
+          "expected": null,
+          "predicted": "<absent>",
+          "detail": ""
+        }
+      ],
+      "latency_ms": 386.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-010",
+      "category": "relative_time",
+      "user_input": "早一个小时开始",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "早一个小时"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"早一个小时开始\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 468.4,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-011",
+      "category": "relative_time",
+      "user_input": "推迟半小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "推迟半小时"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"推迟半小时\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 346.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-012",
+      "category": "relative_time",
+      "user_input": "明晚8:30",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "明晚8:30"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"明晚8:30\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 480.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-013",
+      "category": "candidate_ref",
+      "user_input": "第二个",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "雪落无声"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"companion_name\": \"雪落无声\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 650.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-014",
+      "category": "candidate_ref",
+      "user_input": "南风知我意吧，看着挺靠谱",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "南风知我意"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"companion_name\": \"南风知我意\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 404.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-015",
+      "category": "candidate_ref",
+      "user_input": "就选第一个，时间改成明晚九点",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "咕噜咕噜",
+          "start_time_expr": "明晚九点"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"start_time_expr\": \"明晚九点\", \"companion_name\": \"咕噜咕噜\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 694.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-016",
+      "category": "consult",
+      "user_input": "开局前3小时取消能退多少？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 413.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-017",
+      "category": "consult",
+      "user_input": "你们平台的陪玩师都是什么段位？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 339.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-018",
+      "category": "consult",
+      "user_input": "这个价格包含什么？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 565.4,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-019",
+      "category": "unrelated",
+      "user_input": "最近有什么好吃的外卖",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"unrelated\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 357.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-020",
+      "category": "unrelated",
+      "user_input": "帮我查一下明天去上海的航班",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 0.5,
+      "field_errors": [
+        {
+          "field": "turn_intent",
+          "error": "wrong_value",
+          "expected": "unrelated",
+          "predicted": "consult",
+          "detail": ""
+        }
+      ],
+      "latency_ms": 407.2,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-021",
+      "category": "unrelated",
+      "user_input": "讲个笑话听听",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"unrelated\", \"delta\": {}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 340.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-022",
+      "category": "confirmation",
+      "user_input": "确定，下单",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {}, \"confirmation\": \"yes\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 570.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-023",
+      "category": "confirmation",
+      "user_input": "不了，换一个人吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "no"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {}, \"confirmation\": \"no\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 259.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-024",
+      "category": "confirmation",
+      "user_input": "没问题",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {}, \"confirmation\": \"yes\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 250.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-025",
+      "category": "mode_slang",
+      "user_input": "今晚十点来两把大乱斗，一个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "今晚十点",
+          "game_mode": "aram",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"aram\", \"start_time_expr\": \"今晚十点\", \"duration_hours\": 1}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 615.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-026",
+      "category": "mode_slang",
+      "user_input": "带飞，单双排，翡翠，周五晚上8点，两小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "service_type": "climb",
+          "game_mode": "ranked_solo_duo",
+          "rank_requirement": "emerald",
+          "start_time_expr": "周五晚上8点",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"周五晚上8点\", \"duration_hours\": 2, \"service_type\": \"climb\", \"rank_requirement\": \"emerald\"}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 838.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "holdout-027",
+      "category": "mode_slang",
+      "user_input": "想约个打中路的陪我五排，明天下午四点，一小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "mid"
+          ],
+          "game_mode": "ranked_flex",
+          "start_time_expr": "明天下午四点",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_flex\", \"start_time_expr\": \"明天下午四点\", \"duration_hours\": 1, \"role_preference\": [\"mid\"]}, \"confirmation\": \"none\"}",
+      "passed": true,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 1.0,
+      "field_errors": [],
+      "latency_ms": 704.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    }
+  ]
+}

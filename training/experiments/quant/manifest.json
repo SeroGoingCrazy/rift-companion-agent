@@ -1,0 +1,41 @@
+{
+  "model": "rift-slot-0.6b",
+  "source": "training/outputs/gguf/rift-slot-0.6b-dpo_rule_b03-f16.gguf",
+  "imatrix": {
+    "file": "training/outputs/gguf/rift-slot-0.6b-imatrix.gguf",
+    "dataset": "training/data/processed/sft/v0.4/train.jsonl",
+    "calibration": "training/outputs/gguf/rift-slot-0.6b-calibration.txt",
+    "samples": 256,
+    "ctx": 2048,
+    "seed": 42
+  },
+  "imatrix_variants": [
+    "q4_k_m_imat"
+  ],
+  "variants": {
+    "f16": {
+      "file": "rift-slot-0.6b-dpo_rule_b03-f16.gguf",
+      "type": "F16",
+      "size_bytes": 1198182176,
+      "sha256": "7f7d5a82f5e020b642b854b8900fe15243b0a6473e0fbf42760064831ec9293f"
+    },
+    "q8_0": {
+      "file": "rift-slot-0.6b-q8_0.gguf",
+      "type": "Q8_0",
+      "size_bytes": 639446816,
+      "sha256": "8b197e753a62fb9a4853c70f2928db6e12d9a69f490c537daf480eae229573e4"
+    },
+    "q4_k_m": {
+      "file": "rift-slot-0.6b-q4_k_m.gguf",
+      "type": "Q4_K_M",
+      "size_bytes": 396704544,
+      "sha256": "15ac9f8cf078d76836e9455a4218239537dd506e892c91eb7616a16e76fe848d"
+    },
+    "q4_k_m_imat": {
+      "file": "rift-slot-0.6b-q4_k_m_imat.gguf",
+      "type": "Q4_K_M",
+      "size_bytes": 396704800,
+      "sha256": "c6551d4adbbcbfda9a32e159e14cf0b1cc4d224ebe02cdd8191a9d84731410ad"
+    }
+  }
+}

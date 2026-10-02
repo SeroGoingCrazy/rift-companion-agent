@@ -1,0 +1,107 @@
+# L2 槽位抽取评测：local / main
+
+| 项 | 值 |
+|---|---|
+| 抽取器 | `local`（rift-slot-0.6b-q4km） |
+| 数据集 | `eval\datasets\slot_main.jsonl`（60 条，sha256 `ba0a7e27dca3`） |
+| 时间 | 2026-10-02 13:40:06 |
+| 通过标准 | 协议通过且任务分 ≥ 0.95 |
+| 风格匹配 | EmbeddingStyleMatcher（阈值 0.7） |
+
+## 总览
+
+| 指标 | 值 |
+|---|---:|
+| **通过率** | **86.7%**（52/60） |
+| 协议通过率 | 98.3% |
+| 平均任务分（协议通过样本） | 0.975 |
+| 重试 / 降级次数 | 0 / 0 |
+| 延迟 P50 / P90 / P95 / max（ms） | 449 / 716 / 778 / 929 |
+
+## 分类别通过率
+
+| 类别 | 通过 | 通过率 |
+|---|---:|---:|
+| 首轮抽取 `first_turn` | 5/8 | 62.5% |
+| 多轮增量 `multi_turn` | 6/7 | 85.7% |
+| 三态语义 `tri_state` | 8/8 | 100.0% |
+| 相对时间表达 `relative_time` | 7/7 | 100.0% |
+| 候选引用 `candidate_ref` | 4/6 | 66.7% |
+| 插话咨询 `consult` | 6/6 | 100.0% |
+| 无关话题 `unrelated` | 5/5 | 100.0% |
+| 确认 / 拒绝 `confirmation` | 7/7 | 100.0% |
+| 模式说法与黑话 `mode_slang` | 4/6 | 66.7% |
+
+## 协议错误
+
+| 类型 | 次数 |
+|---|---:|
+| `enum` | 1 |
+
+## 逐字段错误分布
+
+| 字段 | 漏抽 missing_key | 多抽 extra_key | 值错 wrong_value | 合计 |
+|---|---:|---:|---:|---:|
+| `delta.service_type` | 2 | 0 | 0 | 2 |
+| `delta.companion_name` | 1 | 0 | 1 | 2 |
+| `delta.companion_gender` | 0 | 1 | 0 | 1 |
+| `delta.role_preference` | 0 | 0 | 1 | 1 |
+| `delta.start_time_expr` | 1 | 0 | 0 | 1 |
+
+## 错误样例（8/8）
+
+### main-004（首轮抽取）
+
+- 输入：有没有温柔一点会聊天的陪玩，明天晚上9点打匹配
+- 期望：`{"turn_intent": "booking", "delta": {"style_preference": "温柔会聊天", "start_time_expr": "明天晚上9点", "game_mode": "normal_draft"}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"start_time_expr": "明天晚上9点", "game_mode": "normal_draft", "companion_gender": "female", "style_preference": "温柔会聊天"}, "confirmation": "none"}`
+- `delta.companion_gender` extra_key：期望 `"<absent>"`，实际 `"female"`
+
+### main-005（首轮抽取）
+
+- 输入：约个打野，单双排上分，铂金段位，每小时预算60以内
+- 期望：`{"turn_intent": "booking", "delta": {"role_preference": ["jungle"], "game_mode": "ranked_solo_duo", "service_type": "climb", "rank_requirement": "platinum", "budget_per_hour": 60}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"game_mode": "ranked_solo_duo", "rank_requirement": "platinum", "role_preference": ["jungle"], "budget_per_hour": 60}, "confirmation": "none"}`
+- `delta.service_type` missing_key：期望 `"climb"`，实际 `"<absent>"`
+
+### main-008（首轮抽取）
+
+- 输入：后天下午四点半斗魂竞技场，男生女生都行，打一个半小时
+- 期望：`{"turn_intent": "booking", "delta": {"start_time_expr": "后天下午四点半", "game_mode": "arena", "companion_gender": "any", "duration_hours": 1.5}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"game_mode": "arena", "start_time_expr": "后天下午四点半", "duration_hours": 1.5, "companion_gender": "male female"}, "confirmation": "none"}`
+- 协议错误 `enum`：delta.companion_gender.str-enum[Gender]: Input should be 'female' or 'male'；delta.companion_gender.literal['any']: Input should be 'any'
+
+### main-012（多轮增量）
+
+- 输入：打野换成辅助吧
+- 期望：`{"turn_intent": "booking", "delta": {"role_preference": ["support"]}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"role_preference": ["jungle", "support"]}, "confirmation": "none"}`
+- `delta.role_preference` wrong_value：期望 `["support"]`，实际 `["jungle", "support"]`
+
+### main-033（候选引用）
+
+- 输入：最后那个看着不错
+- 期望：`{"turn_intent": "booking", "delta": {"companion_name": "小鹿乱撞"}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"companion_name": "最后那个"}, "confirmation": "none"}`
+- `delta.companion_name` wrong_value：期望 `"小鹿乱撞"`，实际 `"最后那个"`
+
+### main-035（候选引用）
+
+- 输入：第三个吧，再把时长改成三小时
+- 期望：`{"turn_intent": "booking", "delta": {"companion_name": "小鹿乱撞", "duration_hours": 3}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"duration_hours": 3}, "confirmation": "none"}`
+- `delta.companion_name` missing_key：期望 `"小鹿乱撞"`，实际 `"<absent>"`
+
+### main-057（模式说法与黑话）
+
+- 输入：带我上分，双排，jg位，翡翠，明天下午两点三小时
+- 期望：`{"turn_intent": "booking", "delta": {"service_type": "climb", "game_mode": "ranked_solo_duo", "role_preference": ["jungle"], "rank_requirement": "emerald", "start_time_expr": "明天下午两点", "duration_hours": 3}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"game_mode": "ranked_solo_duo", "duration_hours": 3, "rank_requirement": "emerald", "role_preference": ["jungle"], "service_type": "climb"}, "confirmation": "none"}`
+- `delta.start_time_expr` missing_key：期望 `"明天下午两点"`，实际 `"<absent>"`
+
+### main-060（模式说法与黑话）
+
+- 输入：找个会玩辅助位的小哥哥陪我单排上分，黄金，周六晚上七点，两小时
+- 期望：`{"turn_intent": "booking", "delta": {"role_preference": ["support"], "companion_gender": "male", "game_mode": "ranked_solo_duo", "service_type": "climb", "rank_requirement": "gold", "start_time_expr": "周六晚上七点", "duration_hours": 2}, "confirmation": "none"}`
+- 输出：`{"turn_intent": "booking", "delta": {"game_mode": "ranked_solo_duo", "start_time_expr": "周六晚上七点", "duration_hours": 2, "rank_requirement": "gold", "role_preference": ["support"], "companion_gender": "male"}, "confirmation": "none"}`
+- `delta.service_type` missing_key：期望 `"climb"`，实际 `"<absent>"`
