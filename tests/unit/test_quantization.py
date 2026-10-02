@@ -12,14 +12,17 @@ from rift_training.quantization import (
     RequestTiming,
     VariantResult,
     apply_server_timings,
+    calibration_text,
     check_gate,
     chunk_content,
     flips,
+    imatrix_command,
     keyed,
     load_config,
     parse_sse_line,
     percentile,
     quantize_command,
+    render_chatml,
     render_markdown,
     server_command,
     speed_summary,
@@ -34,7 +37,10 @@ def test_repo_config_loads_with_f16_source_and_gate() -> None:
     assert cfg.gguf("f16") == cfg.source
     assert cfg.gguf("q4_k_m") == "training/outputs/gguf/rift-slot-0.6b-q4_k_m.gguf"
     assert cfg.variants["q8_0"] == "Q8_0"
-    assert cfg.gate == {"baseline": "f16", "candidate": "q4_k_m", "max_extra_failures": 2}
+    assert cfg.variants["q4_k_m_imat"] == "Q4_K_M"
+    assert cfg.imatrix_variants == {"q4_k_m_imat"}
+    assert cfg.imatrix is not None and cfg.imatrix.dataset.endswith("sft/v0.4/train.jsonl")
+    assert cfg.gate == {"baseline": "f16", "candidate": "q4_k_m_imat", "max_extra_failures": 2}
     with pytest.raises(KeyError):
         cfg.gguf("q2_k")
 
@@ -55,13 +61,49 @@ def test_config_rejects_a_gate_on_an_unknown_variant(tmp_path: Path) -> None:
         load_config(_write(tmp_path, "candidate: q4_k_m|candidate: q3_k_s"))
 
 
-def test_quantize_command_adds_the_imatrix_only_when_configured(tmp_path: Path) -> None:
+def test_quantize_command_passes_the_imatrix_only_to_imatrix_variants() -> None:
     cfg = load_config(CONFIG)
-    cmd = quantize_command(cfg, "q4_k_m")
-    assert cmd.endswith(f"{cfg.source} training/outputs/gguf/rift-slot-0.6b-q4_k_m.gguf Q4_K_M")
-    assert "--imatrix" not in cmd
-    with_imatrix = load_config(_write(tmp_path, "imatrix: null|imatrix: imatrix.dat"))
-    assert "--imatrix imatrix.dat " in quantize_command(with_imatrix, "q4_k_m")
+    plain = quantize_command(cfg, "q4_k_m")
+    assert plain.endswith(f"{cfg.source} training/outputs/gguf/rift-slot-0.6b-q4_k_m.gguf Q4_K_M")
+    assert "--imatrix" not in plain
+    imat = quantize_command(cfg, "q4_k_m_imat")
+    assert "--imatrix training/outputs/gguf/rift-slot-0.6b-imatrix.gguf " in imat
+    assert imat.endswith("rift-slot-0.6b-q4_k_m_imat.gguf Q4_K_M")
+
+
+def test_imatrix_variants_need_an_imatrix_and_never_apply_to_f16(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="none is configured"):
+        load_config(_write(tmp_path, "\nimatrix:\n|\nunused_imatrix:\n"))
+    with pytest.raises(ValueError, match="never quantized"):
+        load_config(_write(tmp_path, "  f16: F16|  f16: {type: F16, imatrix: true}"))
+
+
+def test_imatrix_command_reads_the_calibration_text_with_special_tokens() -> None:
+    cmd = imatrix_command(load_config(CONFIG))
+    assert "-m training/outputs/gguf/rift-slot-0.6b-dpo_rule_b03-f16.gguf" in cmd
+    assert "-f training/outputs/gguf/rift-slot-0.6b-calibration.txt" in cmd
+    assert "-o training/outputs/gguf/rift-slot-0.6b-imatrix.gguf" in cmd
+    assert "-c 2048" in cmd and cmd.endswith("--parse-special")
+
+
+def test_calibration_renders_chat_samples_reproducibly() -> None:
+    msgs = [
+        {"role": "system", "content": "S"},
+        {"role": "user", "content": "U"},
+        {"role": "assistant", "content": "{}"},
+    ]
+    assert render_chatml(msgs) == (
+        "<|im_start|>system\nS<|im_end|>\n<|im_start|>user\nU<|im_end|>\n"
+        "<|im_start|>assistant\n<think>\n\n</think>\n\n{}<|im_end|>\n"
+    )
+    rows = [
+        {"id": f"r{i}", "messages": [*msgs[:1], {"role": "user", "content": str(i)}]}
+        for i in range(10)
+    ]
+    text = calibration_text(rows, 3, seed=1)
+    assert text.count("<|im_start|>user") == 3
+    assert text == calibration_text(list(reversed(rows)), 3, seed=1)  # order-independent
+    assert calibration_text(rows, 50, seed=1).count("<|im_start|>user") == 10
 
 
 def test_server_command_turns_thinking_off_like_training() -> None:
