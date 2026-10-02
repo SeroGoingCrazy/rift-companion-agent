@@ -1,0 +1,1998 @@
+{
+  "meta": {
+    "extractor": "local",
+    "model": "rift-slot-0.6b-q4km",
+    "dataset": "main",
+    "dataset_file": "eval\\datasets\\slot_main.jsonl",
+    "sha256": "ba0a7e27dca396fc8ced120a9b3bfb3b57d84273066f04d0f4bf660a83439f9c",
+    "checksum_problems": [],
+    "started_at": "2026-10-01 21:55:38",
+    "pass_threshold": 0.95,
+    "style_matcher": "EmbeddingStyleMatcher",
+    "style_threshold": 0.7,
+    "concurrency": 1
+  },
+  "summary": {
+    "n": 60,
+    "passed": 0,
+    "pass_rate": 0.0,
+    "protocol_pass_rate": 0.0167,
+    "mean_task_score": 0.0769,
+    "protocol_errors": {
+      "extra_key": 58,
+      "json": 1
+    },
+    "field_errors": {
+      "turn_intent": {
+        "wrong_value": 1
+      },
+      "confirmation": {
+        "wrong_value": 1
+      },
+      "delta.budget_per_hour": {
+        "extra_key": 1
+      },
+      "delta.companion_gender": {
+        "extra_key": 1
+      },
+      "delta.duration_hours": {
+        "extra_key": 1
+      },
+      "delta.game_mode": {
+        "extra_key": 1
+      },
+      "delta.rank_requirement": {
+        "extra_key": 1
+      },
+      "delta.role_preference": {
+        "extra_key": 1
+      },
+      "delta.service_type": {
+        "extra_key": 1
+      },
+      "delta.start_time_expr": {
+        "extra_key": 1
+      },
+      "delta.style_preference": {
+        "extra_key": 1
+      },
+      "delta.voice_required": {
+        "extra_key": 1
+      }
+    },
+    "by_category": {
+      "first_turn": {
+        "n": 8,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "multi_turn": {
+        "n": 7,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "tri_state": {
+        "n": 8,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "relative_time": {
+        "n": 7,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "candidate_ref": {
+        "n": 6,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "consult": {
+        "n": 6,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "unrelated": {
+        "n": 5,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "confirmation": {
+        "n": 7,
+        "passed": 0,
+        "pass_rate": 0.0
+      },
+      "mode_slang": {
+        "n": 6,
+        "passed": 0,
+        "pass_rate": 0.0
+      }
+    },
+    "retried": 0,
+    "fell_back": 0,
+    "latency_ms": {
+      "mean": 1779.4,
+      "p50": 1140.7,
+      "p90": 4195.1,
+      "p95": 5729.4,
+      "max": 8286.8
+    }
+  },
+  "items": [
+    {
+      "id": "main-001",
+      "category": "first_turn",
+      "user_input": "帮我约个明晚八点的单双排，钻石以上，打两个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": "ranked_solo_duo",
+          "start_time_expr": "明晚八点",
+          "rank_requirement": "diamond",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"user_input\": \"帮我约个明晚八点的单双排，钻石以上，打两个小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 4195.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-002",
+      "category": "first_turn",
+      "user_input": "想找个小姐姐陪我玩大乱斗，今晚十点开始，一个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_gender": "female",
+          "game_mode": "aram",
+          "start_time_expr": "今晚十点",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"想找个小姐姐陪我玩大乱斗，今晚十点开始，一个小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1235.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-003",
+      "category": "first_turn",
+      "user_input": "周六下午三点想约个教学，灵活组排，三个小时，要能开麦的",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "周六下午三点",
+          "service_type": "coaching",
+          "game_mode": "ranked_flex",
+          "duration_hours": 3,
+          "voice_required": true
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"周六下午三点想约个教学，灵活组排，三个小时，要能开麦的\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1347.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-004",
+      "category": "first_turn",
+      "user_input": "有没有温柔一点会聊天的陪玩，明天晚上9点打匹配",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "style_preference": "温柔会聊天",
+          "start_time_expr": "明天晚上9点",
+          "game_mode": "normal_draft"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"有没有温柔一点会聊天的陪玩，明天晚上9点打匹配\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1202.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-005",
+      "category": "first_turn",
+      "user_input": "约个打野，单双排上分，铂金段位，每小时预算60以内",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "jungle"
+          ],
+          "game_mode": "ranked_solo_duo",
+          "service_type": "climb",
+          "rank_requirement": "platinum",
+          "budget_per_hour": 60
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"约个打野，单双排上分，铂金段位，每小时预算60以内\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1426.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-006",
+      "category": "first_turn",
+      "user_input": "我想约阿狸酱明晚八点双排两个半小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "阿狸酱",
+          "start_time_expr": "明晚八点",
+          "game_mode": "ranked_solo_duo",
+          "duration_hours": 2.5
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"user_input\": \"我想约阿狸酱明晚八点双排两个半小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1846.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-007",
+      "category": "first_turn",
+      "user_input": "你好，我想约个陪玩",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"你好，我想约个陪玩\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1228.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-008",
+      "category": "first_turn",
+      "user_input": "后天下午四点半斗魂竞技场，男生女生都行，打一个半小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "后天下午四点半",
+          "game_mode": "arena",
+          "companion_gender": "any",
+          "duration_hours": 1.5
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"后天下午四点半斗魂竞技场，男生女生都行，打一个半小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 3157.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-009",
+      "category": "multi_turn",
+      "user_input": "明晚八点吧，打两个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "明晚八点",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"明晚八点吧，打两个小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 2772.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-010",
+      "category": "multi_turn",
+      "user_input": "至少要翡翠",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "rank_requirement": "emerald"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"至少要翡翠\", \"rank_requirement\": \"any\", \"role_preference\": [\"gold\", \"emerald\"], \"companion_name\": \"none\", \"companion_gender\": \"female\", \"service_type\": \"none\", \"voice_required\": false, \"budget_per_hour\": null, \"style_preference\": \"温柔会聊天\", \"companion_gender\": \"female\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]].0: Input should be 'top', 'jungle', 'mid', 'adc' or 'support'",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]].1: Input should be 'top', 'jungle', 'mid', 'adc' or 'support'",
+        "delta.role_preference.literal['any']: Input should be 'any'",
+        "delta.service_type: Input should be 'climb', 'casual' or 'coaching'"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 8286.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]].0: Input should be 'top', 'jungle', 'mid', 'adc' or 'support'",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]].1: Input should be 'top', 'jungle', 'mid', 'adc' or 'support'",
+        "delta.role_preference.literal['any']: Input should be 'any'",
+        "delta.service_type: Input should be 'climb', 'casual' or 'coaching'"
+      ]
+    },
+    {
+      "id": "main-011",
+      "category": "multi_turn",
+      "user_input": "再加个条件，要女生，能开麦",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_gender": "female",
+          "voice_required": true
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"再加个条件，要女生，能开麦\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1979.2,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-012",
+      "category": "multi_turn",
+      "user_input": "打野换成辅助吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "support"
+          ]
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"打野换成辅助吧\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1737.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-013",
+      "category": "multi_turn",
+      "user_input": "时间加到三个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "duration_hours": 3
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"时间加到三个小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1036.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-014",
+      "category": "multi_turn",
+      "user_input": "预算一小时50块左右",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "budget_per_hour": 50
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"预算一小时50块左右\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1109.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-015",
+      "category": "multi_turn",
+      "user_input": "中单和上单都可以",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "mid",
+            "top"
+          ]
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"中单和上单都可以\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1104.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-016",
+      "category": "tri_state",
+      "user_input": "段位无所谓",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "rank_requirement": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"段位无所谓\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1238.2,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-017",
+      "category": "tri_state",
+      "user_input": "男女都行其实",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_gender": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"男女都行其实\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1032.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-018",
+      "category": "tri_state",
+      "user_input": "时间先不定，我再看看",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": null
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"时间先不定，我再看看\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1206.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-019",
+      "category": "tri_state",
+      "user_input": "预算不限",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "budget_per_hour": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"预算不限\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 957.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-020",
+      "category": "tri_state",
+      "user_input": "位置随便，什么都行",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"位置随便，什么都行\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1065.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-021",
+      "category": "tri_state",
+      "user_input": "时长先不定，到时候再看",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "duration_hours": null
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"时长先不定，到时候再看\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1125.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-022",
+      "category": "tri_state",
+      "user_input": "开不开麦都无所谓",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "voice_required": "any"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"开不开麦都无所谓\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1033.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-023",
+      "category": "tri_state",
+      "user_input": "风格没要求，段位改成大师",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "style_preference": "any",
+          "rank_requirement": "master"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"风格没要求，段位改成大师\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1119.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-024",
+      "category": "relative_time",
+      "user_input": "改成晚一小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "晚一小时"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"改成晚一小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 961.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-025",
+      "category": "relative_time",
+      "user_input": "能提前半小时吗",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "提前半小时"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"能提前半小时吗\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 879.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-026",
+      "category": "relative_time",
+      "user_input": "改到九点吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "九点"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"改到九点吧\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 911.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-027",
+      "category": "relative_time",
+      "user_input": "换到周六下午三点",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "周六下午三点"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"换到周六下午三点\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 914.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-028",
+      "category": "relative_time",
+      "user_input": "两小时后开始，打一个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "两小时后",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"两小时后开始，打一个小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1065.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-029",
+      "category": "relative_time",
+      "user_input": "往后推一个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "往后推一个小时"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"往后推一个小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 997.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-030",
+      "category": "relative_time",
+      "user_input": "日期不变，改成十点",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "十点"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"日期不变，改成十点\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 952.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-031",
+      "category": "candidate_ref",
+      "user_input": "就第二个吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "夜雨声烦"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"2026-10-02 20:00 星期五\", \"duration_hours\": 2.0, \"rank_requirement\": \"any\", \"role_preference\": [\"mid\"], \"service_type\": \"casual\", \"companion_gender\": \"female\", \"voice_required\": false, \"budget_per_hour\": 100, \"style_preference\": \"温柔会聊天\", \"companion_name\": \"夜雨声烦\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": true,
+      "protocol_error": null,
+      "protocol_messages": [],
+      "task_score": 0.0769,
+      "field_errors": [
+        {
+          "field": "turn_intent",
+          "error": "wrong_value",
+          "expected": "booking",
+          "predicted": "consult",
+          "detail": ""
+        },
+        {
+          "field": "confirmation",
+          "error": "wrong_value",
+          "expected": "none",
+          "predicted": "yes",
+          "detail": ""
+        },
+        {
+          "field": "delta.budget_per_hour",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": 100.0,
+          "detail": ""
+        },
+        {
+          "field": "delta.companion_gender",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "female",
+          "detail": ""
+        },
+        {
+          "field": "delta.duration_hours",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": 2.0,
+          "detail": ""
+        },
+        {
+          "field": "delta.game_mode",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "ranked_solo_duo",
+          "detail": ""
+        },
+        {
+          "field": "delta.rank_requirement",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "any",
+          "detail": ""
+        },
+        {
+          "field": "delta.role_preference",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": [
+            "mid"
+          ],
+          "detail": ""
+        },
+        {
+          "field": "delta.service_type",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "casual",
+          "detail": ""
+        },
+        {
+          "field": "delta.start_time_expr",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "2026-10-02 20:00 星期五",
+          "detail": ""
+        },
+        {
+          "field": "delta.style_preference",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": "温柔会聊天",
+          "detail": ""
+        },
+        {
+          "field": "delta.voice_required",
+          "error": "extra_key",
+          "expected": "<absent>",
+          "predicted": false,
+          "detail": ""
+        }
+      ],
+      "latency_ms": 4540.4,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": []
+    },
+    {
+      "id": "main-032",
+      "category": "candidate_ref",
+      "user_input": "选阿狸酱",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "阿狸酱"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"选阿狸酱\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 908.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-033",
+      "category": "candidate_ref",
+      "user_input": "最后那个看着不错",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "小鹿乱撞"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"最后那个看着不错\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 889.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-034",
+      "category": "candidate_ref",
+      "user_input": "要烤红薯",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "烤红薯"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"要烤红薯\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1008.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-035",
+      "category": "candidate_ref",
+      "user_input": "第三个吧，再把时长改成三小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "小鹿乱撞",
+          "duration_hours": 3
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"第三个吧，再把时长改成三小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1371.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-036",
+      "category": "candidate_ref",
+      "user_input": "1号吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "companion_name": "星河滚烫"
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"1号吧\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1029.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-037",
+      "category": "consult",
+      "user_input": "等下，取消要扣钱吗？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"等下，取消要扣钱吗？\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1139.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-038",
+      "category": "consult",
+      "user_input": "教学是怎么收费的？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"教学是怎么收费的？\", \"rank_requirement\": \"any\", \"role_preference\": [], \"service_type\": [], \"companion_gender\": [], \"voice_required\": false, \"budget_per_hour\": null, \"style_preference\": [], \"companion_name\": []}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]]: List should have at least 1 item after validation, not 0",
+        "delta.role_preference.literal['any']: Input should be 'any'",
+        "delta.service_type: Input should be 'climb', 'casual' or 'coaching'",
+        "delta.companion_gender.str-enum[Gender]: Input should be 'female' or 'male'",
+        "delta.companion_gender.literal['any']: Input should be 'any'",
+        "delta.style_preference.constrained-str: Input should be a valid string",
+        "delta.style_preference.literal['any']: Input should be 'any'",
+        "delta.companion_name.constrained-str: Input should be a valid string",
+        "delta.companion_name.literal['any']: Input should be 'any'"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 2854.4,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.role_preference.function-after[_unique_roles(), list[str-enum[Role]]]: List should have at least 1 item after validation, not 0",
+        "delta.role_preference.literal['any']: Input should be 'any'",
+        "delta.service_type: Input should be 'climb', 'casual' or 'coaching'",
+        "delta.companion_gender.str-enum[Gender]: Input should be 'female' or 'male'",
+        "delta.companion_gender.literal['any']: Input should be 'any'",
+        "delta.style_preference.constrained-str: Input should be a valid string",
+        "delta.style_preference.literal['any']: Input should be 'any'",
+        "delta.companion_name.constrained-str: Input should be a valid string",
+        "delta.companion_name.literal['any']: Input should be 'any'"
+      ]
+    },
+    {
+      "id": "main-039",
+      "category": "consult",
+      "user_input": "斗魂竞技场是几个人一起玩的？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"斗魂竞技场是几个人一起玩的？\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1166.1,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-040",
+      "category": "consult",
+      "user_input": "要是陪玩师迟到了怎么办",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"要是陪玩师迟到了怎么办\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1428.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-041",
+      "category": "consult",
+      "user_input": "钻石能和铂金双排吗",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"钻石能和铂金双排吗\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1140.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-042",
+      "category": "consult",
+      "user_input": "下单之后多久之内要付款？",
+      "expected": {
+        "turn_intent": "consult",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"user_input\": \"下单之后多久之内要付款？\", \"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"2026-10-02 20:00 星期五\", \"duration_hours\": 2.0, \"rank_requirement\": \"diamond\", \"role_preference\": [\"adc\", \"support\"], \"service_type\": \"climb\", \"companion_name\": \"夜雨声烦\", \"voice_required\": true, \"budget_per_hour\": 144.00, \"companion_gender\": \"female\", \"style_preference\": \"温柔会聊天\", \"pending_confirmation\": false, \"confirmation\": \"yes\"}, \"confirmation\": \"",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "json",
+      "protocol_messages": [
+        "invalid JSON: Unterminated string starting at at 467"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 5984.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "<root>: Invalid JSON: EOF while parsing a string at line 1 column 516"
+      ]
+    },
+    {
+      "id": "main-043",
+      "category": "unrelated",
+      "user_input": "今天天气怎么样",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"今天天气怎么样\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1273.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-044",
+      "category": "unrelated",
+      "user_input": "帮我写一首关于秋天的诗",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"帮我写一首关于秋天的诗\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1158.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-045",
+      "category": "unrelated",
+      "user_input": "推荐一部好看的电影",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"推荐一部好看的电影\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 992.2,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-046",
+      "category": "unrelated",
+      "user_input": "原神新版本好玩吗",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"原神新版本好玩吗\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1102.2,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-047",
+      "category": "unrelated",
+      "user_input": "1+1等于几",
+      "expected": {
+        "turn_intent": "unrelated",
+        "delta": {},
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"1+1等于几\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1068.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-048",
+      "category": "confirmation",
+      "user_input": "确认",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"2026-10-02 20:00 星期五\", \"duration_hours\": 2.0, \"rank_requirement\": \"diamond\", \"companion_name\": \"夜雨声烦\", \"service_type\": \"climb\", \"voice_required\": true, \"budget_per_hour\": 144.00, \"style_preference\": \"温柔会聊天\", \"companion_gender\": \"female\", \"pending_confirmation\": true}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.pending_confirmation: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 4991.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.pending_confirmation: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-049",
+      "category": "confirmation",
+      "user_input": "好的，就这个，下单吧",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"2026-10-02 20:00 星期五\", \"duration_hours\": 2.0, \"rank_requirement\": \"diamond\", \"role_preference\": [\"adc\", \"support\"], \"service_type\": \"climb\", \"companion_name\": \"夜雨声烦\", \"companion_gender\": \"female\", \"voice_required\": true, \"budget_per_hour\": 144.00, \"style_preference\": \"温柔会聊天\", \"pending_confirmation\": \"yes\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.pending_confirmation: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 5883.8,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.pending_confirmation: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-050",
+      "category": "confirmation",
+      "user_input": "算了，不约了",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "no"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"算了，不约了\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 948.7,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-051",
+      "category": "confirmation",
+      "user_input": "先不要了，我再想想",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "no"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"先不要了，我再想想\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1021.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-052",
+      "category": "confirmation",
+      "user_input": "嗯嗯可以",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"嗯嗯可以\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 942.3,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-053",
+      "category": "confirmation",
+      "user_input": "改成三小时再下单",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "duration_hours": 3
+        },
+        "confirmation": "yes"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"改成三小时再下单\", \"game_mode\": \"ranked_solo_duo\", \"start_time_expr\": \"2026-10-02 20:00\", \"duration_hours\": 3.0, \"rank_requirement\": \"diamond\", \"role_preference\": [\"adc\", \"mid\", \"support\"], \"service_type\": \"climb\", \"companion_name\": \"夜雨声烦\", \"voice_required\": true, \"budget_per_hour\": 144.00, \"style_preference\": \"温柔会聊天\", \"companion_gender\": \"female\", \"pending_confirmation\": false, \"confirmation\": \"none\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.pending_confirmation: Extra inputs are not permitted",
+        "delta.confirmation: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 5729.4,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted",
+        "delta.pending_confirmation: Extra inputs are not permitted",
+        "delta.confirmation: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-054",
+      "category": "confirmation",
+      "user_input": "不约了，谢谢",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {},
+        "confirmation": "no"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"不约了，谢谢\"}, \"confirmation\": \"no\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1056.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-055",
+      "category": "mode_slang",
+      "user_input": "今晚八点来把五排，钻石的，2小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "start_time_expr": "今晚八点",
+          "game_mode": "ranked_flex",
+          "rank_requirement": "diamond",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"今晚八点来把五排，钻石的，2小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1298.5,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-056",
+      "category": "mode_slang",
+      "user_input": "想打海克斯大乱斗，明晚9点，一小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": "aram_mayhem",
+          "start_time_expr": "明晚9点",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"想打海克斯大乱斗，明晚9点，一小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1314.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-057",
+      "category": "mode_slang",
+      "user_input": "带我上分，双排，jg位，翡翠，明天下午两点三小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "service_type": "climb",
+          "game_mode": "ranked_solo_duo",
+          "role_preference": [
+            "jungle"
+          ],
+          "rank_requirement": "emerald",
+          "start_time_expr": "明天下午两点",
+          "duration_hours": 3
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"带我上分，双排，jg位，翡翠，明天下午两点三小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1419.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-058",
+      "category": "mode_slang",
+      "user_input": "约个斗魂，今晚十点一个小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": "arena",
+          "start_time_expr": "今晚十点",
+          "duration_hours": 1
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"booking\", \"delta\": {\"user_input\": \"约个斗魂，今晚十点一个小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1069.0,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-059",
+      "category": "mode_slang",
+      "user_input": "随便打打匹配，娱乐局，明晚八点两小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "game_mode": "normal_draft",
+          "service_type": "casual",
+          "start_time_expr": "明晚八点",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"随便打打匹配，娱乐局，明晚八点两小时\"}, \"confirmation\": \"none\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1267.9,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    },
+    {
+      "id": "main-060",
+      "category": "mode_slang",
+      "user_input": "找个会玩辅助位的小哥哥陪我单排上分，黄金，周六晚上七点，两小时",
+      "expected": {
+        "turn_intent": "booking",
+        "delta": {
+          "role_preference": [
+            "support"
+          ],
+          "companion_gender": "male",
+          "game_mode": "ranked_solo_duo",
+          "service_type": "climb",
+          "rank_requirement": "gold",
+          "start_time_expr": "周六晚上七点",
+          "duration_hours": 2
+        },
+        "confirmation": "none"
+      },
+      "raw": "{\"turn_intent\": \"consult\", \"delta\": {\"user_input\": \"找个会玩辅助位的小哥哥陪我单排上分，黄金，周六晚上七点，两小时\"}, \"confirmation\": \"yes\"}",
+      "passed": false,
+      "protocol_ok": false,
+      "protocol_error": "extra_key",
+      "protocol_messages": [
+        "delta.user_input: Extra inputs are not permitted"
+      ],
+      "task_score": 0.0,
+      "field_errors": [],
+      "latency_ms": 1634.6,
+      "source": "local",
+      "retried": false,
+      "fell_back": false,
+      "attempts": [],
+      "extractor_errors": [
+        "delta.user_input: Extra inputs are not permitted"
+      ]
+    }
+  ]
+}
