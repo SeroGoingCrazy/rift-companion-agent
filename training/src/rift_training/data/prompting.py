@@ -15,6 +15,8 @@ right by construction and the validator only has to check business consistency.
 from __future__ import annotations
 
 import hashlib
+import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -85,6 +87,32 @@ def state_key(name: str) -> str:
     return "start_time" if name == "start_time_expr" else name
 
 
+#: Slots whose target is pinned in the schema (times, names and styles are checked or free).
+PINNED = frozenset(
+    {
+        "rank_requirement",
+        "duration_hours",
+        "service_type",
+        "companion_gender",
+        "voice_required",
+        "budget_per_hour",
+        "role_preference",
+    }
+)
+
+
+def _pinned(name: str, target: Any, schema: dict[str, Any]) -> dict[str, Any]:
+    if name == "start_time_expr" and isinstance(target, dict) and "form" not in target:
+        return _enum([target["time"]])  # a state time is written exactly
+    if name not in PINNED:
+        return schema
+    if name == "role_preference":
+        n = len(target)
+        return {"type": "array", "items": _enum(list(target)), "minItems": n, "maxItems": n}
+    kind = {bool: "boolean", int: "number", float: "number"}.get(type(target), "string")
+    return {"type": kind, "enum": [target]}
+
+
 def answer_schema(task: GenerationTask, domain: DomainConfig) -> dict[str, Any]:
     fields = field_schemas(domain)
     state_mode = fields["game_mode"]
@@ -100,7 +128,11 @@ def answer_schema(task: GenerationTask, domain: DomainConfig) -> dict[str, Any]:
         state["start_time"] = {"type": "string", "pattern": TIME_PATTERN}
     if "game_mode" in state:
         state["game_mode"] = state_mode
+    for name, target in task.state_targets.items():
+        state[state_key(name)] = _pinned(name, target, state[state_key(name)])
     values = {name: fields[name] for name, kind in task.delta.items() if kind == "value"}
+    for name, target in task.targets.items():
+        values[name] = _pinned(name, target, values[name])
     n_history = 2 * task.history_turns
     message = _object({"role": _enum(["user", "assistant"]), "content": {"type": "string"}})
     return _object(
@@ -184,6 +216,9 @@ def task_prompt(task: GenerationTask, domain: DomainConfig) -> str:
     if task.state_fields:
         keys = "、".join(state_key(n) for n in task.state_fields)
         lines.append(f"- 之前已收集的信息（state）：{keys}")
+        if task.state_targets:
+            given = "；".join(_state_target_text(n, v) for n, v in task.state_targets.items())
+            lines.append(f"  - state 取值（照填，history 里要聊到）：{given}")
     else:
         lines.append("- 之前没有收集到任何预约信息（state 为空）")
     lines.append(f"- 之前的对话：{task.history_turns} 轮（history 共 {2 * task.history_turns} 条）")
@@ -196,10 +231,66 @@ def task_prompt(task: GenerationTask, domain: DomainConfig) -> str:
     )
     if task.delta:
         lines.append("- 用户这一轮涉及的字段（其他字段都不要提）：")
-        lines += [f"  - {name}：{KIND_TEXT[kind]}" for name, kind in task.delta.items()]
+        for name, kind in task.delta.items():
+            line = f"  - {name}：{KIND_TEXT[kind]}"
+            if name in task.targets:
+                line += f"；{_target_text(name, task.targets[name], task)}"
+            lines.append(line)
     else:
         lines.append("- 用户这一轮不涉及任何预约字段（delta 为空），values 为空对象")
     return "\n".join(lines)
+
+
+TIME_FORM_TEXT = {
+    "relative_day": '用"今天/明天/后天 + 时段 + 钟点"的说法（今晚、明晚也可以）',
+    "weekday": '用星期说（如"周六晚上九点半"），不要说日期数字',
+    "next_week": '用"下周X"说（如"下周二晚上八点"）',
+    "digits": '钟点用阿拉伯数字（如"明天 21:30""今晚9点半"）',
+    "after": '用从现在算起的说法（如"半小时后""一个半小时后""两小时以后"）',
+}
+
+
+def _clock(text: str) -> str:
+    when = datetime.strptime(text, "%Y-%m-%d %H:%M")
+    return f"{text} 星期{WEEKDAYS[when.weekday()]}"
+
+
+def _state_target_text(name: str, target: Any) -> str:
+    if name == "start_time_expr":
+        return f"start_time={target['time']}"
+    if name == "companion_name":
+        return f"companion_name=第 {target} 位候选（candidates[{target - 1}]）"
+    if name == "style_preference":
+        return f"style_preference=围绕「{target}」"
+    return f"{name}={json.dumps(target, ensure_ascii=False)}"
+
+
+def _target_text(name: str, target: Any, task: GenerationTask) -> str:
+    if name == "start_time_expr":
+        form = target["form"]
+        if form == "fuzzy":
+            return "不要给出明确钟点"
+        if form == "shift":
+            hours = target["shift_hours"]
+            way = f"往后推 {hours} 小时" if hours > 0 else f"提前 {-hours} 小时"
+            return (
+                f'在已定的开始时间上{way}（用相对调整的说法，如"晚一个半小时""提前半小时"），'
+                f"结果为 {_clock(target['time'])}"
+            )
+        return (
+            f"目标时刻 {_clock(target['time'])}，{TIME_FORM_TEXT[form]}；"
+            "钟点带上时段词（上午/下午/晚上）或用 24 小时制，系统会用解析器核对，必须正好是这个时刻"
+        )
+    if name == "companion_name":
+        return (
+            f"选第 {target} 位候选，values 填 candidates[{target - 1}] 的名字；"
+            "按序号、名字或昵称来说都行"
+        )
+    if name == "style_preference":
+        return f"风格主题「{target}」，用户用自己的话描述，values 概括原话关键词"
+    if name == "role_preference":
+        return f"目标值 {json.dumps(target)}（对陪玩师位置的要求，顺序不限）"
+    return f"目标值 {json.dumps(target, ensure_ascii=False)}（用户用自己的说法表达）"
 
 
 def build_request(task: GenerationTask, domain: DomainConfig) -> TeacherRequest:

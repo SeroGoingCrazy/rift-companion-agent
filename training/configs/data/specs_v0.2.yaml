@@ -1,0 +1,362 @@
+# Scenario specs v0.2 (DEV_SPEC I2/I3): v0.1 plus target values.
+#
+# v0.1 left concrete values to the Teacher, which then picked the most typical one almost
+# every time (rank: diamond 37 of 55; duration: 2.5 h 66 of 128, never 1 h or 4+ h; time:
+# 76 distinct wordings for 208 times, "明晚八点" 37 times; "就第二个吧" 8 times). v0.2 draws
+# a target for every slot value (rift_training.data.targets) so the data covers the whole value
+# space; the answer schema pins enum / number targets and the validator checks times by
+# parsing them and candidate picks by position.
+#
+version: v0.2
+total: 800
+seed: 20261001
+
+now:
+  start: 2026-10-01
+  days: 21            # conversations happen over three weeks (all weekdays covered)
+  hours: [9, 23]      # inclusive; minutes are 00 / 15 / 30 / 45
+
+# Surface styles of the user's wording (说法风格). Variants and categories may override weights.
+styles:
+  standard:
+    weight: 0.30
+    hint: 规范书面的中文，完整句子。
+  colloquial:
+    weight: 0.30
+    hint: 口语化，带语气词、省略主语、倒装或碎句，如"整个双排呗""那就俩小时吧"。
+  slang:
+    weight: 0.15
+    hint: 玩家黑话和简称，如"双排""上分""带飞""软辅""野王""峡谷"。
+  typo:
+    weight: 0.10
+    hint: 含一两处常见错别字或同音字（如"晚尚""砖石""辅主"），但意思仍明确，不影响槽位判断。
+  mixed_en:
+    weight: 0.15
+    hint: 中英混杂或拼音缩写，如"打 jg""辅助位""ad""duo 一下""rank""xjj"。
+
+# How often each game mode is the conversation's mode (also restricts which slots apply:
+# rank only for ranked modes, no rank / role in ARAM-like modes, per config/domain.yaml).
+modes:
+  ranked_solo_duo: 0.30
+  ranked_flex: 0.12
+  normal_draft: 0.18
+  aram: 0.18
+  aram_mayhem: 0.10
+  arena: 0.12
+
+# Weights for randomly picked slots. 0 = never picked at random (only via `require` or an
+# explicit `pool`).
+field_weights:
+  game_mode: 3.0
+  start_time_expr: 3.0
+  duration_hours: 2.5
+  rank_requirement: 1.5
+  role_preference: 1.2
+  service_type: 0.8
+  companion_gender: 1.2
+  voice_required: 0.8
+  budget_per_hour: 0.8
+  style_preference: 1.0
+  companion_name: 0
+
+categories:
+  first_turn:
+    quota: 0.16
+    history_turns: [0, 0]
+    variants:
+      multi_slot:
+        weight: 0.50
+        hint: 用户第一句话就给出多项预约信息。
+        value: {count: [2, 5]}
+      single_slot:
+        weight: 0.15
+        hint: 用户第一句话只给出一项信息，其余都没提。
+        value: {count: [1, 1]}
+      bare_request:
+        weight: 0.07
+        hint: 用户只表达想约陪玩，没有任何具体信息（delta 为空，turn_intent 仍是 booking）。
+      with_style:
+        weight: 0.13
+        hint: 用户描述想要的陪玩性格或风格（如"温柔会聊天""脾气好不骂人""搞笑的"），同时给出其他信息。
+        require: [style_preference]
+        value: {count: [1, 3]}
+        exclude: [voice_required]
+      voice_as_style:
+        weight: 0.08
+        hint: 用户夸声音（"声音好听""嗓音甜""萌妹音"）——这是风格偏好 style_preference，不是 voice_required；用户没有要求开麦。
+        require: [style_preference]
+        value: {count: [0, 2]}
+        exclude: [voice_required]
+      voice_and_style:
+        weight: 0.07
+        hint: 用户既要求能开麦 / 语音（voice_required），又描述了声音或性格风格（style_preference），两者都要抽出。
+        require: [style_preference, voice_required]
+        value: {count: [0, 2]}
+
+  multi_turn:
+    quota: 0.14
+    history_turns: [1, 3]
+    variants:
+      add_fields:
+        weight: 0.50
+        hint: 前几轮已收集部分信息，这一轮用户补充新的信息（通常是在回答助手的追问）。
+        require_state: [game_mode]
+        state: {count: [1, 3]}
+        value: {count: [1, 3]}
+      modify_field:
+        weight: 0.30
+        hint: 用户修改之前说过的某项信息（"打野换成辅助""改成三个小时"），列表字段输出完整的新列表。
+        require_state: [game_mode]
+        state: {count: [2, 4]}
+        modify: {count: [1, 1]}
+        value: {count: [0, 1]}
+      answer_short:
+        weight: 0.20
+        hint: 助手刚追问了某一项，用户只用很短的话回答（"俩小时""钻石吧""女的"）。
+        require_state: [game_mode]
+        state: {count: [1, 3]}
+        value: {count: [1, 1]}
+        styles: {standard: 0.1, colloquial: 0.5, slang: 0.15, typo: 0.1, mixed_en: 0.15}
+
+  tri_state:
+    quota: 0.16
+    history_turns: [1, 3]
+    variants:
+      any_optional:
+        weight: 0.35
+        hint: 用户对某个非必填项表示不限（"风格没要求""男女都行""换谁都行""语音无所谓""预算不限"），值为 "any"，不是 null。
+        state: {count: [1, 4]}
+        any:
+          count: [1, 2]
+          pool: [style_preference, companion_name, companion_gender, voice_required, budget_per_hour]
+        value: {count: [0, 1]}
+      any_required:
+        weight: 0.15
+        hint: 用户对段位或位置表示无所谓（"段位无所谓""位置随便"），值为 "any"。
+        require_state: [game_mode]
+        state: {count: [1, 3]}
+        any: {count: [1, 1], pool: [rank_requirement, role_preference]}
+        value: {count: [0, 1]}
+      null_withdraw:
+        weight: 0.25
+        hint: 用户撤回之前说过的信息、暂时不定（"时间先不定""先别管预算""不点名了，回头再说"），值为 null，与"不限"区分。
+        state: {count: [2, 4]}
+        withdraw:
+          count: [1, 1]
+          pool: [start_time_expr, duration_hours, rank_requirement, role_preference, companion_gender, voice_required, budget_per_hour, style_preference, companion_name]
+        value: {count: [0, 1]}
+      any_and_null:
+        weight: 0.15
+        hint: 同一句话里一项表示不限（"any"），另一项撤回（null）。
+        state: {count: [2, 4]}
+        any:
+          count: [1, 1]
+          pool: [style_preference, companion_name, companion_gender, voice_required, budget_per_hour, rank_requirement, role_preference]
+        withdraw:
+          count: [1, 1]
+          pool: [start_time_expr, duration_hours, rank_requirement, role_preference, companion_gender, voice_required, budget_per_hour, style_preference, companion_name]
+      any_vs_value:
+        weight: 0.10
+        hint: 用户说某项不限的同时给出另一项的具体值（"段位无所谓，要女的"），注意别把具体值也写成 any。
+        state: {count: [1, 3]}
+        any:
+          count: [1, 1]
+          pool: [style_preference, companion_gender, voice_required, budget_per_hour, rank_requirement, role_preference]
+        value: {count: [1, 2]}
+
+  relative_time:
+    quota: 0.10
+    history_turns: [0, 2]
+    variants:
+      day_and_hour:
+        weight: 0.40
+        hint: 用户用相对日期 + 钟点说时间（"明晚八点""后天下午三点""今晚十点半"），start_time_expr 原样照抄。
+        require: [start_time_expr]
+        value: {count: [0, 2]}
+      weekday:
+        weight: 0.25
+        hint: 用户用星期说时间（"周六下午""下周三晚上九点""这周日中午"）。
+        require: [start_time_expr]
+        value: {count: [0, 2]}
+      shift:
+        weight: 0.25
+        hint: 已有开始时间，用户相对调整（"改成晚一小时""提前半小时""换到九点"），只输出调整说法本身。
+        require_state: [start_time_expr]
+        state: {count: [1, 3]}
+        modify: {count: [1, 1], pool: [start_time_expr]}
+        history_turns: [1, 2]
+      fuzzy:
+        weight: 0.10
+        hint: 模糊但可理解的时间（"一会儿""半小时后""今晚吃完饭八点左右"），仍照抄原话中的时间表达。
+        require: [start_time_expr]
+        value: {count: [0, 1]}
+
+  candidate_ref:
+    quota: 0.10
+    history_turns: [1, 3]
+    variants:
+      ordinal:
+        weight: 0.40
+        hint: 助手已展示候选陪玩师，用户按序号挑选（"就第二个""第一个吧""最后那个"），companion_name 输出 candidates 中的确切名字。
+        candidates: [2, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode]
+        require: [companion_name]
+      by_name:
+        weight: 0.30
+        hint: 用户直接说出或部分说出候选的名字（全名、去掉后缀、昵称化），companion_name 输出 candidates 中的确切名字。
+        candidates: [2, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode]
+        require: [companion_name]
+      pick_and_change:
+        weight: 0.20
+        hint: 用户选定一位候选，同时改一项其他信息（"就阿狸酱吧，改成三个小时"）。
+        candidates: [2, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode]
+        require: [companion_name]
+        modify: {count: [1, 1]}
+      switch_pick:
+        weight: 0.10
+        hint: 用户已经点过一位候选，现在改选另一位（"还是换成第三个吧"）。
+        candidates: [3, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode, companion_name]
+        modify: {count: [1, 1], pool: [companion_name]}
+
+  consult:
+    quota: 0.08
+    history_turns: [1, 3]
+    variants:
+      platform_rules:
+        weight: 0.45
+        hint: 预约中插话咨询平台规则（退款、取消、计价、教学怎么收费、段位规则），turn_intent=consult，delta 为空。
+        turn_intent: consult
+        state: {count: [1, 4]}
+      mode_question:
+        weight: 0.25
+        hint: 插话询问模式或段位常识（"斗魂竞技场几个人""钻石能和铂金双排吗"），turn_intent=consult，delta 为空。
+        turn_intent: consult
+        state: {count: [1, 3]}
+      during_confirmation:
+        weight: 0.15
+        hint: 助手刚请用户确认下单，用户没有确认，而是问规则（"取消的话能退吗"），turn_intent=consult，confirmation=none。
+        turn_intent: consult
+        pending_confirmation: true
+        candidates: [2, 3]
+        require_state: [game_mode, start_time_expr, duration_hours, companion_name]
+        state: {count: [0, 2]}
+      companion_question:
+        weight: 0.15
+        hint: 已展示候选，用户问某位陪玩师的情况（"阿狸酱会玩辅助吗"）而没有选定，turn_intent=consult，delta 为空。
+        turn_intent: consult
+        candidates: [2, 4]
+        require_state: [game_mode]
+        state: {count: [1, 3]}
+
+  unrelated:
+    quota: 0.06
+    history_turns: [0, 2]
+    variants:
+      chit_chat:
+        weight: 0.40
+        hint: 与平台无关的闲聊（天气、吃饭、心情），turn_intent=unrelated，delta 为空。
+        turn_intent: unrelated
+      other_topic:
+        weight: 0.30
+        hint: 与英雄联盟陪玩预约无关的请求（写作业、问其他游戏攻略、讲笑话），turn_intent=unrelated。
+        turn_intent: unrelated
+      mid_booking:
+        weight: 0.30
+        hint: 预约进行到一半，用户突然说了无关的话，turn_intent=unrelated，delta 为空。
+        turn_intent: unrelated
+        state: {count: [1, 3]}
+        history_turns: [1, 3]
+
+  confirmation:
+    quota: 0.10
+    history_turns: [1, 3]
+    variants:
+      confirm_yes:
+        weight: 0.35
+        hint: 助手刚请用户确认下单，用户同意（"确认""好的就这个""下单吧""冲"），confirmation=yes，delta 为空。
+        confirmation: "yes"
+        pending_confirmation: true
+        candidates: [1, 3]
+        require_state: [game_mode, start_time_expr, duration_hours, companion_name]
+        state: {count: [0, 2]}
+      decline:
+        weight: 0.25
+        hint: 用户拒绝或放弃（"算了""不约了""先不要了"），confirmation=no，delta 为空。
+        confirmation: "no"
+        pending_confirmation: true
+        candidates: [1, 3]
+        require_state: [game_mode, start_time_expr, duration_hours, companion_name]
+        state: {count: [0, 2]}
+      decline_switch:
+        weight: 0.20
+        hint: 用户不要这位、想换人（"不了，换一个人吧""这个不行换个"），只输出 confirmation=no，delta 为空——不要把 companion_name 写成 null，换人由系统处理。
+        confirmation: "no"
+        pending_confirmation: true
+        candidates: [2, 3]
+        require_state: [game_mode, start_time_expr, duration_hours, companion_name]
+        state: {count: [0, 2]}
+      confirm_with_change:
+        weight: 0.20
+        hint: 用户同意下单但同时改一项（"改成三小时再下单""行，就是时间往后挪半小时"），confirmation=yes 并输出改动的字段。
+        confirmation: "yes"
+        pending_confirmation: true
+        candidates: [1, 3]
+        require_state: [game_mode, start_time_expr, duration_hours, companion_name]
+        state: {count: [0, 2]}
+        modify: {count: [1, 1], pool: [start_time_expr, duration_hours, service_type, voice_required]}
+
+  mode_slang:
+    quota: 0.10
+    history_turns: [0, 2]
+    styles: {standard: 0.05, colloquial: 0.3, slang: 0.4, typo: 0.05, mixed_en: 0.2}
+    variants:
+      mode_alias:
+        weight: 0.40
+        hint: 用模式的别名或黑话（"双排""五排""乱斗""海克斯""斗魂"），game_mode 输出规范枚举值。
+        require: [game_mode]
+        value: {count: [0, 2]}
+      service_alias:
+        weight: 0.20
+        hint: 用服务类型的说法（"带飞""冲分""复盘""带教""纯娱乐"），用户明确说了才输出 service_type。
+        require: [service_type]
+        value: {count: [0, 2]}
+      role_slang:
+        weight: 0.25
+        hint: 用位置黑话或英文缩写（"打 jg""辅助位""软辅""ad""上路"），role_preference 输出规范枚举列表。
+        require_state: [game_mode]
+        require: [role_preference]
+        value: {count: [0, 1]}
+        modes: {ranked_solo_duo: 0.45, ranked_flex: 0.25, normal_draft: 0.30}
+      rank_slang:
+        weight: 0.15
+        hint: 段位简称或口语（"钻以上""白金""宗师水平""最强王者"），rank_requirement 输出规范枚举值。
+        require: [rank_requirement]
+        value: {count: [0, 2]}
+        modes: {ranked_solo_duo: 0.7, ranked_flex: 0.3}
+
+# Target-value distributions (rift_training.data.targets).
+values:
+  rank_requirement: {iron: 0.6, bronze: 0.8, silver: 1.0, gold: 1.2, platinum: 1.2, emerald: 1.0, diamond: 1.2, master: 0.8, grandmaster: 0.5, challenger: 0.4}
+  duration_hours: {1: 1.5, 1.5: 1.0, 2: 2.0, 2.5: 1.0, 3: 1.5, 3.5: 0.5, 4: 1.0, 4.5: 0.2, 5: 0.5, 6: 0.3, 7: 0.1, 8: 0.2}
+  roles: {top: 1, jungle: 1, mid: 1, adc: 1, support: 1}
+  role_count: {1: 0.65, 2: 0.3, 3: 0.05}
+  service_type: {climb: 1.0, casual: 1.0, coaching: 0.8}
+  companion_gender: {female: 0.6, male: 0.4}
+  voice_required: {true: 0.7, false: 0.3}
+  budget_per_hour: {30: 0.6, 40: 0.8, 50: 1.0, 60: 1.0, 70: 0.8, 80: 1.0, 100: 0.8, 120: 0.6, 150: 0.4, 200: 0.3}
+  style_themes: [温柔耐心, 幽默搞笑, 安静少话, 技术流会指挥, 会讲解思路, 活泼话多, 脾气好不骂人, 高冷大神范, 情绪稳定, 会夸人, 二次元, 节奏快, 佛系, 爱聊天, 细心会复盘, 有梗]
+  time:
+    forms: {relative_day: 0.45, weekday: 0.2, next_week: 0.1, digits: 0.15, after: 0.1}
+    hours: {10: 0.3, 12: 0.3, 13: 0.5, 14: 0.7, 15: 0.7, 16: 0.6, 17: 0.6, 18: 0.8, 19: 1.2, 20: 1.5, 21: 1.5, 22: 1.2, 23: 0.6}
+    minutes: {0: 0.55, 30: 0.35, 15: 0.05, 45: 0.05}
+    day_offsets: {0: 0.35, 1: 0.45, 2: 0.15, 3: 0.05}
+    after_hours: {0.5: 1.0, 1: 1.0, 1.5: 0.6, 2: 0.8, 3: 0.4}
+    shift_hours: {-1: 0.6, -0.5: 0.8, 0.5: 0.8, 1: 1.0, 1.5: 0.5, 2: 0.6}
+    modify_shift: 0.5

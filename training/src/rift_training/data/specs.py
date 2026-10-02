@@ -40,6 +40,7 @@ from pydantic import (
 from rift_domain.config import DomainConfig, load_domain_config
 from rift_domain.enums import Confirmation, GameMode, SlotField, TurnIntent
 from rift_domain.slots import AnyValue, SlotDelta
+from rift_training.data.targets import ValueSpec, draw_targets, task_rng
 from rift_training.evaluation.dataset import CATEGORIES
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -228,6 +229,8 @@ class ScenarioSpec(BaseModel):
     modes: dict[GameMode, float]
     field_weights: dict[str, float]
     categories: dict[str, CategorySpec]
+    #: Target-value distributions (v0.2+); without them the Teacher picks the values.
+    values: ValueSpec | None = None
 
     @model_validator(mode="after")
     def _consistent(self) -> ScenarioSpec:
@@ -290,6 +293,9 @@ class GenerationTask(BaseModel):
     confirmation: Confirmation
     #: Delta key -> how the user touches it this turn (schema order).
     delta: dict[str, ValueKind]
+    #: Target values of the state slots / of the delta "value" keys (see ``targets``).
+    state_targets: dict[str, Any] = Field(default_factory=dict)
+    targets: dict[str, Any] = Field(default_factory=dict)
 
 
 def load_spec(path_or_version: str | Path) -> ScenarioSpec:
@@ -350,7 +356,8 @@ def _pick(
 
     Fields with weight 0 are only eligible when the variant listed them in an explicit pool.
     """
-    pool = {f: (weights.get(f, 1.0) or (1.0 if explicit else 0.0)) for f in candidates}
+    # Schema order, never set order: str hashes (and so set order) change per process.
+    pool = {f: (weights.get(f, 1.0) or (1.0 if explicit else 0.0)) for f in _ordered(candidates)}
     pool = {f: w for f, w in pool.items() if w > 0}
     n = rng.randint(*count)
     if len(pool) < count[0]:
@@ -456,7 +463,7 @@ class TaskSampler:
         state_fields, delta = fields
         style = self._style(cat, var)
         uses_mode = "game_mode" in state_fields or "game_mode" in delta
-        return GenerationTask(
+        task = GenerationTask(
             id=task_id,
             spec_version=self.spec.version,
             category=cat_name,
@@ -474,6 +481,19 @@ class TaskSampler:
             confirmation=var.confirmation,
             delta=delta,
         )
+        if self.spec.values is None:
+            return task
+        # A separate per-task RNG: targets never shift the task shapes drawn above.
+        state_targets, targets = draw_targets(
+            self.spec.values,
+            task_rng(self.spec.seed, task_id),
+            now=task.now,
+            variant=var_name,
+            state_fields=state_fields,
+            delta=delta,
+            num_candidates=task.num_candidates,
+        )
+        return task.model_copy(update={"state_targets": state_targets, "targets": targets})
 
 
 def sample_tasks(

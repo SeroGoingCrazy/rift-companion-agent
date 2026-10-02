@@ -27,6 +27,7 @@ from rift_domain.config import DomainConfig
 from rift_domain.timeparse import Reason, parse_time_expr
 from rift_training.data.prompting import state_key
 from rift_training.data.specs import GenerationTask
+from rift_training.data.targets import TIME_FORMAT
 from rift_training.evaluation.dataset import SlotSample, sample_problems
 
 #: Parser outcomes that mean the expression cannot become a booking time at all. Vague or
@@ -158,6 +159,51 @@ def business_problems(task: GenerationTask, sample: SlotSample, domain: DomainCo
     return problems
 
 
+def target_problems(task: GenerationTask, sample: SlotSample) -> list[str]:
+    """The answer must realize the task's target values (v0.2+ specs)."""
+    problems: list[str] = []
+    state = sample.current_state
+    delta = sample.expected["delta"]
+    current = sample.state()
+
+    def pick(index: int) -> str | None:
+        return sample.candidates[index - 1] if 0 < index <= len(sample.candidates) else None
+
+    for name, target in task.state_targets.items():
+        key = state_key(name)
+        if name == "start_time_expr":
+            ok = (
+                current.start_time is not None
+                and f"{current.start_time:{TIME_FORMAT}}" == target["time"]
+            )
+        elif name == "companion_name":
+            ok = state.get(key) == pick(target)
+        elif name == "style_preference":
+            continue
+        else:
+            ok = _same(state.get(key), target)
+        if not ok:
+            problems.append(f"state {key} {state.get(key)!r} is not the target {target!r}")
+
+    for name, target in task.targets.items():
+        value = delta.get(name)
+        if name == "start_time_expr":
+            if "time" not in target:
+                continue
+            result = parse_time_expr(value, sample.now, current=current.start_time)
+            got = f"{result.value:{TIME_FORMAT}}" if result.value else result.reason
+            if got != target["time"]:
+                problems.append(
+                    f"start_time_expr {value!r} resolves to {got}, target {target['time']}"
+                )
+        elif name == "companion_name":
+            if value != pick(target):
+                problems.append(f"companion_name {value!r} is not candidate #{target}")
+        elif name != "style_preference" and not _same(value, target):
+            problems.append(f"{name} {value!r} is not the target {target!r}")
+    return problems
+
+
 def _same(a: Any, b: Any) -> bool:
     if isinstance(a, list) and isinstance(b, list):
         return sorted(map(str, a)) == sorted(map(str, b))
@@ -180,7 +226,11 @@ def validate_answer(task: GenerationTask, text: str, domain: DomainConfig) -> Ou
             None,
             [f"{'.'.join(map(str, e['loc'])) or '<root>'}: {e['msg']}" for e in exc.errors()],
         )
-    problems = sample_problems(sample) + business_problems(task, sample, domain)
+    problems = (
+        sample_problems(sample)
+        + business_problems(task, sample, domain)
+        + target_problems(task, sample)
+    )
     return Outcome(task.id, sample, problems)
 
 
