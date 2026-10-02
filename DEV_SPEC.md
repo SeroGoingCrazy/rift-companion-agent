@@ -330,7 +330,7 @@ turn (session_id, user_id, turn_idx, input, reply, phase_before/after, latency)
 | 规模 | 第 1 轮 ≈ 800 → 对比集 2–3 轮 → ≈ 1500 |
 | SFT | LoRA r16 / α32 / all modules / lr 1e-4 / 3 epochs / cutoff 2048 / mask_history / bf16 |
 | DPO 消融 | ① 规则扰动偏好对；② On-Policy 偏好对（SFT 模型在训练集上采样，错误输出为 rejected，Teacher 输出为 chosen）；β ∈ {0.1, 0.3}，lr 5e-6，1 epoch |
-| 量化 | merge → GGUF → Q4_K_M（主）/ Q8_0（质量档），imatrix 可选；启动时预热共享前缀缓存 |
+| 量化 | merge → GGUF → Q4_K_M（主）/ Q8_0（质量档），imatrix 可选；启动时预热共享前缀缓存。**I10 实测 Q4_K_M 未过质量门槛，发布 Q8_0** |
 | 数据飞轮 | 影子模式不一致样本 → Teacher 重标 + 人工抽检 → 并入下一轮，至少完整跑通 1 轮 |
 
 **评测集隔离**：L2 主集与 holdout 由人工编写与审核，不使用任何 Teacher 生成，并在训练前冻结（记录 checksum）。
@@ -526,7 +526,7 @@ training ──▶ packages/domain（协议与规则同源，保证线上/训练
 # config/settings.yaml（节选）
 llm:
   default: { provider: openai_compatible, base_url: https://api.deepseek.com/v1, model: deepseek-chat, api_key: ${DEEPSEEK_API_KEY} }
-  local_slot: { provider: llama_server, base_url: http://llama-server:8080/v1, model: rift-slot-0.6b-q4km, timeout_s: 5 }
+  local_slot: { provider: llama_server, base_url: http://llama-server:8080/v1, model: rift-slot-0.6b-q8_0, timeout_s: 5 }
 embedding:
   provider: local            # sentence-transformers 中文小模型，风格匹配与 L2 模糊评分共用
 slot_extractor:
@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅✅✅✅⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅✅✅✅✅✅ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`61 / 77`
+`63 / 77`
 
 ---
 
@@ -1050,17 +1050,19 @@ session:
 - **测试方法**：同 I6。
 - **实现备注**：起点 SFT r003 0.6B（merged），LoRA DPO，单卡 batch 1 × 16（batch 2 时参考模型的全词表 log_softmax 触发 CUDA driver error）。结果（主集 / holdout）：SFT 90.0% / 92.6%；rule β0.1 与 β0.3 均为 **93.3% / 88.9%**（修好 any/null、"1号吧"、长句漏位置 3 条，新错"男生女生都行"→`"male or female"` 枚举越界与 mid→adc 2 条，β 不影响输出）；onpolicy 两组与 SFT 逐字相同（只有 20 步，loss 0.69≈ln2，没动）。最终选 rule β=0.3。L4（`--config local`）20/22，远程调用 1.41 次 / 会话（基线 4.14）；两个失败剧本（"挑战者""宗师以上"）SFT 同样失败，是段位别名问题。与上个项目的对照：这里的扰动对准 SFT 真实会犯的边界错误，rejected 协议合法，因此有效；代价是概率被推到分布外。1.7B 未做 DPO。详见 `training/experiments/dpo/ablation.md`。
 
-### I10：量化与性能基准
+### I10：量化与性能基准 ✅
 - **目标**：最终模型 merge → GGUF → F16 / Q8_0 / Q4_K_M（可选 imatrix）；llama-server 启动时预热共享前缀；在同一台 CPU 机器上测 TTFT、E2E、decode tok/s、质量（L2）——**同一次运行中对比**，避免上个项目"不同批次对比"的问题。
 - **修改文件**：`training/configs/quantization/*.yaml`、`training/scripts/quantize/*`、`training/experiments/quant/report.md`。
 - **验收标准**：Q4_K_M 相对 F16 质量下降 ≤ 2 条；报告提交。
 - **测试方法**：`uv run python training/scripts/quantize/bench.py`。
+- **实现备注**：配置 `training/configs/quantization/rift_slot_0.6b.yaml`，逻辑在 `rift_training/quantization.py`。`quantize.py` 在 WSL 中调用 `llama-quantize`（imatrix 变体先用 SFT v0.4 train 的 256 条渲染校准文本再跑 `llama-imatrix`，评测集不参与），写 `manifest.json`（大小、sha256）。`bench.py` 在同一次运行中依次启动各变体的 CPU llama-server（与 I6–I9 相同的参数，`-t 6` 为实测最快），首个请求预热共享 system prompt 并记为冷启动，然后用 87 条线上 prompt 流式测 TTFT / E2E / decode tok/s（另有 10 条 `cache_prompt: false` 对照），再经线上 `local` 抽取器跑 L2，最后取峰值 RSS；速度阶段与质量阶段的输出逐字一致。结果（Ryzen 5 9600X）：F16 1143 MB、80/87、E2E P50 901 ms、34 tok/s；**Q8_0 610 MB、80/87（与 F16 逐字相同）、687 ms、57 tok/s**；Q4_K_M 378 MB、76/87、465 ms、79 tok/s；Q4_K_M + imatrix 77/87。**Q4_K_M 未通过门槛**（多错 4 条，imatrix 版 3 条）：4 bit 噪声抹掉了 DPO 的微小改动，DPO 修好与弄坏的样本一起回到 SFT 的行为。看到普通 Q4_K_M 失败后才把门槛候选换成 imatrix 版，没有再试 Q5/Q6，以免用评测集挑模型。经用户确认，发布 Q8_0，`settings.yaml` 的 `local_slot.model` 改为 `rift-slot-0.6b-q8_0`。预热后每个请求只计算约 79 个 prompt token，TTFT 从 0.7–1.4 s 降到 0.13–0.19 s。另外发现 Windows 上 `localhost` 先试 `::1`，Python 同步客户端每个请求多等约 2 s，bench 改用 `127.0.0.1`；I6–I9 的 L2 延迟走异步抽取器，不受影响。详见 `training/experiments/quant/report.md`。
 
-### I11：模型发布
+### I11：模型发布 ✅
 - **目标**：GGUF 与模型卡（训练数据版本、评测结果、许可证）放入 `models/`（git 忽略），提供下载/放置说明；可选上传 HuggingFace（需用户确认后手动操作）。
 - **修改文件**：`models/README.md`、`training/MODEL_CARD.md`。
 - **验收标准**：按说明可在新机器上放置模型并被 llama-server 加载。
 - **测试方法**：手动。
+- **实现备注**：`.gitignore` 忽略 `models/*`，只保留 `models/README.md`。说明分三步：获取（从训练机复制 / 用 I7–I9 + `quantize.py` 重建 / HuggingFace 可选，所有者确认许可证后手动上传，本次没有上传）、sha256 校验、启动 llama-server（必须关闭 thinking，建议预热）并用 L2 主集验收。模型卡 `training/MODEL_CARD.md` 写明基座 Qwen3-0.6B（Apache-2.0）、SFT v0.4 / DPO rule_v1 的数据版本与超参数、prompt sha256、L2 / L4 结果与已知局限；还写明训练数据由 OpenAI gpt-5 生成，再分发须遵守其条款。按说明把 Q8_0 和模型卡放进 `models/`，从该路径启动 llama-server，在默认 5 s 超时下 L2 主集为 56/60（93.3%），与 I10 一致。没有另一台机器，验收是在同一台机器上按说明从零放置完成的。
 
 ---
 
