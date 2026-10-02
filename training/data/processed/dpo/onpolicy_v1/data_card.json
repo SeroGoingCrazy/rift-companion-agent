@@ -1,0 +1,100 @@
+{
+  "name": "rift_dpo_onpolicy_v1",
+  "num_pairs": 316,
+  "num_samples": 239,
+  "prompt_sha256": "cf9ad121a31205283b60d92f29716f9fdc26a0f73f30deb3c0f3a49ea6e39c2d",
+  "kinds": {
+    "onpolicy:field:delta.style_preference": 50,
+    "onpolicy:field:delta.companion_name": 39,
+    "onpolicy:field:delta.companion_gender": 32,
+    "onpolicy:field:delta.role_preference": 28,
+    "onpolicy:protocol:enum": 24,
+    "onpolicy:field:delta.rank_requirement": 23,
+    "onpolicy:field:delta.budget_per_hour": 16,
+    "onpolicy:protocol:extra_key": 15,
+    "onpolicy:field:delta.duration_hours": 15,
+    "onpolicy:field:delta.start_time_expr": 14,
+    "onpolicy:field:delta.voice_required": 14,
+    "onpolicy:field:delta.service_type": 13,
+    "onpolicy:protocol:json": 13,
+    "onpolicy:field:turn_intent": 8,
+    "onpolicy:field:delta.game_mode": 7,
+    "onpolicy:field:confirmation": 3,
+    "onpolicy:protocol:type": 2
+  },
+  "categories": {
+    "first_turn": 136,
+    "tri_state": 62,
+    "multi_turn": 30,
+    "candidate_ref": 27,
+    "mode_slang": 24,
+    "relative_time": 14,
+    "confirmation": 14,
+    "consult": 6,
+    "unrelated": 3
+  },
+  "source": {
+    "sft": "v0.4",
+    "train_samples": 1110,
+    "samples_file": "onpolicy_r003_0.6b_t10_k8.jsonl",
+    "scoring": {
+      "samples": 1110,
+      "generations": 8880,
+      "generation_pass_rate": 0.9416,
+      "samples_with_failure": 239,
+      "failure_kinds": {
+        "field:delta.style_preference": 86,
+        "field:delta.companion_name": 63,
+        "field:delta.role_preference": 58,
+        "field:delta.companion_gender": 55,
+        "field:delta.rank_requirement": 39,
+        "protocol:enum": 34,
+        "field:delta.budget_per_hour": 29,
+        "field:delta.service_type": 24,
+        "field:delta.start_time_expr": 24,
+        "field:delta.voice_required": 22,
+        "field:delta.duration_hours": 21,
+        "protocol:extra_key": 19,
+        "protocol:json": 14,
+        "field:turn_intent": 14,
+        "field:delta.game_mode": 11,
+        "protocol:type": 3,
+        "field:confirmation": 3
+      }
+    },
+    "sampling": {
+      "model": "sft_0.6b_r003 (merged)",
+      "temperature": 1.0,
+      "k": 8,
+      "max_per_sample": 2
+    },
+    "first_attempt": {
+      "temperature": 0.7,
+      "k": 4,
+      "num_pairs": 97,
+      "scoring": {
+        "samples": 1110,
+        "generations": 4440,
+        "generation_pass_rate": 0.966,
+        "samples_with_failure": 80,
+        "failure_kinds": {
+          "field:delta.companion_name": 27,
+          "field:delta.style_preference": 25,
+          "field:delta.companion_gender": 15,
+          "field:delta.role_preference": 15,
+          "field:delta.rank_requirement": 14,
+          "field:delta.budget_per_hour": 13,
+          "protocol:enum": 8,
+          "field:delta.duration_hours": 7,
+          "field:delta.service_type": 6,
+          "field:turn_intent": 6,
+          "field:delta.voice_required": 5,
+          "field:delta.start_time_expr": 5,
+          "field:delta.game_mode": 4,
+          "protocol:type": 1
+        }
+      },
+      "note": "spec parameters (k=4, t=0.7) gave only 97 pairs: r003 passes 96.6% of its own train prompts; resampled hotter with the same model"
+    }
+  }
+}
