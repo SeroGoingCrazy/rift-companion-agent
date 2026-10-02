@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import math
+import random
 import shlex
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -24,16 +25,29 @@ SOURCE_VARIANT = "f16"
 
 
 @dataclass(frozen=True)
+class ImatrixConfig:
+    """Importance matrix for llama-quantize, computed on SFT train text (never the eval sets)."""
+
+    file: str
+    dataset: str  # SFT train JSONL (sharegpt ``messages``)
+    calibration: str  # rendered calibration text
+    samples: int = 256
+    ctx: int = 2048
+    seed: int = 42
+
+
+@dataclass(frozen=True)
 class QuantConfig:
     model: str
     source: str
     out_dir: str
-    variants: dict[str, str]
+    variants: dict[str, str]  # name -> llama-quantize type
     llama_cpp: dict[str, str]
     server: dict[str, Any]
     bench: dict[str, Any]
     gate: dict[str, Any]
-    imatrix: str | None = None
+    imatrix: ImatrixConfig | None = None
+    imatrix_variants: frozenset[str] = frozenset()
 
     def gguf(self, variant: str) -> str:
         """Repo-relative path of one variant's GGUF (the source for ``f16``)."""
@@ -45,10 +59,24 @@ class QuantConfig:
 
 
 def load_config(path: Path) -> QuantConfig:
+    """Variants are ``name: TYPE`` or ``name: {type: TYPE, imatrix: true}``."""
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    variants = {str(k): str(v) for k, v in raw["variants"].items()}
+    variants: dict[str, str] = {}
+    with_imatrix: set[str] = set()
+    for name, spec in raw["variants"].items():
+        if isinstance(spec, dict):
+            variants[str(name)] = str(spec["type"])
+            if spec.get("imatrix"):
+                with_imatrix.add(str(name))
+        else:
+            variants[str(name)] = str(spec)
     if SOURCE_VARIANT not in variants:
         raise ValueError(f"{path}: variants must include {SOURCE_VARIANT!r} (the source GGUF)")
+    if SOURCE_VARIANT in with_imatrix:
+        raise ValueError(f"{path}: {SOURCE_VARIANT!r} is the source and is never quantized")
+    imatrix = ImatrixConfig(**raw["imatrix"]) if raw.get("imatrix") else None
+    if with_imatrix and imatrix is None:
+        raise ValueError(f"{path}: {sorted(with_imatrix)} use an imatrix but none is configured")
     gate = raw["gate"]
     for key in ("baseline", "candidate"):
         if gate[key] not in variants:
@@ -62,17 +90,57 @@ def load_config(path: Path) -> QuantConfig:
         server=dict(raw["server"]),
         bench=dict(raw.get("bench") or {}),
         gate=dict(gate),
-        imatrix=raw.get("imatrix"),
+        imatrix=imatrix,
+        imatrix_variants=frozenset(with_imatrix),
     )
 
 
 def quantize_command(cfg: QuantConfig, variant: str) -> str:
     """The ``llama-quantize`` call (run from the repo root inside WSL)."""
     parts = [cfg.llama_cpp["quantize"]]
-    if cfg.imatrix:
-        parts += ["--imatrix", shlex.quote(cfg.imatrix)]
+    if variant in cfg.imatrix_variants:
+        assert cfg.imatrix is not None
+        parts += ["--imatrix", shlex.quote(cfg.imatrix.file)]
     parts += [shlex.quote(cfg.source), shlex.quote(cfg.gguf(variant)), cfg.variants[variant]]
     return " ".join(parts)
+
+
+def imatrix_command(cfg: QuantConfig) -> str:
+    """The ``llama-imatrix`` call over the calibration text (run from the repo root in WSL)."""
+    assert cfg.imatrix is not None
+    im = cfg.imatrix
+    return " ".join(
+        [
+            cfg.llama_cpp["imatrix"],
+            "-m",
+            shlex.quote(cfg.source),
+            "-f",
+            shlex.quote(im.calibration),
+            "-o",
+            shlex.quote(im.file),
+            f"-c {im.ctx}",
+            f"-t {cfg.server['threads']}",
+            "--parse-special",
+        ]
+    )
+
+
+def render_chatml(messages: Sequence[Mapping[str, str]]) -> str:
+    """One training sample as the Qwen3 chat template renders it with thinking off."""
+    out = []
+    for m in messages:
+        if m["role"] == "assistant":
+            out.append(f"<|im_start|>assistant\n<think>\n\n</think>\n\n{m['content']}<|im_end|>\n")
+        else:
+            out.append(f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n")
+    return "".join(out)
+
+
+def calibration_text(rows: Sequence[Mapping[str, Any]], samples: int, seed: int) -> str:
+    """``samples`` seeded training rows (sorted by id first, so the pick is reproducible)."""
+    ordered = sorted(rows, key=lambda r: str(r["id"]))
+    picked = random.Random(seed).sample(ordered, min(samples, len(ordered)))
+    return "".join(render_chatml(r["messages"]) for r in picked)
 
 
 def server_command(cfg: QuantConfig, variant: str) -> str:

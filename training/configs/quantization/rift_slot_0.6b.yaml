@@ -5,16 +5,27 @@ model: rift-slot-0.6b
 # I9 winner: SFT r003 0.6B + rule-perturbation DPO, beta 0.3 (training/experiments/dpo/ablation.md).
 source: training/outputs/gguf/rift-slot-0.6b-dpo_rule_b03-f16.gguf
 out_dir: training/outputs/gguf
-# Name -> llama-quantize type. f16 is the source itself and is never re-quantized.
+# Name -> llama-quantize type, or {type, imatrix: true}. f16 is the source and is never
+# re-quantized.
 variants:
   f16: F16
   q8_0: Q8_0
   q4_k_m: Q4_K_M
-imatrix: null            # optional importance matrix (.dat); only needed if Q4_K_M misses the gate
+  q4_k_m_imat: {type: Q4_K_M, imatrix: true}
+# Importance matrix for the imatrix variants. Calibration text is rendered from the SFT train
+# split only (seeded sample, chat template with thinking off); the L2 eval sets never touch it.
+imatrix:
+  file: training/outputs/gguf/rift-slot-0.6b-imatrix.gguf
+  dataset: training/data/processed/sft/v0.4/train.jsonl
+  calibration: training/outputs/gguf/rift-slot-0.6b-calibration.txt
+  samples: 256
+  ctx: 2048
+  seed: 42
 
 llama_cpp:
   repo_wsl: /mnt/c/Users/1/rift-companion-agent
   quantize: ~/rift-train/llama.cpp/build/bin/llama-quantize
+  imatrix: ~/rift-train/llama.cpp/build/bin/llama-imatrix
   server: ~/rift-train/llama.cpp/build/bin/llama-server
   logs: ~/rift-train/logs
 
@@ -35,5 +46,5 @@ bench:
 # Q4_K_M may fail at most 2 more L2 samples (main + holdout) than F16.
 gate:
   baseline: f16
-  candidate: q4_k_m
+  candidate: q4_k_m_imat   # plain q4_k_m failed the gate (+4); see training/experiments/quant/report.md
   max_extra_failures: 2

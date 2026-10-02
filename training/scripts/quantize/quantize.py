@@ -5,7 +5,9 @@
 
 Runs llama.cpp's ``llama-quantize`` inside WSL (the same CPU build that serves the model), skips
 variants whose GGUF already exists unless ``--force``, and writes ``manifest.json`` (file, type,
-size, sha256 per variant) next to the benchmark report.
+size, sha256 per variant) next to the benchmark report. Variants marked ``imatrix: true`` first
+need the importance matrix: calibration text rendered from the SFT train split, then
+``llama-imatrix`` over it (both skipped when the files exist).
 """
 
 from __future__ import annotations
@@ -16,10 +18,18 @@ import json
 import subprocess
 import sys
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 
 from rift_training.data.specs import REPO_ROOT
-from rift_training.quantization import SOURCE_VARIANT, load_config, quantize_command
+from rift_training.quantization import (
+    SOURCE_VARIANT,
+    QuantConfig,
+    calibration_text,
+    imatrix_command,
+    load_config,
+    quantize_command,
+)
 
 DEFAULT_CONFIG = REPO_ROOT / "training" / "configs" / "quantization" / "rift_slot_0.6b.yaml"
 DEFAULT_MANIFEST = REPO_ROOT / "training" / "experiments" / "quant" / "manifest.json"
@@ -37,6 +47,21 @@ def wsl(command: str) -> None:
     subprocess.run(["wsl", "-e", "bash", "-lc", command], check=True)
 
 
+def ensure_imatrix(cfg: QuantConfig, *, force: bool) -> None:
+    assert cfg.imatrix is not None
+    im = cfg.imatrix
+    calibration = REPO_ROOT / im.calibration
+    if force or not calibration.exists():
+        with (REPO_ROOT / im.dataset).open(encoding="utf-8") as f:
+            rows = [json.loads(line) for line in f if line.strip()]
+        text = calibration_text(rows, im.samples, im.seed)
+        calibration.write_text(text, encoding="utf-8", newline="\n")
+        print(f"calibration: {min(im.samples, len(rows))} train samples -> {im.calibration}")
+    if force or not (REPO_ROOT / im.file).exists():
+        print(f"imatrix -> {im.file}")
+        wsl(f"cd {cfg.llama_cpp['repo_wsl']} && {imatrix_command(cfg)}")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Quantize the final GGUF with llama-quantize.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -50,10 +75,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not source.exists():
         print(f"source GGUF missing: {cfg.source}", file=sys.stderr)
         return 1
-    for variant in args.variants or list(cfg.variants):
-        out = REPO_ROOT / cfg.gguf(variant)
-        if variant == SOURCE_VARIANT or (out.exists() and not args.force):
-            continue
+    todo = [
+        v
+        for v in args.variants or list(cfg.variants)
+        if v != SOURCE_VARIANT and (args.force or not (REPO_ROOT / cfg.gguf(v)).exists())
+    ]
+    if cfg.imatrix_variants & set(todo):
+        ensure_imatrix(cfg, force=args.force)
+    for variant in todo:
         print(f"quantize {variant} ({cfg.variants[variant]}) -> {cfg.gguf(variant)}")
         wsl(f"cd {cfg.llama_cpp['repo_wsl']} && {quantize_command(cfg, variant)}")
 
@@ -72,7 +101,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     manifest = {
         "model": cfg.model,
         "source": cfg.source,
-        "imatrix": cfg.imatrix,
+        "imatrix": asdict(cfg.imatrix) if cfg.imatrix else None,
+        "imatrix_variants": sorted(cfg.imatrix_variants),
         "variants": entries,
     }
     args.manifest.parent.mkdir(parents=True, exist_ok=True)
