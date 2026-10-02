@@ -209,7 +209,7 @@ def test_build_writes_dataset_and_card(tmp_path: Path) -> None:
     (raw / "run.json").write_text(json.dumps(run), encoding="utf-8")
 
     out = tmp_path / "sft"
-    summary = _load_script().build("v9.9", raw, out, embedder=None)
+    summary = _load_script().build("v9.9", [raw], out, embedder=None)
     assert summary["raw"] == 29 and summary["duplicates"] == 1 and summary["eval_leaks"] == 1
     assert summary["kept"] == 27 and summary["train"] + summary["val"] == 27
     assert summary["missing_categories"] == []
@@ -248,3 +248,23 @@ def test_script_without_embedding(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert code == 0
     assert load_card(out).teacher is None
     assert script.embedding_config().model == "BAAI/bge-small-zh-v1.5"
+
+
+@pytest.mark.unit
+def test_build_merges_base_and_contrast_dirs(tmp_path: Path) -> None:
+    base, contrast = tmp_path / "v9.8", tmp_path / "v9.8c"
+    for d, prefix in ((base, "b"), (contrast, "c")):
+        d.mkdir()
+        rows = [row(f"{prefix}-{c}", f"{prefix} {c} 一句", category=c) for c in CATEGORIES]
+        (d / "accepted.jsonl").write_text(
+            "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8"
+        )
+        run = {"runs": [{"teacher": {"provider": "openai", "model": "m"}}], "status": {"n": 9}}
+        (d / "run.json").write_text(json.dumps(run), encoding="utf-8")
+    out = tmp_path / "out"
+    summary = _load_script().build("v9.9", [base, contrast], out, embedder=None)
+    assert summary["raw"] == 18 and summary["kept"] == 18
+    card = load_card(out)
+    assert card.spec == "v9.8, v9.8c"
+    assert set(card.extra["generation"]) == {"v9.8", "v9.8c"}
+    assert card.teacher == {"provider": "openai", "model": "m"}

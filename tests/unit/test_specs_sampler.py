@@ -339,3 +339,51 @@ def test_unsatisfiable_variant_fails_loudly(tmp_path: Path, domain: DomainConfig
     spec = load_spec(write_spec(tmp_path, data))
     with pytest.raises(SpecError, match="no game mode allows"):
         sample_tasks(spec, domain=domain)
+
+
+# --- contrast sets (I7) --------------------------------------------------------------------
+
+CONTRAST = SPECS_DIR / "contrast_v0.3.yaml"
+
+
+@pytest.mark.unit
+def test_contrast_spec_covers_only_its_categories(domain: DomainConfig) -> None:
+    spec = load_spec(CONTRAST)
+    assert spec.kind == "contrast" and spec.version == "v0.3c"
+    tasks = sample_tasks(spec, domain=domain)
+    assert len(tasks) == 200
+    assert {t.category for t in tasks} < set(CATEGORIES)
+    assert max(quota_errors(spec, tasks).values()) < QUOTA_TOLERANCE
+    assert [p for t in tasks for p in task_problems(t, domain)] == []
+    assert all(t.id.startswith("v0.3c-") for t in tasks)
+
+
+@pytest.mark.unit
+def test_contrast_variants_target_the_r001_errors(domain: DomainConfig) -> None:
+    tasks = sample_tasks(load_spec(CONTRAST), domain=domain)
+    by: dict[str, list[Any]] = {}
+    for t in tasks:
+        by.setdefault(t.variant, []).append(t)
+    assert all(t.targets["start_time_expr"]["form"] == "after" for t in by["after_vs_duration"])
+    assert all("duration_hours" in t.delta for t in by["compact_dense"])
+    assert all(len(t.delta) >= 4 for t in by["compact_dense"])
+    assert all(t.delta["game_mode"] == "null" for t in by["withdraw_mode"])
+    assert all("any" in t.delta.values() for t in by["any_x_not_x"])
+    assert all(t.delta.get("companion_name") == "value" for t in by["ordinal_forms"])
+    assert all(len(t.delta) == 2 for t in by["ordinal_and_change"])
+
+
+@pytest.mark.unit
+def test_full_specs_still_need_every_category(tmp_path: Path) -> None:
+    data = yaml.safe_load(CONTRAST.read_text("utf-8"))
+    data["kind"] = "full"
+    with pytest.raises(SpecError, match="categories must be exactly"):
+        load_spec(write_spec(tmp_path, data))
+
+
+@pytest.mark.unit
+def test_variant_time_forms_are_checked(tmp_path: Path) -> None:
+    data = yaml.safe_load(CONTRAST.read_text("utf-8"))
+    data["categories"]["first_turn"]["variants"]["after_vs_duration"]["time_forms"] = {"soon": 1}
+    with pytest.raises(SpecError, match="unknown time forms"):
+        load_spec(write_spec(tmp_path, data))
