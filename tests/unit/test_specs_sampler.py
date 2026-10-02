@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import os
+import subprocess
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -106,6 +109,26 @@ def test_sampling_is_deterministic_per_seed(spec: ScenarioSpec, domain: DomainCo
     assert a == b
     assert a != c
     assert len({t.id for t in a}) == 200
+
+
+@pytest.mark.unit
+def test_sampling_does_not_depend_on_the_hash_seed() -> None:
+    code = (
+        "import hashlib; from rift_training.data.specs import load_spec, sample_tasks; "
+        "print(hashlib.sha256(''.join(t.model_dump_json() for t in "
+        "sample_tasks(load_spec('v0.2'))).encode()).hexdigest())"
+    )
+    digests = {
+        subprocess.run(
+            [sys.executable, "-c", code],
+            env={**os.environ, "PYTHONHASHSEED": seed},
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        for seed in ("1", "2", "3")
+    }
+    assert len(digests) == 1
 
 
 @pytest.mark.unit
