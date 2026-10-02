@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅⬜⬜⬜⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅⬜✅⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`58 / 77`
+`59 / 77`
 
 ---
 
@@ -1035,11 +1035,12 @@ session:
 - **验收标准**：0.6B 在 L2 main 通过率 ≥ DeepSeek 基线 − 5pp，holdout 通过率 ≥ 85%（首次基线出来后可修订并记录原因）。**M2**。
 - **测试方法**：同 I6。
 
-### I8：DPO 偏好对构造（规则扰动 + On-Policy）
+### I8：DPO 偏好对构造（规则扰动 + On-Policy） ✅
 - **目标**：① 规则扰动：对 chosen 做字段替换、三态混淆（`null`↔缺失↔`any`）、intent 翻转；② On-Policy：用最佳 SFT 模型在训练集上 temperature 0.7 采样 k=4，未通过评分器的输出为 rejected，Teacher 答案为 chosen；两套数据各自出数据卡。
 - **修改文件**：`data/{dpo_rule.py, dpo_onpolicy.py}`、`training/data/processed/dpo/{rule_v1, onpolicy_v1}/`。
 - **验收标准**：On-Policy 偏好对 ≥ 300 对；rejected 错误类型分布写入数据卡。
 - **测试方法**：`uv run python training/scripts/data/build_dpo.py --mode rule|onpolicy`。
+- **实现备注**：偏好对只取自 SFT v0.4 的 train 部分（1110 条），val 和评测集不参与；以 LLaMA-Factory sharegpt ranking 格式写出（`messages` 为线上 prompt，`chosen` 为标准答案）。① `rule_v1`：1084 对，每条 rejected 只错一处且协议合法、L2 评分器判错，扰动类型对准 SFT 三轮里修不掉的错误：`any`↔`null`↔缺失、多余的 `null`、漏键、列表替换写成追加、时间吞掉时长、候选引用照抄原文、换值、意图 / 确认翻转，按权重抽样（`extra_null` 适用面太广，权重调低）。② `onpolicy_v1`：316 对，由 r003 0.6B 在 GPU 上采样（`sample_onpolicy.py`，transformers，与训练相同的模板），用与 L2 相同的评分器（含 bge 风格匹配）判定，每条样本最多 2 个不同的错误输出。**偏离规格**：按 k=4、t=0.7 采样只得到 97 对（4440 次采样通过率 96.6%，只有 80 条样本出错，说明 SFT 已拟合训练集），因此用同一模型改为 t=1.0、k=8 重采（8880 次，通过率 94.2%，239 条样本出错），两次的统计都记入数据卡。rejected 错误类型以风格、陪玩师名字、性别、位置、段位为主，另有约 17% 是协议错误（枚举越界、多余键、非法 JSON）。采样时 16 条 prompt × k=4 会撑爆 16GB 显存，默认 batch 改为 8。
 
 ### I9：DPO 消融实验
 - **目标**：在最佳 SFT 上训练 4 组：{rule, onpolicy} × β{0.1, 0.3}（lr 5e-6、1 epoch、sigmoid），0.6B 必做、1.7B 可选；评测 L2 main / holdout，挑最优再跑 L4。
