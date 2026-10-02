@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅⬜⬜⬜⬜⬜⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`56 / 77`
+`58 / 77`
 
 ---
 
@@ -1015,17 +1015,19 @@ session:
 - **测试方法**：`uv run python training/scripts/data/build_sft.py --version v0.2`。
 - **实现备注**：去重分两步：训练集内部（同一句话 + 同一上下文）和与 L2 评测集（归一化后完全相同，或 bge-small-zh 余弦 ≥ 0.92）；阈值依据 v0.1 的相似度分布选定，命中的都是"确认下单""就第二个吧""改成晚一小时"这类与评测集几乎相同的短句。生成阶段不读取评测集，这里是训练数据与评测集唯一接触的地方，剔除记录写入 `removed.jsonl` 和数据卡。按类别切分 train / val（5%），渲染为 LLaMA-Factory sharegpt 格式（OpenAI 风格 `messages`：线上 system + user prompt 加标准答案），注册为 `rift_sft_v0_2_train` / `_val`。数据卡记录 prompt 与 Teacher 模板的 sha256、Teacher 型号、生成通过率、去重明细和覆盖审计（类别、子场景、风格、模式、三态字段、别名出现次数）。v0.2：795 → 去重 2 条、剔除 11 条与评测集过近 → 782 条（train 743 / val 39），提交在 `training/data/processed/sft/v0.2/`。仍未出现的别名（如"单排""极地大乱斗""硬辅""教练"）留给 I7 对比集。
 
-### I5：SFT 训练 r001（0.6B + 1.7B）
+### I5：SFT 训练 r001（0.6B + 1.7B） ✅
 - **目标**：LLaMA-Factory LoRA SFT（参数见 3.7），租用 GPU 训练两个尺寸；记录训练曲线与耗时成本。
 - **修改文件**：`training/configs/training/llamafactory/{_base_sft.yaml, sft_0.6b_r001.yaml, sft_1.7b_r001.yaml}`、`training/experiments/r001/{problem.md, strategy.md, conclusion.md}`。
 - **验收标准**：adapter 产出；loss 正常收敛。
 - **测试方法**：GPU 机器执行 `llamafactory-cli train ...`。
+- **实现备注**：没有租云 GPU，在本机 WSL2（Ubuntu 24.04）+ RTX 5080 16GB 上训练：uv 虚拟环境，torch 2.11+cu128（5080 为 sm_120），LLaMA-Factory 0.9.5。数据用 `sft/v0.2`（782 条）。模板选 `qwen3` + `enable_thinking: false`，`training/scripts/train/check_template.py` 验证与官方 chat template（`enable_thinking=False`，assistant 前带空 think 块）在 743 条上逐 token 一致，因此线上 llama-server 必须关闭 thinking（J1 落实，评测时用服务端 `--chat-template-kwargs`）。0.6B 首次用 batch 8 × 2 时显存溢出到系统内存，每步从 5 s 变成 32 s，改为 4 × 4 后 6 分钟训完；1.7B 用 2 × 8，10 分钟。eval loss 0.6B 0.028、1.7B 0.018，曲线平稳。`_base_sft.yaml` 没有单独建：LLaMA-Factory 配置不支持继承，两份配置各自完整。
 
-### I6：本地推理评测 r001
+### I6：本地推理评测 r001 ✅
 - **目标**：merge adapter → 用 llama-server（F16）加载 → 跑 L2 main + holdout，对比 base 模型与 DeepSeek 基线。
 - **修改文件**：`training/scripts/eval/run_local_eval.py`、`training/experiments/r001/conclusion.md`。
 - **验收标准**：产出三方对比表与错误分布。
 - **测试方法**：`uv run python eval/runners/run_slot_eval.py --extractor local --dataset main`。
+- **实现备注**：`llamafactory-cli export` 合并 adapter（合并后的 chat template 与官方一致）→ llama.cpp `convert_hf_to_gguf.py` 转 F16 → CPU 编译的 llama-server（WSL 没有 nvcc，CPU 推理也正是 I10 的部署场景）。新增环境变量 `LOCAL_SLOT_TIMEOUT_S` 覆盖本地抽取器超时（默认仍为 5 s）。L2 结果：DeepSeek 98.3% / 88.9%，0.6B 基座 0% / 0%（不懂协议），**0.6B SFT 73.3% / 74.1%**，**1.7B SFT 81.7% / 92.6%**（holdout 超过 DeepSeek），两者协议层均 100%；CPU F16 单次延迟 P50 0.6B 1.1 s、1.7B 2.3 s。主要错误：时间吞掉时长（"明晚八点两小时"）、一句多槽位漏抽、候选序号（"1号吧"）、非必填字段的 `any`，以及规格遗漏导致的 `game_mode: null`（训练集一条都没有）。0.6B 距 M2 门槛差约 20pp，详见 `training/experiments/r001/conclusion.md`。
 
 ### I7：对比集迭代 r002–r004
 - **目标**：按错误分布设计对比集（复制场景并改一个条件使正确输出翻转，例如"大乱斗 + 钻石"→ 段位应被清空、"不限女"vs"要女"），每轮追加 150–250 条，重训重评；每轮写 problem/strategy/conclusion。
