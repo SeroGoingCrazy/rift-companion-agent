@@ -20,10 +20,13 @@ trap stop_server EXIT
 for size in $sizes; do
   gguf="training/outputs/gguf/rift-slot-${size}-${round}-f16.gguf"
   stop_server
-  # Thinking off, exactly like training (template qwen3 + enable_thinking=false).
+  # Thinking off, exactly like training (template qwen3 + enable_thinking=false). Wait for the
+  # health check inside the same wsl call: a job backgrounded as the last command of
+  # `wsl bash -lc` is killed with the session before it even starts.
   wsl -e bash -lc "cd $repo_wsl && nohup $server -m $gguf --host 0.0.0.0 --port 8080 -c 4096 -np 1 -t 10 \
-    --jinja --chat-template-kwargs '{\"enable_thinking\":false}' > ~/rift-train/logs/llama_server_${size}_${round}.log 2>&1 &"
-  until curl -s localhost:8080/health | grep -q ok; do sleep 2; done
+    --jinja --chat-template-kwargs '{\"enable_thinking\":false}' > ~/rift-train/logs/llama_server_${size}_${round}.log 2>&1 &
+    for _ in \$(seq 120); do curl -s localhost:8080/health | grep -q ok && exit 0; sleep 1; done
+    echo 'llama-server did not become healthy' >&2; exit 1"
   tag="${round}_${size/./}"
   for ds in main holdout; do
     python -m uv run --env-file .env python eval/runners/run_slot_eval.py \
