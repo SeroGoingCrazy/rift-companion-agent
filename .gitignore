@@ -30,6 +30,10 @@ training/outputs/
 *.gguf
 *.safetensors
 
+# Released model files (models/README.md says how to place them)
+models/*
+!models/README.md
+
 # Editors / OS
 .idea/
 .vscode/
