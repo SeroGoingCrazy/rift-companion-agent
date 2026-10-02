@@ -11,7 +11,7 @@ llm:
   local_slot:
     provider: llama_server
     base_url: ${LLAMA_SERVER_URL:-http://llama-server:8080/v1}
-    model: rift-slot-0.6b-q4km
+    model: rift-slot-0.6b-q8_0   # I10: Q4_K_M missed the quality gate (training/experiments/quant/report.md)
     timeout_s: ${LOCAL_SLOT_TIMEOUT_S:-5}   # CPU evals of larger models need more
     temperature: 0
     max_tokens: 160
