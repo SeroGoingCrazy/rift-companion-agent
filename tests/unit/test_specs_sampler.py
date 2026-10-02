@@ -387,3 +387,22 @@ def test_variant_time_forms_are_checked(tmp_path: Path) -> None:
     data["categories"]["first_turn"]["variants"]["after_vs_duration"]["time_forms"] = {"soon": 1}
     with pytest.raises(SpecError, match="unknown time forms"):
         load_spec(write_spec(tmp_path, data))
+
+
+@pytest.mark.unit
+def test_r003_contrast_targets(domain: DomainConfig) -> None:
+    spec = load_spec(SPECS_DIR / "contrast_v0.4.yaml")
+    tasks = sample_tasks(spec, domain=domain)
+    assert len(tasks) == 200 and [p for t in tasks for p in task_problems(t, domain)] == []
+    by: dict[str, list[Any]] = {}
+    for t in tasks:
+        by.setdefault(t.variant, []).append(t)
+    for t in by["role_replace"]:
+        old, new = t.state_targets["role_preference"], t.targets["role_preference"]
+        assert (
+            len(new) == len(old) and len(set(old) - set(new)) == 1 and len(set(new) - set(old)) == 1
+        )
+    for t in by["any_vs_null"]:
+        assert sorted(t.delta.values()) == ["any", "null"]
+    assert all(t.delta == {"game_mode": "null"} for t in by["mode_soft_withdraw"])
+    assert all(t.turn_intent.value == "consult" and not t.delta for t in by["platform_policy"])
