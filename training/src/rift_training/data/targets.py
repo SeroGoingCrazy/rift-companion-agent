@@ -150,7 +150,13 @@ class TargetDrawer:
                 target = self._clock(now + timedelta(days=1))
         return target
 
-    def time_target(self, *, base: datetime | None, shift: bool) -> dict[str, Any]:
+    def time_target(
+        self,
+        *,
+        base: datetime | None,
+        shift: bool,
+        forms: Mapping[str, float] | None = None,
+    ) -> dict[str, Any]:
         if shift and base is not None:
             for _ in range(10):
                 hours = _choice(self.rng, self.spec.time.shift_hours)
@@ -161,7 +167,7 @@ class TargetDrawer:
                         "shift_hours": hours,
                         "time": f"{target:{TIME_FORMAT}}",
                     }
-        form = _choice(self.rng, self.spec.time.forms)
+        form = _choice(self.rng, forms or self.spec.time.forms)
         target = self.absolute_time(form)
         if base is not None and target == base:
             target += timedelta(hours=1)
@@ -214,6 +220,7 @@ def draw_targets(
     state_fields: tuple[str, ...],
     delta: Mapping[str, str],
     num_candidates: int,
+    time_forms: Mapping[str, float] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """(state targets, delta value targets); keys are delta field names, no ``game_mode``."""
     drawer = TargetDrawer(spec, rng, now)
@@ -243,7 +250,7 @@ def draw_targets(
             shift = base is not None and (
                 variant == "shift" or rng.random() < spec.time.modify_shift
             )
-            values[name] = drawer.time_target(base=base, shift=shift)
+            values[name] = drawer.time_target(base=base, shift=shift, forms=time_forms)
             continue
         target = drawer.value(name, num_candidates)
         for _ in range(20):  # a modified slot must change

@@ -40,7 +40,7 @@ from pydantic import (
 from rift_domain.config import DomainConfig, load_domain_config
 from rift_domain.enums import Confirmation, GameMode, SlotField, TurnIntent
 from rift_domain.slots import AnyValue, SlotDelta
-from rift_training.data.targets import ValueSpec, draw_targets, task_rng
+from rift_training.data.targets import ABSOLUTE_FORMS, ValueSpec, draw_targets, task_rng
 from rift_training.evaluation.dataset import CATEGORIES
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -170,6 +170,8 @@ class VariantSpec(BaseModel):
     exclude: tuple[str, ...] = ()
     styles: dict[str, float] | None = None
     modes: dict[GameMode, float] | None = None
+    #: Overrides ``values.time.forms`` for this variant's new times (e.g. only "after").
+    time_forms: dict[str, float] | None = None
 
     @field_validator("candidates")
     @classmethod
@@ -197,6 +199,11 @@ class VariantSpec(BaseModel):
             _check_weights(self.styles, "variant style")
         if self.modes is not None:
             _check_weights(self.modes, "variant mode")
+        if self.time_forms is not None:
+            _check_weights(self.time_forms, "variant time form")
+            unknown = set(self.time_forms) - set(ABSOLUTE_FORMS)
+            if unknown:
+                raise ValueError(f"unknown time forms {sorted(unknown)}")
         return self
 
     def picks_delta(self) -> bool:
@@ -222,6 +229,8 @@ class ScenarioSpec(BaseModel):
     model_config = _SPEC_CONFIG
 
     version: str = Field(min_length=1)
+    #: "full": every category, quotas cover the whole set; "contrast": a targeted add-on (I7).
+    kind: Literal["full", "contrast"] = "full"
     total: int = Field(gt=0)
     seed: int
     now: NowSpec
@@ -241,6 +250,8 @@ class ScenarioSpec(BaseModel):
             raise ValueError("field_weights must be non-negative")
         missing = sorted(set(CATEGORIES) - set(self.categories))
         unknown = sorted(set(self.categories) - set(CATEGORIES))
+        if self.kind == "contrast":
+            missing = []  # a contrast set targets a few categories only
         if missing or unknown:
             raise ValueError(
                 f"categories must be exactly {list(CATEGORIES)} "
@@ -492,6 +503,7 @@ class TaskSampler:
             state_fields=state_fields,
             delta=delta,
             num_candidates=task.num_candidates,
+            time_forms=var.time_forms,
         )
         return task.model_copy(update={"state_targets": state_targets, "targets": targets})
 

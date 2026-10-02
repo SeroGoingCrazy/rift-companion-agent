@@ -52,11 +52,15 @@ def embedding_config() -> EmbeddingConfig:
     return EmbeddingConfig.model_validate(data["embedding"])
 
 
-def teacher_from_run(raw_dir: Path) -> dict[str, str] | None:
-    path = raw_dir / RUN
-    if not path.exists():
+def teacher_from_run(raw_dirs: Sequence[Path]) -> dict[str, str] | None:
+    runs = [
+        run
+        for raw_dir in raw_dirs
+        if (raw_dir / RUN).exists()
+        for run in json.loads((raw_dir / RUN).read_text("utf-8")).get("runs") or []
+    ]
+    if not runs:
         return None
-    runs = json.loads(path.read_text("utf-8")).get("runs") or []
     teachers = {json.dumps(r["teacher"], sort_keys=True) for r in runs}
     if len(teachers) != 1:
         return {"provider": "mixed", "runs": str(len(runs))}
@@ -66,7 +70,7 @@ def teacher_from_run(raw_dir: Path) -> dict[str, str] | None:
 
 def build(
     version: str,
-    raw_dir: Path,
+    raw_dirs: Sequence[Path],
     out_dir: Path,
     *,
     embedder: BaseEmbedding | None,
@@ -75,7 +79,7 @@ def build(
     seed: int = 0,
 ) -> dict[str, Any]:
     domain = load_domain_config(DOMAIN_PATH)
-    raw = load_samples(raw_dir / ACCEPTED)
+    raw = [s for raw_dir in raw_dirs for s in load_samples(raw_dir / ACCEPTED)]
     eval_samples = [s for path in EVAL_SETS for s in load_samples(path)]
 
     unique, duplicates = dedup_within(sorted(raw, key=lambda s: s.id))
@@ -99,15 +103,17 @@ def build(
             )
 
     report = audit(kept, domain)
-    generation = (
-        json.loads((raw_dir / RUN).read_text("utf-8"))["status"] if (raw_dir / RUN).exists() else {}
-    )
+    generation = {
+        raw_dir.name: json.loads((raw_dir / RUN).read_text("utf-8"))["status"]
+        for raw_dir in raw_dirs
+        if (raw_dir / RUN).exists()
+    }
     card = build_card(
         kept,
         name="sft",
         version=version,
-        teacher=teacher_from_run(raw_dir),
-        spec=f"specs_{version}",
+        teacher=teacher_from_run(raw_dirs),
+        spec=", ".join(d.name for d in raw_dirs),
         notes=[
             f"raw {len(raw)} -> {len(unique)} after in-set dedup -> {len(kept)} after removing "
             f"{len(leaks)} near-duplicates of the L2 eval sets",
@@ -144,7 +150,13 @@ def build(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build a versioned SFT dataset.")
     parser.add_argument("--version", default="v0.1")
-    parser.add_argument("--raw", type=Path, help="default: training/data/raw/<version>")
+    parser.add_argument(
+        "--raw",
+        type=Path,
+        action="append",
+        help="raw generation dir, repeatable (base set + contrast sets); "
+        "default: training/data/raw/<version>",
+    )
     parser.add_argument("--out", type=Path, help="default: training/data/processed/sft/<version>")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD)
     parser.add_argument("--val-ratio", type=float, default=0.05)
@@ -156,7 +168,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     embedder = None if args.no_embedding else EmbeddingFactory.create(embedding_config())
     summary = build(
         args.version,
-        args.raw or RAW_DIR / args.version,
+        args.raw or [RAW_DIR / args.version],
         args.out or SFT_DIR / args.version,
         embedder=embedder,
         threshold=args.threshold,
