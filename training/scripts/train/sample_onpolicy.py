@@ -30,7 +30,9 @@ def main() -> int:
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument("--top-p", type=float, default=1.0)
     parser.add_argument("--max-new-tokens", type=int, default=160)
-    parser.add_argument("--batch", type=int, default=16, help="prompts per generate() call")
+    parser.add_argument(
+        "--batch", type=int, default=8, help="prompts per generate(); 16 x k=4 spills 16GB VRAM"
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--limit", type=int, default=0)
     args = parser.parse_args()
