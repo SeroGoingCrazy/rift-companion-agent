@@ -1,0 +1,559 @@
+{
+  "name": "sft",
+  "version": "v0.4",
+  "created_at": "2026-10-01T23:48:35",
+  "num_samples": 1170,
+  "prompt_file": "slot_extract.txt",
+  "prompt_sha256": "cf9ad121a31205283b60d92f29716f9fdc26a0f73f30deb3c0f3a49ea6e39c2d",
+  "categories": {
+    "first_turn": 235,
+    "multi_turn": 131,
+    "tri_state": 254,
+    "relative_time": 74,
+    "candidate_ref": 170,
+    "consult": 101,
+    "unrelated": 53,
+    "confirmation": 74,
+    "mode_slang": 78
+  },
+  "turn_intents": {
+    "booking": 1016,
+    "consult": 101,
+    "unrelated": 53
+  },
+  "confirmations": {
+    "no": 36,
+    "none": 1096,
+    "yes": 38
+  },
+  "delta_fields": {
+    "budget_per_hour": {
+      "value": 83,
+      "any": 38,
+      "null": 4
+    },
+    "companion_gender": {
+      "value": 121,
+      "any": 43,
+      "null": 12
+    },
+    "companion_name": {
+      "value": 170,
+      "any": 21,
+      "null": 0
+    },
+    "duration_hours": {
+      "value": 241,
+      "any": 0,
+      "null": 26
+    },
+    "game_mode": {
+      "value": 242,
+      "any": 0,
+      "null": 45
+    },
+    "rank_requirement": {
+      "value": 52,
+      "any": 8,
+      "null": 4
+    },
+    "role_preference": {
+      "value": 112,
+      "any": 16,
+      "null": 0
+    },
+    "service_type": {
+      "value": 119,
+      "any": 0,
+      "null": 0
+    },
+    "start_time_expr": {
+      "value": 297,
+      "any": 0,
+      "null": 32
+    },
+    "style_preference": {
+      "value": 132,
+      "any": 50,
+      "null": 5
+    },
+    "voice_required": {
+      "value": 90,
+      "any": 39,
+      "null": 3
+    }
+  },
+  "teacher": {
+    "provider": "openai",
+    "model": "gpt-5",
+    "reasoning_effort": "low"
+  },
+  "spec": "v0.2, v0.3c, v0.4c",
+  "notes": [
+    "raw 1188 -> 1186 after in-set dedup -> 1170 after removing 16 near-duplicates of the L2 eval sets",
+    "split: train 1110 / val 60 (per category, seed 0)"
+  ],
+  "extra": {
+    "dedup": {
+      "embedding": "BAAI/bge-small-zh-v1.5",
+      "threshold": 0.92,
+      "duplicates": 2,
+      "eval_leaks": [
+        {
+          "sample_id": "v0.2-0423",
+          "user_input": "改成晚一小时吧",
+          "eval_id": "main-024",
+          "eval_input": "改成晚一小时",
+          "similarity": 0.9734,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0431",
+          "user_input": "推迟半小时吧",
+          "eval_id": "holdout-011",
+          "eval_input": "推迟半小时",
+          "similarity": 0.9571,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0452",
+          "user_input": "就第二个吧。",
+          "eval_id": "main-031",
+          "eval_input": "就第二个吧",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.2-0560",
+          "user_input": "钻石可以和铂金一起双排吗？",
+          "eval_id": "main-041",
+          "eval_input": "钻石能和铂金双排吗",
+          "similarity": 0.9444,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0561",
+          "user_input": "钻和铂金能双排吗？",
+          "eval_id": "main-041",
+          "eval_input": "钻石能和铂金双排吗",
+          "similarity": 0.9524,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0643",
+          "user_input": "确认下单。",
+          "eval_id": "holdout-022",
+          "eval_input": "确定，下单",
+          "similarity": 0.9217,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0646",
+          "user_input": "行，就这个，下单吧。",
+          "eval_id": "main-049",
+          "eval_input": "好的，就这个，下单吧",
+          "similarity": 0.9334,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0651",
+          "user_input": "确认下单。",
+          "eval_id": "holdout-022",
+          "eval_input": "确定，下单",
+          "similarity": 0.9217,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0652",
+          "user_input": "确认。",
+          "eval_id": "main-048",
+          "eval_input": "确认",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.2-0658",
+          "user_input": "确认下单。",
+          "eval_id": "holdout-022",
+          "eval_input": "确定，下单",
+          "similarity": 0.9217,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.2-0668",
+          "user_input": "确认，下单！",
+          "eval_id": "holdout-022",
+          "eval_input": "确定，下单",
+          "similarity": 0.9237,
+          "reason": "embedding"
+        },
+        {
+          "sample_id": "v0.3c-0134",
+          "user_input": "开不开麦都无所谓",
+          "eval_id": "main-022",
+          "eval_input": "开不开麦都无所谓",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.3c-0143",
+          "user_input": "就第二个吧。",
+          "eval_id": "main-031",
+          "eval_input": "就第二个吧",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.3c-0148",
+          "user_input": "就第二个吧",
+          "eval_id": "main-031",
+          "eval_input": "就第二个吧",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.4c-0124",
+          "user_input": "1号吧",
+          "eval_id": "main-036",
+          "eval_input": "1号吧",
+          "similarity": 1.0,
+          "reason": "exact"
+        },
+        {
+          "sample_id": "v0.4c-0149",
+          "user_input": "就第三个吧，时长改成三小时行吗？",
+          "eval_id": "main-035",
+          "eval_input": "第三个吧，再把时长改成三小时",
+          "similarity": 0.94,
+          "reason": "embedding"
+        }
+      ],
+      "nearest_eval_similarity": {
+        "0.0-0.6": 108,
+        "0.6-0.7": 528,
+        "0.7-0.8": 410,
+        "0.8-0.85": 70,
+        "0.85-0.9": 49,
+        "0.9-0.92": 5,
+        "0.92-0.95": 7,
+        ">=0.95": 9
+      }
+    },
+    "generation": {
+      "v0.2": {
+        "accepted": 795,
+        "rejected_validation": 4,
+        "rejected_api": 1,
+        "pass_rate": 0.995,
+        "accepted_by_category": {
+          "first_turn": 128,
+          "multi_turn": 112,
+          "tri_state": 128,
+          "relative_time": 76,
+          "candidate_ref": 80,
+          "unrelated": 48,
+          "mode_slang": 79,
+          "confirmation": 80,
+          "consult": 64
+        },
+        "rejected_by_variant": {
+          "relative_time.shift": 2,
+          "relative_time.fuzzy": 2,
+          "mode_slang.rank_slang": 1
+        }
+      },
+      "v0.3c": {
+        "accepted": 196,
+        "rejected_validation": 2,
+        "rejected_api": 2,
+        "pass_rate": 0.9899,
+        "accepted_by_category": {
+          "first_turn": 78,
+          "tri_state": 58,
+          "candidate_ref": 45,
+          "consult": 10,
+          "unrelated": 5
+        },
+        "rejected_by_variant": {
+          "first_turn.after_vs_duration": 2,
+          "tri_state.any_x_not_x": 2
+        }
+      },
+      "v0.4c": {
+        "accepted": 198,
+        "rejected_validation": 0,
+        "rejected_api": 2,
+        "pass_rate": 1.0,
+        "accepted_by_category": {
+          "first_turn": 30,
+          "multi_turn": 19,
+          "tri_state": 70,
+          "candidate_ref": 50,
+          "consult": 29
+        },
+        "rejected_by_variant": {
+          "multi_turn.role_replace": 1,
+          "consult.platform_policy": 1
+        }
+      }
+    },
+    "teacher_prompt_sha256": "fb0b54014a3d1b3ecc22c3976862172ce9b4c64c31f0b6c92af21bb2dce69df9",
+    "audit": {
+      "total": 1170,
+      "categories": {
+        "first_turn": 235,
+        "multi_turn": 131,
+        "tri_state": 254,
+        "relative_time": 74,
+        "candidate_ref": 170,
+        "consult": 101,
+        "unrelated": 53,
+        "confirmation": 74,
+        "mode_slang": 78
+      },
+      "variants": {
+        "candidate_ref.by_name": 24,
+        "candidate_ref.hao_number": 24,
+        "candidate_ref.ordinal": 31,
+        "candidate_ref.ordinal_and_change": 15,
+        "candidate_ref.ordinal_forms": 28,
+        "candidate_ref.ordinal_then_change": 24,
+        "candidate_ref.pick_and_change": 16,
+        "candidate_ref.switch_pick": 8,
+        "confirmation.confirm_with_change": 16,
+        "confirmation.confirm_yes": 22,
+        "confirmation.decline": 20,
+        "confirmation.decline_switch": 16,
+        "consult.companion_question": 9,
+        "consult.during_confirmation": 10,
+        "consult.mode_question": 14,
+        "consult.near_platform": 10,
+        "consult.platform_policy": 29,
+        "consult.platform_rules": 29,
+        "first_turn.after_vs_duration": 18,
+        "first_turn.bare_request": 9,
+        "first_turn.compact_dense": 60,
+        "first_turn.dense_service_role": 20,
+        "first_turn.multi_slot": 64,
+        "first_turn.rounds_vs_duration": 10,
+        "first_turn.single_slot": 18,
+        "first_turn.voice_and_style": 9,
+        "first_turn.voice_as_style": 10,
+        "first_turn.with_style": 17,
+        "mode_slang.mode_alias": 31,
+        "mode_slang.rank_slang": 11,
+        "mode_slang.role_slang": 20,
+        "mode_slang.service_alias": 16,
+        "multi_turn.add_fields": 56,
+        "multi_turn.answer_short": 22,
+        "multi_turn.modify_field": 34,
+        "multi_turn.role_replace": 19,
+        "relative_time.day_and_hour": 32,
+        "relative_time.fuzzy": 6,
+        "relative_time.shift": 16,
+        "relative_time.weekday": 20,
+        "tri_state.any_and_null": 19,
+        "tri_state.any_optional": 45,
+        "tri_state.any_required": 19,
+        "tri_state.any_vs_null": 35,
+        "tri_state.any_vs_value": 13,
+        "tri_state.any_x_not_x": 31,
+        "tri_state.mode_soft_withdraw": 20,
+        "tri_state.null_withdraw": 32,
+        "tri_state.plain_any": 15,
+        "tri_state.withdraw_mode": 25,
+        "unrelated.chit_chat": 19,
+        "unrelated.errand": 5,
+        "unrelated.mid_booking": 14,
+        "unrelated.other_topic": 15
+      },
+      "styles": {
+        "colloquial": 372,
+        "standard": 276,
+        "slang": 221,
+        "mixed_en": 179,
+        "typo": 122
+      },
+      "turn_intents": {
+        "booking": 1016,
+        "consult": 101,
+        "unrelated": 53
+      },
+      "confirmations": {
+        "none": 1096,
+        "yes": 38,
+        "no": 36
+      },
+      "game_modes": {
+        "-": 366,
+        "ranked_solo_duo": 251,
+        "normal_draft": 150,
+        "aram": 124,
+        "arena": 110,
+        "ranked_flex": 97,
+        "aram_mayhem": 72
+      },
+      "history_messages": {
+        "0": 304,
+        "2": 329,
+        "4": 322,
+        "6": 215
+      },
+      "candidates": {
+        "0": 907,
+        "1": 18,
+        "2": 90,
+        "3": 91,
+        "4": 64
+      },
+      "user_input_chars": {
+        "min": 2,
+        "median": 20.0,
+        "max": 113
+      },
+      "delta_fields": {
+        "budget_per_hour": {
+          "value": 83,
+          "any": 38,
+          "null": 4
+        },
+        "companion_gender": {
+          "value": 121,
+          "any": 43,
+          "null": 12
+        },
+        "companion_name": {
+          "value": 170,
+          "any": 21,
+          "null": 0
+        },
+        "duration_hours": {
+          "value": 241,
+          "any": 0,
+          "null": 26
+        },
+        "game_mode": {
+          "value": 242,
+          "any": 0,
+          "null": 45
+        },
+        "rank_requirement": {
+          "value": 52,
+          "any": 8,
+          "null": 4
+        },
+        "role_preference": {
+          "value": 112,
+          "any": 16,
+          "null": 0
+        },
+        "service_type": {
+          "value": 119,
+          "any": 0,
+          "null": 0
+        },
+        "start_time_expr": {
+          "value": 297,
+          "any": 0,
+          "null": 32
+        },
+        "style_preference": {
+          "value": 132,
+          "any": 50,
+          "null": 5
+        },
+        "voice_required": {
+          "value": 90,
+          "any": 39,
+          "null": 3
+        }
+      },
+      "aliases": {
+        "counts": {
+          "game_mode": {
+            "ranked_solo_duo:单双排": 42,
+            "ranked_solo_duo:双排": 72,
+            "ranked_solo_duo:单排": 0,
+            "ranked_solo_duo:单双": 48,
+            "ranked_flex:灵活组排": 15,
+            "ranked_flex:灵活排位": 0,
+            "ranked_flex:灵活": 21,
+            "ranked_flex:组排": 15,
+            "ranked_flex:五排": 4,
+            "normal_draft:匹配": 51,
+            "normal_draft:匹配模式": 0,
+            "normal_draft:普通匹配": 0,
+            "normal_draft:征召": 2,
+            "aram:大乱斗": 54,
+            "aram:极地大乱斗": 0,
+            "aram:乱斗": 69,
+            "aram_mayhem:海克斯大乱斗": 13,
+            "aram_mayhem:海克斯乱斗": 6,
+            "aram_mayhem:海克斯": 24,
+            "arena:斗魂竞技场": 17,
+            "arena:斗魂": 37,
+            "arena:竞技场": 18
+          },
+          "rank": {
+            "iron:黑铁": 5,
+            "bronze:青铜": 9,
+            "silver:白银": 7,
+            "gold:黄金": 7,
+            "platinum:铂金": 5,
+            "platinum:白金": 3,
+            "emerald:翡翠": 4,
+            "diamond:钻石": 4,
+            "diamond:钻": 6,
+            "master:大师": 5,
+            "grandmaster:宗师": 1,
+            "challenger:王者": 2,
+            "challenger:最强王者": 2
+          },
+          "role": {
+            "top:上单": 23,
+            "top:上路": 12,
+            "jungle:打野": 24,
+            "mid:中单": 22,
+            "mid:中路": 10,
+            "adc:ADC": 3,
+            "adc:射手": 2,
+            "adc:下路": 15,
+            "adc:AD": 23,
+            "support:辅助": 19,
+            "support:软辅": 8,
+            "support:硬辅": 0
+          },
+          "service_type": {
+            "climb:上分": 37,
+            "climb:冲分": 18,
+            "climb:带飞": 21,
+            "casual:娱乐": 44,
+            "casual:休闲": 0,
+            "casual:陪玩": 66,
+            "coaching:教学": 24,
+            "coaching:教练": 0,
+            "coaching:复盘": 13,
+            "coaching:带教": 15
+          },
+          "gender": {
+            "female:女": 14,
+            "female:小姐姐": 61,
+            "female:妹子": 18,
+            "male:男": 15,
+            "male:小哥哥": 44
+          }
+        },
+        "unseen": [
+          "game_mode.ranked_solo_duo:单排",
+          "game_mode.ranked_flex:灵活排位",
+          "game_mode.normal_draft:匹配模式",
+          "game_mode.normal_draft:普通匹配",
+          "game_mode.aram:极地大乱斗",
+          "role.support:硬辅",
+          "service_type.casual:休闲",
+          "service_type.coaching:教练"
+        ]
+      }
+    }
+  }
+}
