@@ -1,0 +1,48 @@
+{
+  "name": "rift_dpo_rule_v1",
+  "num_pairs": 1084,
+  "num_samples": 1084,
+  "prompt_sha256": "cf9ad121a31205283b60d92f29716f9fdc26a0f73f30deb3c0f3a49ea6e39c2d",
+  "kinds": {
+    "extra_null": 212,
+    "drop_key": 191,
+    "intent_flip": 155,
+    "value_swap": 147,
+    "name_literal": 116,
+    "any_to_null": 102,
+    "time_swallow": 56,
+    "confirm_flip": 44,
+    "any_to_absent": 32,
+    "null_to_any": 17,
+    "role_append": 12
+  },
+  "categories": {
+    "tri_state": 241,
+    "first_turn": 213,
+    "candidate_ref": 162,
+    "multi_turn": 124,
+    "consult": 96,
+    "mode_slang": 74,
+    "confirmation": 70,
+    "relative_time": 54,
+    "unrelated": 50
+  },
+  "source": {
+    "sft": "v0.4",
+    "train_samples": 1110,
+    "weights": {
+      "any_to_null": 3,
+      "null_to_any": 2,
+      "any_to_absent": 1,
+      "extra_null": 0.7,
+      "drop_key": 1.5,
+      "role_append": 3,
+      "time_swallow": 3,
+      "name_literal": 3,
+      "value_swap": 0.7,
+      "intent_flip": 2,
+      "confirm_flip": 2
+    },
+    "per_sample": 1
+  }
+}

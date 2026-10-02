@@ -1,0 +1,11 @@
+# Merge the DPO adapter (onpolicy, beta 0.1) into the merged SFT r003 0.6B model.
+model_name_or_path: training/outputs/merged/sft_0.6b_r003
+adapter_name_or_path: training/outputs/dpo_0.6b_onpolicy_b01
+template: qwen3
+finetuning_type: lora
+trust_remote_code: true
+
+export_dir: training/outputs/merged/dpo_0.6b_onpolicy_b01
+export_size: 4
+export_device: cpu
+export_legacy_format: false

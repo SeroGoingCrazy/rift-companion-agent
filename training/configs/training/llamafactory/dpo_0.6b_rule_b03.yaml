@@ -1,0 +1,46 @@
+# DPO ablation (DEV_SPEC I9): rule pairs, beta 0.3, on top of SFT r003 (0.6B, merged).
+#   llamafactory-cli train training/configs/training/llamafactory/dpo_0.6b_rule_b03.yaml
+# The reference model is the merged SFT model itself (LoRA adapter disabled).
+
+### model
+model_name_or_path: training/outputs/merged/sft_0.6b_r003
+trust_remote_code: true
+
+### method
+stage: dpo
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all
+pref_beta: 0.3
+pref_loss: sigmoid
+
+### dataset
+dataset_dir: training/data/processed/dpo/rule_v1
+dataset: rift_dpo_rule_v1
+template: qwen3
+enable_thinking: false
+cutoff_len: 2048
+overwrite_cache: true
+preprocessing_num_workers: 4
+
+### output
+output_dir: training/outputs/dpo_0.6b_rule_b03
+logging_steps: 5
+save_strategy: epoch
+save_only_model: true
+plot_loss: true
+overwrite_output_dir: true
+report_to: none
+
+### train (effective batch 16 pairs)
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+learning_rate: 5.0e-6
+num_train_epochs: 1.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true
+seed: 42
