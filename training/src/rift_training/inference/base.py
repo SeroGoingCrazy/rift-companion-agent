@@ -34,11 +34,16 @@ class TeacherResponse:
 
 
 class TeacherError(Exception):
-    """A failed Teacher call; ``retryable`` for rate limits, timeouts and 5xx."""
+    """A failed Teacher call; ``retryable`` for rate limits, timeouts and 5xx.
 
-    def __init__(self, message: str, *, retryable: bool) -> None:
+    ``fatal`` errors (no credits left, bad key) stop the whole run: every later call would
+    fail the same way.
+    """
+
+    def __init__(self, message: str, *, retryable: bool, fatal: bool = False) -> None:
         super().__init__(message)
-        self.retryable = retryable
+        self.retryable = retryable and not fatal
+        self.fatal = fatal
 
 
 class Teacher(ABC):

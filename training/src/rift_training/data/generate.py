@@ -51,6 +51,8 @@ class RunStats:
     teacher_calls: int = 0
     usage: dict[str, int] = field(default_factory=dict)
     problems: dict[str, int] = field(default_factory=dict)
+    #: The fatal error that ended the run early ("" when it ran to the end).
+    stopped: str = ""
 
     def add_usage(self, usage: dict[str, int]) -> None:
         for key, value in usage.items():
@@ -70,9 +72,14 @@ def _append(path: Path, row: dict[str, Any]) -> None:
 
 
 def done_ids(out_dir: Path) -> tuple[set[str], set[str]]:
-    """(accepted ids, ids whose latest attempt was rejected and never accepted)."""
+    """(accepted ids, ids the validator rejected and that were never accepted).
+
+    Tasks that only failed at the API (rate limits, no credits) are not "done": a rerun
+    tries them again without ``--retry-rejected``.
+    """
     accepted = {row["id"] for row in _read_jsonl(out_dir / ACCEPTED)}
-    rejected = {row["task_id"] for row in _read_jsonl(out_dir / REJECTED)} - accepted
+    latest = {row["task_id"]: row["kind"] for row in _read_jsonl(out_dir / REJECTED)}
+    rejected = {tid for tid, kind in latest.items() if kind == "validation"} - accepted
     return accepted, rejected
 
 
@@ -156,8 +163,12 @@ async def generate(
     gate = asyncio.Semaphore(concurrency)
     lock = asyncio.Lock()
 
+    stop: list[str] = []  # set by a fatal Teacher error; queued tasks are left for a rerun
+
     async def run(task: GenerationTask) -> None:
         async with gate:
+            if stop:
+                return
             started = time.perf_counter()
             try:
                 outcome, raw, used = await generate_one(
@@ -170,6 +181,11 @@ async def generate(
                     sleep=sleep,
                 )
             except TeacherError as exc:
+                if exc.fatal:
+                    stop.append(str(exc))
+                    if progress:
+                        progress(task.id, f"fatal, stopping the run: {exc}")
+                    return
                 async with lock:
                     stats.rejected_api += 1
                     _append(out_dir / REJECTED, _rejection(task, "api", [str(exc)], "", 0))
@@ -194,6 +210,7 @@ async def generate(
                 progress(task.id, status)
 
     await asyncio.gather(*(run(t) for t in pending))
+    stats.stopped = stop[0] if stop else ""
     stats.problems = dict(problems.most_common())
     stats.finished_at = datetime.now().isoformat(timespec="seconds")
     write_manifest(out_dir, stats)

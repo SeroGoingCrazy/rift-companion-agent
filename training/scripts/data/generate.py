@@ -73,6 +73,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{stats.rejected_validation} rejected, {stats.rejected_api} api errors, "
             f"{stats.skipped} skipped; tokens {stats.usage}"
         )
+        if stats.stopped:
+            print(f"STOPPED EARLY: {stats.stopped[:200]}")
+            print("rerun the same command to resume")
 
     asyncio.run(run())
     status = summarize_dir(out_dir)

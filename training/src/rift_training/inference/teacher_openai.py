@@ -89,7 +89,11 @@ class OpenAITeacher(Teacher):
             raise TeacherError(f"unreachable: {exc}", retryable=True) from exc
         if resp.status_code >= 400:
             retryable = resp.status_code in (408, 409, 429) or resp.status_code >= 500
-            raise TeacherError(f"HTTP {resp.status_code}: {resp.text[:300]}", retryable=retryable)
+            # 429 also means "out of credits"; 401 a bad key -- retrying cannot help.
+            fatal = resp.status_code == 401 or "insufficient_quota" in resp.text
+            raise TeacherError(
+                f"HTTP {resp.status_code}: {resp.text[:300]}", retryable=retryable, fatal=fatal
+            )
         try:
             data = resp.json()
             choice = data["choices"][0]
