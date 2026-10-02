@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅⬜✅⬜⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅✅✅✅✅✅⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`59 / 77`
+`61 / 77`
 
 ---
 
@@ -1029,11 +1029,12 @@ session:
 - **测试方法**：`uv run python eval/runners/run_slot_eval.py --extractor local --dataset main`。
 - **实现备注**：`llamafactory-cli export` 合并 adapter（合并后的 chat template 与官方一致）→ llama.cpp `convert_hf_to_gguf.py` 转 F16 → CPU 编译的 llama-server（WSL 没有 nvcc，CPU 推理也正是 I10 的部署场景）。新增环境变量 `LOCAL_SLOT_TIMEOUT_S` 覆盖本地抽取器超时（默认仍为 5 s）。L2 结果：DeepSeek 98.3% / 88.9%，0.6B 基座 0% / 0%（不懂协议），**0.6B SFT 73.3% / 74.1%**，**1.7B SFT 81.7% / 92.6%**（holdout 超过 DeepSeek），两者协议层均 100%；CPU F16 单次延迟 P50 0.6B 1.1 s、1.7B 2.3 s。主要错误：时间吞掉时长（"明晚八点两小时"）、一句多槽位漏抽、候选序号（"1号吧"）、非必填字段的 `any`，以及规格遗漏导致的 `game_mode: null`（训练集一条都没有）。0.6B 距 M2 门槛差约 20pp，详见 `training/experiments/r001/conclusion.md`。
 
-### I7：对比集迭代 r002–r004
+### I7：对比集迭代 r002–r004 ✅
 - **目标**：按错误分布设计对比集（复制场景并改一个条件使正确输出翻转，例如"大乱斗 + 钻石"→ 段位应被清空、"不限女"vs"要女"），每轮追加 150–250 条，重训重评；每轮写 problem/strategy/conclusion。
 - **修改文件**：`training/configs/data/contrast_v0.x.yaml`、`training/experiments/r00x/*`、`training/data/processed/sft/v0.x/`。
 - **验收标准**：0.6B 在 L2 main 通过率 ≥ DeepSeek 基线 − 5pp，holdout 通过率 ≥ 85%（首次基线出来后可修订并记录原因）。**M2**。
 - **测试方法**：同 I6。
+- **实现备注**：做了两轮对比集（r002、r003），r004 没有再做：最后几类错误各补 20–50 条仍不改，收益递减，继续按主集错误造数等于用评测集调参，于是转入 DPO（I9）。对比规格新增 `kind: contrast`（只含部分类别）和子场景级 `time_forms`；`build_sft.py` 支持合并多个 raw 目录。r002（`contrast_v0.3.yaml`，195 条：紧凑多槽位、"X小时后"对照、撤回模式、"X不X都无所谓"、序号说法、平台咨询）→ `sft/v0.3` 974 条；r003（`contrast_v0.4.yaml`，198 条：列表替换、any vs null 成对、"N号"、序号+修改、平台规则、长句服务类型/位置、"几把"对照）→ `sft/v0.4` 1170 条。L2（主集 / holdout）：0.6B 73.3% / 74.1% → 85.0% / 88.9% → 90.0% / 92.6%；1.7B 81.7% / 92.6% → 91.7% / 88.9% → 91.7% / 92.6%。**M2 在 I9 达成**：r003 再加规则扰动 DPO 后 0.6B 为 93.3% / 88.9%（SFT 单独 90.0%，差 2 条）。每轮结论见 `training/experiments/r00{2,3}/`。过程问题：第一次 r002 评测脚本在 `wsl bash -lc "... &"` 下没启动 llama-server，留下的孤儿进程与正式评测抢服务，数字作废后清理重跑；评测脚本已改为在同一次 wsl 调用中等到健康检查通过。
 
 ### I8：DPO 偏好对构造（规则扰动 + On-Policy） ✅
 - **目标**：① 规则扰动：对 chosen 做字段替换、三态混淆（`null`↔缺失↔`any`）、intent 翻转；② On-Policy：用最佳 SFT 模型在训练集上 temperature 0.7 采样 k=4，未通过评分器的输出为 rejected，Teacher 答案为 chosen；两套数据各自出数据卡。
@@ -1042,11 +1043,12 @@ session:
 - **测试方法**：`uv run python training/scripts/data/build_dpo.py --mode rule|onpolicy`。
 - **实现备注**：偏好对只取自 SFT v0.4 的 train 部分（1110 条），val 和评测集不参与；以 LLaMA-Factory sharegpt ranking 格式写出（`messages` 为线上 prompt，`chosen` 为标准答案）。① `rule_v1`：1084 对，每条 rejected 只错一处且协议合法、L2 评分器判错，扰动类型对准 SFT 三轮里修不掉的错误：`any`↔`null`↔缺失、多余的 `null`、漏键、列表替换写成追加、时间吞掉时长、候选引用照抄原文、换值、意图 / 确认翻转，按权重抽样（`extra_null` 适用面太广，权重调低）。② `onpolicy_v1`：316 对，由 r003 0.6B 在 GPU 上采样（`sample_onpolicy.py`，transformers，与训练相同的模板），用与 L2 相同的评分器（含 bge 风格匹配）判定，每条样本最多 2 个不同的错误输出。**偏离规格**：按 k=4、t=0.7 采样只得到 97 对（4440 次采样通过率 96.6%，只有 80 条样本出错，说明 SFT 已拟合训练集），因此用同一模型改为 t=1.0、k=8 重采（8880 次，通过率 94.2%，239 条样本出错），两次的统计都记入数据卡。rejected 错误类型以风格、陪玩师名字、性别、位置、段位为主，另有约 17% 是协议错误（枚举越界、多余键、非法 JSON）。采样时 16 条 prompt × k=4 会撑爆 16GB 显存，默认 batch 改为 8。
 
-### I9：DPO 消融实验
+### I9：DPO 消融实验 ✅
 - **目标**：在最佳 SFT 上训练 4 组：{rule, onpolicy} × β{0.1, 0.3}（lr 5e-6、1 epoch、sigmoid），0.6B 必做、1.7B 可选；评测 L2 main / holdout，挑最优再跑 L4。
 - **修改文件**：`training/configs/training/llamafactory/dpo_*.yaml`、`training/experiments/dpo/{ablation.md}`。
 - **验收标准**：产出消融表（SFT vs 4 组 DPO）与分析：是否提升、提升/退化集中在哪些字段、与上个项目规则扰动 DPO 无效的对照解释。无论正负结论均记录。
 - **测试方法**：同 I6。
+- **实现备注**：起点 SFT r003 0.6B（merged），LoRA DPO，单卡 batch 1 × 16（batch 2 时参考模型的全词表 log_softmax 触发 CUDA driver error）。结果（主集 / holdout）：SFT 90.0% / 92.6%；rule β0.1 与 β0.3 均为 **93.3% / 88.9%**（修好 any/null、"1号吧"、长句漏位置 3 条，新错"男生女生都行"→`"male or female"` 枚举越界与 mid→adc 2 条，β 不影响输出）；onpolicy 两组与 SFT 逐字相同（只有 20 步，loss 0.69≈ln2，没动）。最终选 rule β=0.3。L4（`--config local`）20/22，远程调用 1.41 次 / 会话（基线 4.14）；两个失败剧本（"挑战者""宗师以上"）SFT 同样失败，是段位别名问题。与上个项目的对照：这里的扰动对准 SFT 真实会犯的边界错误，rejected 协议合法，因此有效；代价是概率被推到分布外。1.7B 未做 DPO。详见 `training/experiments/dpo/ablation.md`。
 
 ### I10：量化与性能基准
 - **目标**：最终模型 merge → GGUF → F16 / Q8_0 / Q4_K_M（可选 imatrix）；llama-server 启动时预热共享前缀；在同一台 CPU 机器上测 TTFT、E2E、decode tok/s、质量（L2）——**同一次运行中对比**，避免上个项目"不同批次对比"的问题。
