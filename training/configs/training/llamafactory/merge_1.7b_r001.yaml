@@ -1,0 +1,12 @@
+# Merge the r001 LoRA adapter into Qwen3-1.7B (DEV_SPEC I6), on CPU:
+#   llamafactory-cli export training/configs/training/llamafactory/merge_1.7b_r001.yaml
+model_name_or_path: Qwen/Qwen3-1.7B
+adapter_name_or_path: training/outputs/sft_1.7b_r001
+template: qwen3
+finetuning_type: lora
+trust_remote_code: true
+
+export_dir: training/outputs/merged/sft_1.7b_r001
+export_size: 4
+export_device: cpu
+export_legacy_format: false
