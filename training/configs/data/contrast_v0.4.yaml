@@ -1,0 +1,173 @@
+# Contrast set r003 (DEV_SPEC I7): add-on to SFT v0.3, built from the r002 L2 errors
+# (training/experiments/r002/conclusion.md). Hint examples avoid the L2 eval wordings.
+#
+#   role_replace         "X 不要了改 Y": the new list replaces the old one
+#   any_vs_null          "没要求/不挑" ("any") next to "先不定/回头再说" (null) in one sentence
+#   plain_any            "没要求/不挑/无所谓" alone -> "any", never null
+#   mode_soft_withdraw   "模式还没想好" -> game_mode: null even without a "withdraw" verb
+#   hao_number           "N号" -> the exact candidate name
+#   ordinal_then_change  pick by position, then change another slot after a comma
+#   platform_policy      payment deadline, lateness, swaps, invoices -> consult
+#   dense_service_role   "带飞/上分" (service) + "约个打野" (role) inside a dense sentence
+#   rounds_vs_duration   "来几把/打几局" is not a duration
+
+version: v0.4c
+kind: contrast
+total: 200
+seed: 20261003
+now:
+  start: 2026-10-01
+  days: 21            # conversations happen over three weeks (all weekdays covered)
+  hours: [9, 23]      # inclusive; minutes are 00 / 15 / 30 / 45
+
+# Surface styles of the user's wording (说法风格). Variants and categories may override weights.
+styles:
+  standard:
+    weight: 0.30
+    hint: 规范书面的中文，完整句子。
+  colloquial:
+    weight: 0.30
+    hint: 口语化，带语气词、省略主语、倒装或碎句，如"整个双排呗""那就俩小时吧"。
+  slang:
+    weight: 0.15
+    hint: 玩家黑话和简称，如"双排""上分""带飞""软辅""野王""峡谷"。
+  typo:
+    weight: 0.10
+    hint: 含一两处常见错别字或同音字（如"晚尚""砖石""辅主"），但意思仍明确，不影响槽位判断。
+  mixed_en:
+    weight: 0.15
+    hint: 中英混杂或拼音缩写，如"打 jg""辅助位""ad""duo 一下""rank""xjj"。
+
+# How often each game mode is the conversation's mode (also restricts which slots apply:
+# rank only for ranked modes, no rank / role in ARAM-like modes, per config/domain.yaml).
+modes:
+  ranked_solo_duo: 0.30
+  ranked_flex: 0.12
+  normal_draft: 0.18
+  aram: 0.18
+  aram_mayhem: 0.10
+  arena: 0.12
+
+# Weights for randomly picked slots. 0 = never picked at random (only via `require` or an
+# explicit `pool`).
+field_weights:
+  game_mode: 3.0
+  start_time_expr: 3.0
+  duration_hours: 2.5
+  rank_requirement: 1.5
+  role_preference: 1.2
+  service_type: 0.8
+  companion_gender: 1.2
+  voice_required: 0.8
+  budget_per_hour: 0.8
+  style_preference: 1.0
+  companion_name: 0
+
+categories:
+  first_turn:
+    quota: 0.15
+    history_turns: [0, 0]
+    styles: {standard: 0.1, colloquial: 0.5, slang: 0.25, typo: 0.1, mixed_en: 0.05}
+    variants:
+      dense_service_role:
+        weight: 0.67
+        hint: 一句话里用"带飞/冲分/上分/带带我/教学/娱乐局"表达服务类型，用"约个打野/找个会辅助的/要个中单"表达对陪玩师位置的要求，再加上模式、时间、时长中的几项，写得紧凑。服务类型和位置都要抽出来。
+        require: [service_type, role_preference]
+        value: {count: [2, 4]}
+        modes: {ranked_solo_duo: 0.5, ranked_flex: 0.25, normal_draft: 0.25}
+      rounds_vs_duration:
+        weight: 0.33
+        hint: 用户既说了"来几把/打几局/玩三盘"，又另外说了时长（如"打一个半小时"）。"几把/几局"只是局数，不是时长，duration_hours 只按"X小时"填。
+        require: [game_mode, duration_hours]
+        value: {count: [0, 1]}
+
+  multi_turn:
+    quota: 0.10
+    history_turns: [1, 3]
+    variants:
+      role_replace:
+        weight: 1.0
+        hint: 已有位置要求，用户把其中的位置换掉（"上单不要了改中路""ad 别要了换成辅助"），role_preference 输出换完之后的完整列表，被换掉的位置不能保留。
+        require_state: [game_mode, role_preference]
+        state: {count: [0, 2]}
+        modify: {count: [1, 1], pool: [role_preference]}
+        modes: {ranked_solo_duo: 0.45, ranked_flex: 0.25, normal_draft: 0.30}
+
+  tri_state:
+    quota: 0.35
+    history_turns: [1, 3]
+    variants:
+      any_vs_null:
+        weight: 0.50
+        hint: 一句话里一项用"没要求/不挑/随便/无所谓"表示不限（值为 "any"），另一项用"先不定/回头再说/先空着"撤回（值为 null）。两者一定要区分："没要求"是 any，"先不定"才是 null。
+        state: {count: [2, 4]}
+        any:
+          count: [1, 1]
+          pool: [style_preference, companion_gender, voice_required, budget_per_hour]
+        withdraw:
+          count: [1, 1]
+          pool: [start_time_expr, duration_hours, style_preference, companion_gender, voice_required, budget_per_hour]
+      plain_any:
+        weight: 0.21
+        hint: 用户只用"没要求/不挑/都行/无所谓/随你"说某个非必填项不限，值为 "any"——不是 null，也不能省略这个键。
+        state: {count: [1, 3]}
+        any:
+          count: [1, 1]
+          pool: [style_preference, companion_gender, voice_required, budget_per_hour]
+      mode_soft_withdraw:
+        weight: 0.29
+        hint: 用户说模式还没想好、待会儿再说（"模式还没想好""玩哪个模式待会儿说""先不说模式"），不用"撤回/取消"这类词，也表示把已定的模式撤回，game_mode 为 null。
+        require_state: [game_mode]
+        state: {count: [1, 3]}
+        withdraw: {count: [1, 1], pool: [game_mode]}
+
+  candidate_ref:
+    quota: 0.25
+    history_turns: [1, 2]
+    styles: {standard: 0.1, colloquial: 0.55, slang: 0.15, typo: 0.1, mixed_en: 0.1}
+    variants:
+      hao_number:
+        weight: 0.5
+        hint: 用"N号""N号呗""要N号的""N号那个"挑候选，只说编号不说名字，句子很短。companion_name 输出 candidates 中第 N 位的确切名字，不要照抄"N号"。
+        candidates: [2, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode]
+        require: [companion_name]
+      ordinal_then_change:
+        weight: 0.5
+        hint: 先用"第N个/N号"选人，逗号后紧接着改另一项（如"要第二个，改成周日下午""4号，时长两个半小时"），选人和改动都要抽出来。
+        candidates: [2, 4]
+        state: {count: [2, 4]}
+        require_state: [game_mode]
+        require: [companion_name]
+        modify: {count: [1, 1]}
+
+  consult:
+    quota: 0.15
+    history_turns: [1, 2]
+    variants:
+      platform_policy:
+        weight: 1.0
+        hint: 预约中插话问平台规则，例如付款要在多长时间内完成、陪玩师放鸽子或晚到怎么处理、开局后能不能换人、能不能开发票、退款几天到账。turn_intent=consult，delta 为空——这类问题既不是预约信息，也不是无关闲聊。
+        turn_intent: consult
+        state: {count: [1, 4]}
+
+# Target-value distributions (rift_training.data.targets).
+values:
+  rank_requirement: {iron: 0.6, bronze: 0.8, silver: 1.0, gold: 1.2, platinum: 1.2, emerald: 1.0, diamond: 1.2, master: 0.8, grandmaster: 0.5, challenger: 0.4}
+  duration_hours: {1: 1.5, 1.5: 1.0, 2: 2.0, 2.5: 1.0, 3: 1.5, 3.5: 0.5, 4: 1.0, 4.5: 0.2, 5: 0.5, 6: 0.3, 7: 0.1, 8: 0.2}
+  roles: {top: 1, jungle: 1, mid: 1, adc: 1, support: 1}
+  role_count: {1: 0.65, 2: 0.3, 3: 0.05}
+  service_type: {climb: 1.0, casual: 1.0, coaching: 0.8}
+  companion_gender: {female: 0.6, male: 0.4}
+  voice_required: {true: 0.7, false: 0.3}
+  budget_per_hour: {30: 0.6, 40: 0.8, 50: 1.0, 60: 1.0, 70: 0.8, 80: 1.0, 100: 0.8, 120: 0.6, 150: 0.4, 200: 0.3}
+  style_themes: [温柔耐心, 幽默搞笑, 安静少话, 技术流会指挥, 会讲解思路, 活泼话多, 脾气好不骂人, 高冷大神范, 情绪稳定, 会夸人, 二次元, 节奏快, 佛系, 爱聊天, 细心会复盘, 有梗]
+  time:
+    forms: {relative_day: 0.45, weekday: 0.2, next_week: 0.1, digits: 0.15, after: 0.1}
+    hours: {10: 0.3, 12: 0.3, 13: 0.5, 14: 0.7, 15: 0.7, 16: 0.6, 17: 0.6, 18: 0.8, 19: 1.2, 20: 1.5, 21: 1.5, 22: 1.2, 23: 0.6}
+    minutes: {0: 0.55, 30: 0.35, 15: 0.05, 45: 0.05}
+    day_offsets: {0: 0.35, 1: 0.45, 2: 0.15, 3: 0.05}
+    after_hours: {0.5: 1.0, 1: 1.0, 1.5: 0.6, 2: 0.8, 3: 0.4}
+    shift_hours: {-1: 0.6, -0.5: 0.8, 0.5: 0.8, 1: 1.0, 1.5: 0.5, 2: 0.6}
+    modify_shift: 0.5

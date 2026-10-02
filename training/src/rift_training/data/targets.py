@@ -205,6 +205,15 @@ class TargetDrawer:
         raise KeyError(name)
 
 
+def _replace_one(rng: random.Random, spec: ValueSpec, roles: list[str]) -> list[str]:
+    """Swap one role for one the list does not have ("上单不要了改中路")."""
+    out = list(roles)
+    gone = rng.randrange(len(out))
+    fresh = [_value(r) for r in spec.roles if _value(r) not in roles]
+    out[gone] = rng.choice(fresh)
+    return out
+
+
 def _differs(a: Any, b: Any) -> bool:
     if isinstance(a, list) and isinstance(b, list):
         return set(a) != set(b)
@@ -251,6 +260,9 @@ def draw_targets(
                 variant == "shift" or rng.random() < spec.time.modify_shift
             )
             values[name] = drawer.time_target(base=base, shift=shift, forms=time_forms)
+            continue
+        if variant == "role_replace" and name == "role_preference" and name in state:
+            values[name] = _replace_one(rng, spec, state[name])
             continue
         target = drawer.value(name, num_candidates)
         for _ in range(20):  # a modified slot must change
