@@ -446,7 +446,8 @@ async def test_generate_records_rejections_and_resumes(
 
     calls = len(teacher.requests)
     again = await generate([good, bad, broken], teacher, domain, tmp_path, sleep=_no_sleep)
-    assert again.skipped == 3 and len(teacher.requests) == calls
+    # accepted and validation-rejected tasks are done; the API failure is tried again
+    assert again.skipped == 2 and len(teacher.requests) == calls + 1
 
     fixed = MockTeacher(lambda _: good_answer())
     final = await generate(
@@ -456,6 +457,37 @@ async def test_generate_records_rejections_and_resumes(
     status = summarize_dir(tmp_path)
     assert status["accepted"] == 3 and status["rejected_validation"] == 0
     assert len(json.loads((tmp_path / RUN).read_text("utf-8"))["runs"]) == 3
+
+
+@pytest.mark.unit
+async def test_fatal_errors_stop_the_run(domain: DomainConfig, tmp_path: Path) -> None:
+    tasks = [make_task(id=f"t-{i}") for i in range(6)]
+
+    def broke(_: TeacherRequest) -> dict[str, Any]:
+        raise TeacherError("HTTP 429: insufficient_quota", retryable=True, fatal=True)
+
+    teacher = MockTeacher(broke)
+    stats = await generate(tasks, teacher, domain, tmp_path, concurrency=1, sleep=_no_sleep)
+    assert len(teacher.requests) == 1  # no retries, no further tasks
+    assert stats.stopped.startswith("HTTP 429") and stats.rejected_api == 0
+    assert not (tmp_path / REJECTED).exists()
+    resumed = await generate(
+        tasks, MockTeacher(lambda _: good_answer()), domain, tmp_path, sleep=_no_sleep
+    )
+    assert resumed.accepted == 6 and resumed.stopped == ""
+
+
+@pytest.mark.unit
+async def test_openai_out_of_credits_is_fatal(monkeypatch: pytest.MonkeyPatch) -> None:
+    body = {"error": {"type": "insufficient_quota", "code": "credit_balance_exhausted"}}
+    teacher = _teacher(lambda _: httpx.Response(429, json=body), monkeypatch)
+    with pytest.raises(TeacherError) as info:
+        await teacher.generate(REQUEST)
+    assert info.value.fatal and not info.value.retryable
+    unauthorized = _teacher(lambda _: httpx.Response(401, text="bad key"), monkeypatch)
+    with pytest.raises(TeacherError) as info:
+        await unauthorized.generate(REQUEST)
+    assert info.value.fatal
 
 
 @pytest.mark.unit
