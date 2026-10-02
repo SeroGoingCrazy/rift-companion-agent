@@ -35,9 +35,9 @@ plot_loss: true
 overwrite_output_dir: true
 report_to: none
 
-### train (effective batch 16 pairs)
-per_device_train_batch_size: 2
-gradient_accumulation_steps: 8
+### train (effective batch 16 pairs; batch 2 hit "CUDA driver error: device not ready" in the full-vocab log_softmax)
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 16
 learning_rate: 5.0e-6
 num_train_epochs: 1.0
 lr_scheduler_type: cosine
