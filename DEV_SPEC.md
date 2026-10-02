@@ -589,14 +589,14 @@ session:
 | F | F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 | ✅✅✅✅✅✅✅✅✅✅ |
 | G | G1 G2 G3 G4 G5 | ✅✅✅✅✅ |
 | H | H1 H2 H3 H4 H5 | ✅✅✅✅✅ |
-| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅⬜⬜⬜⬜⬜⬜⬜⬜⬜ |
+| I | I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 | ✅✅✅✅⬜⬜⬜⬜⬜⬜⬜ |
 | J | J1 J2 J3 J4 J5 | ⬜⬜⬜⬜⬜ |
 | K | K1 K2 K3 K4 K5 | ⬜⬜⬜⬜⬜ |
 | L | L1 L2 L3 L4 | ⬜⬜⬜⬜ |
 
 ### 📈 总体进度
 
-`54 / 77`
+`56 / 77`
 
 ---
 
@@ -1001,17 +1001,19 @@ session:
 - **测试方法**：`uv run pytest -q tests/unit/test_specs_sampler.py`。
 - **实现备注**：每个任务固定答案的"形状"：类别 / 子场景、模式、`now`、说法风格、历史轮数、候选人数、是否待确认、`current_state` 里已有哪些槽位，以及 delta 中每个键是给值、`any` 还是 `null`；Teacher 只负责写对话和具体取值，I3 的校验器按任务核对。类别和子场景数量都用最大余数法按配额分配，800 条时误差为 0；其余随机项由固定种子决定。各模式可用的字段从 `domain.yaml` 推出（段位只在排位模式，大乱斗类不出现段位和位置），哪些字段能取 `any` 从 `SlotDelta` 的类型注解推出。v0.1 配额：首轮 16%、多轮增量 14%、三态 16%、相对时间 10%、候选引用 10%、插话咨询 8%、无关 6%、确认 / 拒绝 10%、黑话 10%；按 H5 的错误分析加入了非必填字段 `any` 与 `null` 的对比、拒绝换人时 delta 为空、"声音好听"属于风格而不是 `voice_required` 三类子场景。说法风格分标准 / 口语 / 黑话 / 错别字 / 中英混杂五种。`training/scripts/data/sample_tasks.py --spec v0.1` 打印分布并可导出任务 JSONL。
 
-### I3：Teacher 生成与校验
+### I3：Teacher 生成与校验 ✅
 - **目标**：可插拔 Teacher 后端（Anthropic / OpenAI，JSON Schema 约束）；每个任务生成"上下文 + 用户话术 + 期望输出"；校验器（C2 schema + 业务一致性：如大乱斗不应输出段位、时间表达可被 C3 解析）过滤；失败样本进入 `rejected/` 附原因；并发与断点续跑。
 - **修改文件**：`rift_training/inference/{teacher_anthropic.py, teacher_openai.py}`、`data/{generate.py, validate.py}`、`training/configs/inference/*.yaml`。
 - **验收标准**：生成 v0.1 ≈ 800 条，校验通过率 ≥ 90%；API Key 只从环境变量读取。
 - **测试方法**：`uv run python training/scripts/data/generate.py --spec v0.1 --limit 20`（小样试跑）后全量。
+- **实现备注**：Teacher 用 OpenAI `gpt-5`（Chat Completions + Structured Outputs，strict JSON Schema，`reasoning_effort: low`）；没有实现 Anthropic 后端，接口保留可插拔。strict 模式下没法表示"键不出现"，所以 Teacher 不直接写 delta：每个任务按 I2 的规格动态生成 schema，Teacher 只写上下文（候选、state、history）、用户这一句和"给值"字段的取值，`any` / `null` / 不出现由代码按任务组装，三态标签由构造保证。校验器依次检查答案结构、C2 协议与 L2 一致性规则、业务一致性（时长、时间说法原样照抄且 C3 可解析、state 时间在未来、模式、候选名、修改后的值确实变了）；不通过时把问题列表发回 Teacher 重写一次。逐行写盘、断点续跑；429/5xx 退避重试，额度耗尽或鉴权失败立即停止整轮，只因 API 失败的任务下次自动重跑。v0.1（800 条，通过率 100%）人工复核发现取值严重扎堆（段位几乎全是钻石、时长一半是 2.5 小时、时间说法 208 次里只有 76 种），于是新增 specs v0.2：每个任务按分布抽取目标值（段位、时长、位置、预算、性别、语音、服务类型、候选序号、风格主题，时间给目标时刻 + 说法类型），schema 锁定可枚举的值，校验器用线上时间解析器核对时间必须解析到目标时刻。v0.2 共 795 / 800 条通过，校验通过率 99.5%，约 330 万 token。复核中还修正了 Teacher 模板：`role_preference` 是对陪玩师位置的要求（"我打下路"不算）；修复了采样依赖进程 hash seed 的问题。发现线上时间解析器不支持"往后推三十分钟"这类分钟级调整，另行跟进。
 
-### I4：覆盖审计、去重与数据卡
+### I4：覆盖审计、去重与数据卡 ✅
 - **目标**：类别 / 字段 / 三态语义 / 模式别名覆盖统计；与 L2 评测集做近似去重（embedding 相似度阈值），防止泄漏；渲染 LLaMA-Factory SFT 格式；生成数据卡（版本、数量、分布、prompt hash、Teacher 型号）。
 - **修改文件**：`data/{audit.py, dedup.py, render_sft.py, card.py}`、`training/data/processed/sft/v0.1/`。
 - **验收标准**：与评测集相似度 > 阈值的样本被剔除并记录；数据卡生成。
-- **测试方法**：`uv run python training/scripts/data/build_sft.py --version v0.1`。
+- **测试方法**：`uv run python training/scripts/data/build_sft.py --version v0.2`。
+- **实现备注**：去重分两步：训练集内部（同一句话 + 同一上下文）和与 L2 评测集（归一化后完全相同，或 bge-small-zh 余弦 ≥ 0.92）；阈值依据 v0.1 的相似度分布选定，命中的都是"确认下单""就第二个吧""改成晚一小时"这类与评测集几乎相同的短句。生成阶段不读取评测集，这里是训练数据与评测集唯一接触的地方，剔除记录写入 `removed.jsonl` 和数据卡。按类别切分 train / val（5%），渲染为 LLaMA-Factory sharegpt 格式（OpenAI 风格 `messages`：线上 system + user prompt 加标准答案），注册为 `rift_sft_v0_2_train` / `_val`。数据卡记录 prompt 与 Teacher 模板的 sha256、Teacher 型号、生成通过率、去重明细和覆盖审计（类别、子场景、风格、模式、三态字段、别名出现次数）。v0.2：795 → 去重 2 条、剔除 11 条与评测集过近 → 782 条（train 743 / val 39），提交在 `training/data/processed/sft/v0.2/`。仍未出现的别名（如"单排""极地大乱斗""硬辅""教练"）留给 I7 对比集。
 
 ### I5：SFT 训练 r001（0.6B + 1.7B）
 - **目标**：LLaMA-Factory LoRA SFT（参数见 3.7），租用 GPU 训练两个尺寸；记录训练曲线与耗时成本。
