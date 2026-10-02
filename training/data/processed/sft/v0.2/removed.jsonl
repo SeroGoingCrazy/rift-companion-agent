@@ -1,0 +1,13 @@
+{"id": "v0.2-0083", "reason": "duplicate", "of": "v0.2-0070"}
+{"id": "v0.2-0735", "reason": "duplicate", "of": "v0.2-0070"}
+{"id": "v0.2-0423", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0423", "user_input": "改成晚一小时吧", "eval_id": "main-024", "eval_input": "改成晚一小时", "similarity": 0.9734, "reason": "embedding"}}
+{"id": "v0.2-0431", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0431", "user_input": "推迟半小时吧", "eval_id": "holdout-011", "eval_input": "推迟半小时", "similarity": 0.9571, "reason": "embedding"}}
+{"id": "v0.2-0452", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0452", "user_input": "就第二个吧。", "eval_id": "main-031", "eval_input": "就第二个吧", "similarity": 1.0, "reason": "exact"}}
+{"id": "v0.2-0560", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0560", "user_input": "钻石可以和铂金一起双排吗？", "eval_id": "main-041", "eval_input": "钻石能和铂金双排吗", "similarity": 0.9444, "reason": "embedding"}}
+{"id": "v0.2-0561", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0561", "user_input": "钻和铂金能双排吗？", "eval_id": "main-041", "eval_input": "钻石能和铂金双排吗", "similarity": 0.9524, "reason": "embedding"}}
+{"id": "v0.2-0643", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0643", "user_input": "确认下单。", "eval_id": "holdout-022", "eval_input": "确定，下单", "similarity": 0.9217, "reason": "embedding"}}
+{"id": "v0.2-0646", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0646", "user_input": "行，就这个，下单吧。", "eval_id": "main-049", "eval_input": "好的，就这个，下单吧", "similarity": 0.9334, "reason": "embedding"}}
+{"id": "v0.2-0651", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0651", "user_input": "确认下单。", "eval_id": "holdout-022", "eval_input": "确定，下单", "similarity": 0.9217, "reason": "embedding"}}
+{"id": "v0.2-0652", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0652", "user_input": "确认。", "eval_id": "main-048", "eval_input": "确认", "similarity": 1.0, "reason": "exact"}}
+{"id": "v0.2-0658", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0658", "user_input": "确认下单。", "eval_id": "holdout-022", "eval_input": "确定，下单", "similarity": 0.9217, "reason": "embedding"}}
+{"id": "v0.2-0668", "reason": "eval_leak", "leak": {"sample_id": "v0.2-0668", "user_input": "确认，下单！", "eval_id": "holdout-022", "eval_input": "确定，下单", "similarity": 0.9237, "reason": "embedding"}}
