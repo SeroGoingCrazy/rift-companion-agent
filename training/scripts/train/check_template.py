@@ -33,7 +33,8 @@ def main() -> int:
     template = get_template_and_fix_tokenizer(
         tokenizer, DataArguments(template=args.template, enable_thinking=False)
     )
-    rows = [json.loads(line) for line in open(args.data, encoding="utf-8")]
+    with open(args.data, encoding="utf-8") as fh:
+        rows = [json.loads(line) for line in fh]
     if args.limit:
         rows = rows[: args.limit]
 
@@ -42,7 +43,10 @@ def main() -> int:
         system, user, assistant = row["messages"]
         prompt_ids, answer_ids = template.encode_oneturn(
             tokenizer,
-            [{"role": "user", "content": user["content"]}, {"role": "assistant", "content": assistant["content"]}],
+            [
+                {"role": "user", "content": user["content"]},
+                {"role": "assistant", "content": assistant["content"]},
+            ],
             system["content"],
         )
         official_prompt = tokenizer.apply_chat_template(
